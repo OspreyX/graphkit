@@ -46,7 +46,9 @@ namespace gk {
 		Set& operator= (const Set&) = default;
 		Set(Set&&) = default;
 		Set& operator= (Set&&) = default;
-		
+
+		bool insert(v8::Isolate* isolate, T* node) noexcept;
+
 		static gk::Set<G, T, O>* Instance(v8::Isolate* isolate, G* graph) noexcept;
 		static GK_INIT(Init);
 
@@ -54,6 +56,8 @@ namespace gk {
 		G* graph_;
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
+		static GK_METHOD(Size);
+		static GK_METHOD(Insert);
 		static GK_METHOD(NodeClassToString);
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
@@ -82,6 +86,19 @@ gk::Set<G, T, O>::~Set() {
 }
 
 template <typename G, typename T, typename O>
+bool gk::Set<G, T, O>::insert(v8::Isolate* isolate, T* node) noexcept {
+	if (!node->indexed()) {
+		graph_->insert(isolate, node);
+	}
+	if (!node->indexed()) {
+		return false;
+	}
+	return gk::RedBlackTree<T, true, std::string, O>::insert(node->hash(), node, [&](T* n) {
+		n->Ref();
+	});
+}
+
+template <typename G, typename T, typename O>
 gk::Set<G, T, O>* gk::Set<G, T, O>::Instance(v8::Isolate* isolate, G* graph) noexcept {
 	const int argc = 1;
 	v8::Local<v8::Value> argv[argc] = {graph->handle()};
@@ -98,6 +115,9 @@ GK_INIT(gk::Set<G, T, O>::Init) {
 	t->InstanceTemplate()->SetInternalFieldCount(1);
 	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter);
 	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter);
+
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
 
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -125,6 +145,26 @@ GK_METHOD(gk::Set<G, T, O>::New) {
 }
 
 template <typename G, typename T, typename O>
+GK_METHOD(gk::Set<G, T, O>::Size) {
+	GK_SCOPE();
+	auto s = node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(args.Holder());
+	GK_RETURN(GK_NUMBER(s->size()));
+}
+
+template <typename G, typename T, typename O>
+GK_METHOD(gk::Set<G, T, O>::Insert) {
+	GK_SCOPE();
+
+	if (!args[0]->IsObject()) {
+		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
+	}
+
+	auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
+	auto s = node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(args.Holder());
+	GK_RETURN(GK_BOOLEAN(s->insert(isolate, n)));
+}
+
+template <typename G, typename T, typename O>
 GK_INDEX_GETTER(gk::Set<G, T, O>::IndexGetter) {
 	GK_SCOPE();
 	auto i = node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(args.Holder());
@@ -149,8 +189,6 @@ GK_INDEX_DELETER(gk::Set<G, T, O>::IndexDeleter) {
 template <typename G, typename T, typename O>
 GK_PROPERTY_GETTER(gk::Set<G, T, O>::PropertyGetter) {
 	GK_SCOPE();
-//	v8::String::Utf8Value p(property);
-//	auto i = node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(args.Holder());
 }
 
 template <typename G, typename T, typename O>

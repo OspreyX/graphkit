@@ -183,7 +183,7 @@ template <typename T, typename K, typename O>
 GK_METHOD(gk::Graph<T, K, O>::Insert) {
 	GK_SCOPE();
 
-	if (0 == args.Length() || !args[0]->IsObject()) {
+	if (!args[0]->IsObject()) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 

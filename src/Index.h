@@ -197,12 +197,12 @@ template <typename T, typename K, typename O>
 GK_METHOD(gk::Index<T, K, O>::New) {
 	GK_SCOPE();
 
-	if (!args[1]->IsString()) {
-		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
-	}
-
 	if (args[0]->IsNumber() && (GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT > args[0]->IntegerValue() || GK_SYMBOL_NODE_CLASS_BOND_CONSTANT < args[0]->IntegerValue())) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct NodeClass value.]");
+	}
+
+	if (!args[1]->IsString()) {
+		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
 	}
 
 	if (args.IsConstructCall()) {
@@ -230,7 +230,7 @@ template <typename T, typename K, typename O>
 GK_METHOD(gk::Index<T, K, O>::Insert) {
 	GK_SCOPE();
 
-	if (0 == args.Length() || !args[0]->IsObject()) {
+	if (!args[0]->IsObject()) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
