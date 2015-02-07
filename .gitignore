@@ -1,0 +1,13 @@
+.DS_Store
+.idea
+prog
+gk-tests*
+node_modules
+data
+build
+playground
+npm-debug.log
+uvbook
+gmon.out
+gprof.txt
+*.o
