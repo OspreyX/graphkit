@@ -23,7 +23,7 @@
 #ifndef GRAPHKIT_SRC_SET_H
 #define GRAPHKIT_SRC_SET_H
 
-#include "RedBlackTreePolicy.h"
+#include "RedBlackTree.h"
 
 namespace gk {
 	template <
@@ -31,10 +31,10 @@ namespace gk {
 		typename K = long long,
 		typename O = long long
 	>
-	class Set : public gk::RedBlackTreePolicy<T, true, K, O> {
+	class Set : public gk::RedBlackTree<T, true, K, O> {
 	public:
 		Set() noexcept
-			: gk::RedBlackTreePolicy<T, true, K, O>{} {}
+			: gk::RedBlackTree<T, true, K, O>{} {}
 		virtual ~Set() {}
 		Set(const Set&) = default;
 		Set& operator= (const Set&) = default;

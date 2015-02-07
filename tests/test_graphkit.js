@@ -355,7 +355,7 @@ console.log('\nIndex Tests\n');
 	if (count + 1 != i1.size()) {
 		console.log('Index size() test failed, Count', count + 1, 'Size', i1.size());
 	}
-	console.log('Index insert() tests passed', 'Operations', count, 'Time', Date.now() - start);
+	console.log('Index insert() tests passed', 'Operation Count', count, 'Time', Date.now() - start);
 
 	if (!i1.remove(2) || !i1.remove(e1) || count - 1 != i1.size()) {
 		console.log('Index remove() test failed');
@@ -406,7 +406,7 @@ console.log('\nCluster Tests\n');
 	if (!c1.insert(e2) || 1 != e2.id) {
 		console.log('Cluster insert(e2) test failed');
 	}
-	console.log(c1);
+
 	if (1 != c1.User.find(1).id) {
 		onsole.log('Cluster find("User", 1) test failed');
 	}
@@ -424,7 +424,7 @@ console.log('\nCluster Tests\n');
 	for (let i = count; 0 < i; --i) {
 		c1.insert(0 == i % 2 ? new Entity('User') : new Entity('Book'));
 	}
-	console.log('Cluster insert() tests passed', 'Operations', count, 'Time', Date.now() - start);
+	console.log('Cluster insert() tests passed', 'Operation Count', count, 'Time', Date.now() - start);
 
 	for (let i = c1.size() - 1; 0 <= i; --i) {
 		if (500000 != c1[i].size()) {
@@ -456,6 +456,7 @@ console.log('\nGraph Tests\n');
 		console.log('Graph size() test failed, Count', 0, 'Size', g1.size());
 	}
 
+	e1.addGroup('admin');
 	if (!g1.insert(e1) || 1 != e1.id) {
 		console.log('Graph insert(e1) test failed');
 	}
@@ -472,6 +473,10 @@ console.log('\nGraph Tests\n');
 		onsole.log('Graph find(ENTITY, "Book", 1) test failed');
 	}
 
+	if (e1.addGroup('admin') || e1.id != g1.Group['admin'].find(e1).id) {
+		console.log('Graph Group["admin"] test failed', g1.Group['admin'].find(e1));
+	}
+
 	if (!g1.remove(e1.nodeClass, e1.type, e1.id) || !g1.remove(e2)) {
 		console.log('Graph remove() test failed');
 	}
@@ -482,7 +487,7 @@ console.log('\nGraph Tests\n');
 		g1.insert(0 == i % 2 ? new Entity('User') : new Entity('Book'));
 		g1.insert(0 == i % 2 ? new Action('Bought') : new Action('Read'));
 	}
-	console.log('Graph insert() tests passed', 'Operations', g1.Entity.User.size(), 'Time', Date.now() - start);
+	console.log('Graph insert() tests passed', 'Operation Count', g1.Entity.User.size() + g1.Entity.Book.size() + g1.Action.Bought.size() + g1.Action.Read.size(), 'Time', Date.now() - start);
 
 	for (let i = g1.size() - 1; 0 <= i; --i) {
 		for (let j = g1[i].size() - 1; 0 <= j; --j) {

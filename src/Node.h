@@ -28,7 +28,7 @@
 #include "exports.h"
 #include "NodeClass.h"
 #include "ObjectWrapPolicy.h"
-#include "Set.h"
+#include "RedBlackTree.h"
 #include "Index.h"
 #include "Cluster.h"
 #include "Graph.h"
@@ -48,20 +48,23 @@ namespace gk {
 		const std::string& type() const noexcept;
 		long long id() const noexcept;
 		bool indexed() const noexcept;
-		gk::Set<std::string, std::string>* groups() noexcept;
-		gk::Set<std::string, std::string>* properties() noexcept;
+		gk::RedBlackTree<std::string, true, std::string>* groups() noexcept;
+		gk::RedBlackTree<std::string, true, std::string>* properties() noexcept;
+		gk::Graph<gk::Cluster<gk::Index<Node>>>* graph() const noexcept;
 
 	protected:
 		const gk::NodeClass nodeClass_;
 		const std::string type_;
 		long long id_;
 		bool indexed_;
-		gk::Set<std::string, std::string>* groups_;
-		gk::Set<std::string, std::string>* properties_;
+		gk::RedBlackTree<std::string, true, std::string>* groups_;
+		gk::RedBlackTree<std::string, true, std::string>* properties_;
+		gk::Graph<gk::Cluster<gk::Index<Node>>>* graph_;
 
 		void id(long long& id) noexcept;
 		void id(long long&& id) noexcept;
 		void indexed(bool indexed) noexcept;
+		void graph(v8::Isolate* isolate, gk::Graph<gk::Cluster<gk::Index<Node>>>* graph) noexcept;
 
 		static GK_METHOD(New);
 		static GK_METHOD(AddGroup);

@@ -29,7 +29,7 @@
 #include "exports.h"
 #include "symbols.h"
 #include "ObjectWrapPolicy.h"
-#include "Set.h"
+#include "RedBlackTree.h"
 #include "NodeClass.h"
 
 namespace gk {
@@ -39,7 +39,7 @@ namespace gk {
 		typename O = long long
 	>
 	class Index : public gk::ObjectWrapPolicy,
-				  public gk::Set<T, K, O> {
+				  public gk::RedBlackTree<T, true, K, O> {
 	public:
 		Index(const gk::NodeClass& nodeClass, const std::string& type) noexcept;
 		virtual ~Index();
@@ -93,7 +93,7 @@ v8::Persistent<v8::Function> gk::Index<T, K, O>::constructor_;
 template <typename T, typename K, typename O>
 gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& type) noexcept
 	: gk::ObjectWrapPolicy{},
-	  gk::Set<T, K, O>{},
+	  gk::RedBlackTree<T, true, K, O>{},
 	  nodeClass_{nodeClass},
 	  type_{type},
 	  ids_{} {}
@@ -126,7 +126,7 @@ O gk::Index<T, K, O>::decrementId() noexcept {
 template  <typename T, typename K, typename O>
 bool gk::Index<T, K, O>::insert(T* node) noexcept {
 	node->id(incrementId());
-	return gk::Set<T, K, O>::insert(node->id(), node, [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::insert(node->id(), node, [&](T* n) {
 		n->indexed(true);
 		n->Ref();
 	});
@@ -137,7 +137,7 @@ bool gk::Index<T, K, O>::remove(T* node) noexcept {
 	if (!node->indexed()) {
 		return false;
 	}
-	return gk::Set<T, K, O>::remove(node->id(), [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::remove(node->id(), [&](T* n) {
 		n->indexed(false);
 		n->Unref();
 	});
@@ -145,7 +145,7 @@ bool gk::Index<T, K, O>::remove(T* node) noexcept {
 
 template  <typename T, typename K, typename O>
 bool gk::Index<T, K, O>::remove(const int k) noexcept {
-	return gk::Set<T, K, O>::remove(k, [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::remove(k, [&](T* n) {
 		n->indexed(false);
 		n->Unref();
 	});

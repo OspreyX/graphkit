@@ -23,7 +23,7 @@
 #ifndef GRAPHKIT_SRC_MULTISET_H
 #define GRAPHKIT_SRC_MULTISET_H
 
-#include "RedBlackTreePolicy.h"
+#include "RedBlackTree.h"
 
 namespace gk {
 	template <
@@ -31,10 +31,10 @@ namespace gk {
 		typename K = long long,
 		typename O = long long
 	>
-	class Multiset : public gk::RedBlackTreePolicy<T, false, K, O> {
+	class Multiset : public gk::RedBlackTree<T, false, K, O> {
 	public:
 		Multiset() noexcept
-			: gk::RedBlackTreePolicy<T, false, K, O>{} {}
+			: gk::RedBlackTree<T, false, K, O>{} {}
 		virtual ~Multiset() {}
 		Multiset(const Multiset&) = default;
 		Multiset& operator= (const Multiset&) = default;

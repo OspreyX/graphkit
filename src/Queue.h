@@ -23,7 +23,7 @@
 #ifndef GRAPHKIT_SRC_QUEUE_H
 #define GRAPHKIT_SRC_QUEUE_H
 
-#include "RedBlackTreePolicy.h"
+#include "RedBlackTree.h"
 
 namespace gk {
 	template <
@@ -31,10 +31,10 @@ namespace gk {
 		typename K = long long,
 		typename O = long long
 	>
-	class Queue : public gk::RedBlackTreePolicy<T, false, K, O> {
+	class Queue : public gk::RedBlackTree<T, false, K, O> {
 	public:
 		Queue() noexcept
-			: gk::RedBlackTreePolicy<T, false, K, O>{} {}
+			: gk::RedBlackTree<T, false, K, O>{} {}
 		virtual ~Queue() {}
 		Queue(const Queue&) = default;
 		Queue& operator= (const Queue&) = default;

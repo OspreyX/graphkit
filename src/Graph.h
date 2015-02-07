@@ -28,7 +28,7 @@
 #include "symbols.h"
 #include "NodeClass.h"
 #include "ObjectWrapPolicy.h"
-#include "Set.h"
+#include "RedBlackTree.h"
 
 namespace gk {
 	template <
@@ -37,7 +37,7 @@ namespace gk {
 		typename O = long long
 	>
 	class Graph : public gk::ObjectWrapPolicy,
-					public gk::Set<T, K, O> {
+				  public gk::RedBlackTree<T, true, K, O> {
 	public:
 		Graph() noexcept;
 		virtual ~Graph();
@@ -49,6 +49,7 @@ namespace gk {
 		using Cluster = T;
 
 		bool insert(v8::Isolate* isolate, typename T::Index::Node* node) noexcept;
+		bool index(v8::Isolate* isolate, gk::NodeClass nodeClass, typename T::Index::Node* node) noexcept;
 		void cleanUp() noexcept;
 
 		static gk::Graph<T, K, O>* Instance(v8::Isolate* isolate) noexcept;
@@ -80,7 +81,7 @@ v8::Persistent<v8::Function> gk::Graph<T, K, O>::constructor_;
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::Graph() noexcept
 	: gk::ObjectWrapPolicy{},
-	  gk::Set<T, K, O>{} {}
+	  gk::RedBlackTree<T, true, K, O>{} {}
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::~Graph() {
@@ -93,7 +94,21 @@ bool gk::Graph<T, K, O>::insert(v8::Isolate* isolate, typename T::Index::Node* n
 	if (!c) {
 		auto nc = node->nodeClass();
 		c = T::Instance(isolate, nc);
-		gk::Set<T, K, O>::insert(c->nodeClass(), c, [&](T* c) {
+		gk::RedBlackTree<T, true, K, O>::insert(c->nodeClass(), c, [&](T* c) {
+			c->Ref();
+		});
+	}
+	node->graph(isolate, this);
+	return c->insert(isolate, node);
+}
+
+template  <typename T, typename K, typename O>
+bool gk::Graph<T, K, O>::index(v8::Isolate* isolate, gk::NodeClass nodeClass, typename T::Index::Node* node) noexcept {
+	auto c = this->findByKey(nodeClass);
+	if (!c) {
+		auto nc = nodeClass;
+		c = T::Instance(isolate, nc);
+		gk::RedBlackTree<T, true, K, O>::insert(c->nodeClass(), c, [&](T* c) {
 			c->Ref();
 		});
 	}

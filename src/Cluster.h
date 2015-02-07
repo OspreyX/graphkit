@@ -29,7 +29,7 @@
 #include "symbols.h"
 #include "NodeClass.h"
 #include "ObjectWrapPolicy.h"
-#include "Set.h"
+#include "RedBlackTree.h"
 
 namespace gk {
 	template <
@@ -38,7 +38,7 @@ namespace gk {
 		typename O = long long
 	>
 	class Cluster : public gk::ObjectWrapPolicy,
-					public gk::Set<T, K, O> {
+					public gk::RedBlackTree<T, true, K, O> {
 	public:
 		Cluster(const gk::NodeClass& nodeClass) noexcept;
 		virtual ~Cluster();
@@ -83,7 +83,7 @@ v8::Persistent<v8::Function> gk::Cluster<T, K, O>::constructor_;
 template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>::Cluster(const gk::NodeClass& nodeClass) noexcept
 	: gk::ObjectWrapPolicy{},
-	  gk::Set<T, K, O>{},
+	  gk::RedBlackTree<T, true, K, O>{},
 	  nodeClass_{nodeClass} {}
 
 template <typename T, typename K, typename O>
@@ -103,7 +103,7 @@ bool gk::Cluster<T, K, O>::insert(v8::Isolate* isolate, typename T::Node* node) 
 		auto nc = node->nodeClass();
 		auto t = node->type();
 		i = T::Instance(isolate, nc, t);
-		gk::Set<T, K, O>::insert(i->type(), i, [&](T* i) {
+		gk::RedBlackTree<T, true, K, O>::insert(i->type(), i, [&](T* i) {
 			i->Ref();
 		});
 	}
