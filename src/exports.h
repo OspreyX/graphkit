@@ -34,6 +34,7 @@
 #define GK_METHOD(Args...) void Args(const v8::FunctionCallbackInfo<v8::Value>& args) noexcept
 
 // initializers and new statements
+#define GK_FUNCTION(VALUE) v8::Local<v8::Function>::New(isolate, VALUE)
 #define GK_TEMPLATE(Args...) v8::FunctionTemplate::New(isolate, New)
 #define GK_CONSTRUCTOR(Args...) v8::Persistent<v8::Function> Args
 #define GK_INIT(Args...) void Args(v8::Handle<v8::Object> exports, const char* symbol) noexcept

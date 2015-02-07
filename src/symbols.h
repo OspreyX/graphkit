@@ -39,6 +39,7 @@
 #define GK_SYMBOL_INDEX 							"Index"
 #define GK_SYMBOL_CLUSTER 							"Cluster"
 #define GK_SYMBOL_GRAPH 							"Graph"
+#define GK_SYMBOL_SET 								"Set"
 
 // operations
 #define GK_SYMBOL_OPERATION_NODE_CLASS 				"nodeClass"

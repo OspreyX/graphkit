@@ -25,11 +25,12 @@
 
 #include <cstring>
 #include <string>
+#include <utility>
 #include "exports.h"
 #include "symbols.h"
 #include "NodeClass.h"
-#include "ObjectWrapPolicy.h"
-#include "Set.h"
+#include "Export.h"
+#include "RedBlackTree.h"
 
 namespace gk {
 	template <
@@ -37,8 +38,8 @@ namespace gk {
 		typename K = std::string,
 		typename O = long long
 	>
-	class Cluster : public gk::ObjectWrapPolicy,
-					public gk::Set<T, K, O> {
+	class Cluster : public gk::Export,
+					public gk::RedBlackTree<T, true, K, O> {
 	public:
 		Cluster(const gk::NodeClass& nodeClass) noexcept;
 		virtual ~Cluster();
@@ -78,13 +79,13 @@ namespace gk {
 }
 
 template <typename T, typename K, typename O>
-v8::Persistent<v8::Function> gk::Cluster<T, K, O>::constructor_;
+GK_CONSTRUCTOR(gk::Cluster<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>::Cluster(const gk::NodeClass& nodeClass) noexcept
-	: gk::ObjectWrapPolicy{},
-	  gk::Set<T, K, O>{},
-	  nodeClass_{nodeClass} {}
+	: gk::Export{},
+	  gk::RedBlackTree<T, true, K, O>{},
+	  nodeClass_{std::move(nodeClass)} {}
 
 template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>::~Cluster() {
@@ -103,7 +104,7 @@ bool gk::Cluster<T, K, O>::insert(v8::Isolate* isolate, typename T::Node* node) 
 		auto nc = node->nodeClass();
 		auto t = node->type();
 		i = T::Instance(isolate, nc, t);
-		gk::Set<T, K, O>::insert(i->type(), i, [&](T* i) {
+		gk::RedBlackTree<T, true, K, O>::insert(i->type(), i, [&](T* i) {
 			i->Ref();
 		});
 	}
@@ -129,7 +130,7 @@ template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>* gk::Cluster<T, K, O>::Instance(v8::Isolate* isolate, gk::NodeClass& nodeClass) noexcept {
 	const int argc = 1;
 	v8::Local<v8::Value> argv[argc] = {GK_INTEGER(gk::NodeClassToInt(nodeClass))};
-	auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+	auto cons = GK_FUNCTION(constructor_);
 	return node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(cons->NewInstance(argc, argv));
 }
 
@@ -170,7 +171,7 @@ GK_METHOD(gk::Cluster<T, K, O>::New) {
 	} else {
 		const int argc = 1;
 		v8::Local<v8::Value> argv[argc] = {args[0]};
-		auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+		auto cons = GK_FUNCTION(constructor_);
 		GK_RETURN(cons->NewInstance(argc, argv));
 	}
 }
@@ -186,7 +187,7 @@ template <typename T, typename K, typename O>
 GK_METHOD(gk::Cluster<T, K, O>::Insert) {
 	GK_SCOPE();
 
-	if (0 == args.Length() || !args[0]->IsObject()) {
+	if (!args[0]->IsObject()) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 

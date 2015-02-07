@@ -61,7 +61,7 @@ GK_METHOD(gk::Entity::New) {
 	} else {
 		const int argc = 1;
 		v8::Local<v8::Value> argv[argc] = {args[0]};
-		auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+		auto cons = GK_FUNCTION(constructor_);
 		GK_RETURN(cons->NewInstance(argc, argv));
 	}
 }

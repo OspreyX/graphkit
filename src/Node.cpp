@@ -18,15 +18,18 @@
 
 #include "Node.h"
 #include <cstring>
+#include <cassert>
 
 gk::Node::Node(const gk::NodeClass& nodeClass, const std::string& type) noexcept
-	: gk::ObjectWrapPolicy{},
+	: gk::Export{},
 	  nodeClass_{nodeClass},
 	  type_{std::move(type)},
 	  id_{},
 	  indexed_{false},
 	  groups_{nullptr},
-	  properties_{nullptr} {}
+	  properties_{nullptr},
+	  graph_{nullptr},
+	  hash_{} {}
 
 gk::Node::~Node() {
 	if (nullptr != groups_) {
@@ -40,6 +43,9 @@ gk::Node::~Node() {
 			delete v;
 		});
 		delete properties_;
+	}
+	if (nullptr != graph_) {
+		graph_->Unref();
 	}
 }
 
@@ -67,26 +73,49 @@ bool gk::Node::indexed() const noexcept {
 	return indexed_;
 }
 
+void gk::Node::graph(v8::Isolate* isolate, gk::Graph<gk::Cluster<gk::Index<gk::Node>>>* graph) noexcept {
+	assert(graph);
+	assert(nullptr == graph_);
+	graph_ = graph;
+	graph_->Ref();
+
+	// add the node to the graph groups
+//	for (auto i = groups()->size() - 1; 0 <= i; --i) {
+//		graph_->index(isolate, GK_SYMBOL_GROUP, this);
+//	}
+}
+
 void gk::Node::indexed(bool indexed) noexcept {
 	indexed_ = indexed;
 }
 
-gk::Set<std::string, std::string>* gk::Node::groups() noexcept {
+gk::RedBlackTree<std::string, true, std::string>* gk::Node::groups() noexcept {
 	if (nullptr == groups_) {
-		groups_ = new gk::Set<std::string, std::string>{};
+		groups_ = new gk::RedBlackTree<std::string, true, std::string>{};
 	}
 	return groups_;
 }
 
-gk::Set<std::string, std::string>* gk::Node::properties() noexcept {
+gk::RedBlackTree<std::string, true, std::string>* gk::Node::properties() noexcept {
 	if (nullptr == properties_) {
-		properties_ = new gk::Set<std::string, std::string>{};
+		properties_ = new gk::RedBlackTree<std::string, true, std::string>{};
 		properties_->insert(std::string{GK_SYMBOL_OPERATION_NODE_CLASS}, new std::string{GK_SYMBOL_OPERATION_NODE_CLASS});
 		properties_->insert(std::string{GK_SYMBOL_OPERATION_ID}, new std::string{GK_SYMBOL_OPERATION_ID});
 		properties_->insert(std::string{GK_SYMBOL_OPERATION_TYPE}, new std::string{GK_SYMBOL_OPERATION_TYPE});
 		properties_->insert(std::string{GK_SYMBOL_OPERATION_INDEXED}, new std::string{GK_SYMBOL_OPERATION_INDEXED});
 	}
 	return properties_;
+}
+
+gk::Graph<gk::Cluster<gk::Index<gk::Node>>>* gk::Node::graph() const noexcept {
+	return graph_;
+}
+
+const std::string& gk::Node::hash() noexcept {
+	if (0 < id_ && hash_.empty()) {
+		hash_ = std::string{std::string(gk::NodeClassToString(nodeClass_)) + ":" + type_ + ":" + std::to_string(id_)};
+	}
+	return hash_;
 }
 
 GK_METHOD(gk::Node::AddGroup) {
