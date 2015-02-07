@@ -28,7 +28,7 @@
 #include <string>
 #include "exports.h"
 #include "symbols.h"
-#include "ObjectWrapPolicy.h"
+#include "Export.h"
 #include "RedBlackTree.h"
 #include "NodeClass.h"
 
@@ -38,7 +38,7 @@ namespace gk {
 		typename K = long long,
 		typename O = long long
 	>
-	class Index : public gk::ObjectWrapPolicy,
+	class Index : public gk::Export,
 				  public gk::RedBlackTree<T, true, K, O> {
 	public:
 		Index(const gk::NodeClass& nodeClass, const std::string& type) noexcept;
@@ -90,7 +90,7 @@ GK_CONSTRUCTOR(gk::Index<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& type) noexcept
-	: gk::ObjectWrapPolicy{},
+	: gk::Export{},
 	  gk::RedBlackTree<T, true, K, O>{},
 	  nodeClass_{std::move(nodeClass)},
 	  type_{std::move(type)},
@@ -168,7 +168,7 @@ template <typename T, typename K, typename O>
 gk::Index<T, K, O>* gk::Index<T, K, O>::Instance(v8::Isolate* isolate, gk::NodeClass& nodeClass, std::string& type) noexcept {
 	const int argc = 2;
 	v8::Local<v8::Value> argv[argc] = {GK_INTEGER(gk::NodeClassToInt(nodeClass)), GK_STRING(type.c_str())};
-	auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+	auto cons = GK_FUNCTION(constructor_);
 	return node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(cons->NewInstance(argc, argv));
 }
 
@@ -214,7 +214,7 @@ GK_METHOD(gk::Index<T, K, O>::New) {
 	} else {
 		const int argc = 2;
 		v8::Local<v8::Value> argv[argc] = {args[0], args[1]};
-		auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+		auto cons = GK_FUNCTION(constructor_);
 		GK_RETURN(cons->NewInstance(argc, argv));
 	}
 }

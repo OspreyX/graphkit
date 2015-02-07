@@ -15,32 +15,24 @@
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 *
-* Queue.h
-*
-* A Data Structure that follows the first-in first-out (FIFO) policy.
+* Export.cpp
 */
 
-#ifndef GRAPHKIT_SRC_QUEUE_H
-#define GRAPHKIT_SRC_QUEUE_H
+#include "Export.h"
 
-#include "RedBlackTree.h"
+gk::Export::Export() noexcept
+	: node::ObjectWrap{} {}
 
-namespace gk {
-	template <
-		typename T,
-		typename K = long long,
-		typename O = long long
-	>
-	class Queue : public gk::RedBlackTree<T, false, K, O> {
-	public:
-		Queue() noexcept
-			: gk::RedBlackTree<T, false, K, O>{} {}
-		virtual ~Queue() {}
-		Queue(const Queue&) = default;
-		Queue& operator= (const Queue&) = default;
-		Queue(Queue&&) = default;
-		Queue& operator= (Queue&&) = default;
-	};
+gk::Export::~Export() {}
+
+void gk::Export::Ref() noexcept {
+	node::ObjectWrap::Ref();
 }
 
-#endif
+void gk::Export::Unref() noexcept {
+	node::ObjectWrap::Unref();
+}
+
+int gk::Export::refs() const noexcept {
+	return refs_;
+}

@@ -520,8 +520,12 @@ console.log('\nSet Tests\n');
 	let e1 = new Entity('User');
 	let e2 = new Entity('User');
 
-	if (!s1.insert(e1) || s1.insert(e1) || 1 != s1.size() || g1.Entity.User[0].id != e1.id) {
+	if (!s1.insert(e1) || s1.insert(e1) || 1 != s1.size() || g1.Entity.User[0] != e1) {
 		console.log('Set insert(e1) test failed');
+	}
+
+	if (e1 != s1.find(ENTITY, 'User', 1)) {
+		console.log('Set find(ENTITY, "User", 1) test failed', s1.find(ENTITY, 'User', 1));
 	}
 
 	if (!s1.insert(e2) || 2 != s1.size() || !s1.remove(e2) || 1 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
@@ -539,5 +543,11 @@ console.log('\nSet Tests\n');
 		console.log('Set insert() stress tests passed', 'Operation Count', g1.Entity.Book.size(), 'Time', Date.now() - start);	
 	}
 
+	s1.clear();
+	s2.clear();
+	if (0 != s1.size() || 0 != s2.size()) {
+		console.log('Set clear() test failed, Count', 0, 'Size', s1.size(), s2.size());
+	}
 
+	console.log('Set tests executed');
 })();

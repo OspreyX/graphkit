@@ -26,7 +26,7 @@
 #include <string>
 #include "exports.h"
 #include "symbols.h"
-#include "ObjectWrapPolicy.h"
+#include "Export.h"
 #include "RedBlackTree.h"
 #include "NodeClass.h"
 
@@ -36,7 +36,7 @@ namespace gk {
 		typename T,
 		typename O = long long
 	>
-	class Set : public gk::ObjectWrapPolicy,
+	class Set : public gk::Export,
 				public gk::RedBlackTree<T, true, std::string, O> {
 	public:
 		explicit Set(G* graph) noexcept;
@@ -61,6 +61,8 @@ namespace gk {
 		static GK_METHOD(Size);
 		static GK_METHOD(Insert);
 		static GK_METHOD(Remove);
+		static GK_METHOD(Clear);
+		static GK_METHOD(Find);
 		static GK_METHOD(NodeClassToString);
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
@@ -77,7 +79,7 @@ GK_CONSTRUCTOR(gk::Set<G, T, O>::constructor_);
 
 template <typename G, typename T, typename O>
 gk::Set<G, T, O>::Set(G* graph) noexcept
-	: gk::ObjectWrapPolicy{},
+	: gk::Export{},
 	  gk::RedBlackTree<T, true, std::string, O>{},
 	  graph_{graph} {
 		graph_->Ref();
@@ -130,7 +132,7 @@ template <typename G, typename T, typename O>
 gk::Set<G, T, O>* gk::Set<G, T, O>::Instance(v8::Isolate* isolate, G* graph) noexcept {
 	const int argc = 1;
 	v8::Local<v8::Value> argv[argc] = {graph->handle()};
-	auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+	auto cons = GK_FUNCTION(constructor_);
 	return node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(cons->NewInstance(argc, argv));
 }
 
@@ -147,6 +149,8 @@ GK_INIT(gk::Set<G, T, O>::Init) {
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_FIND, Find);
 
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -168,7 +172,7 @@ GK_METHOD(gk::Set<G, T, O>::New) {
 	} else {
 		const int argc = 1;
 		v8::Local<v8::Value> argv[argc] = {args[0]};
-		auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+		auto cons = GK_FUNCTION(constructor_);
 		GK_RETURN(cons->NewInstance(argc, argv));
 	}
 }
@@ -214,6 +218,40 @@ GK_METHOD(gk::Set<G, T, O>::Remove) {
 
 	auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
 	GK_RETURN(GK_BOOLEAN(s->remove(n)));
+}
+
+template <typename G, typename T, typename O>
+GK_METHOD(gk::Set<G, T, O>::Clear) {
+	GK_SCOPE();
+	auto s = node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(args.Holder());
+	s->cleanUp();
+	GK_RETURN(GK_UNDEFINED());
+}
+
+template <typename G, typename T, typename O>
+GK_METHOD(gk::Set<G, T, O>::Find) {
+	GK_SCOPE();
+
+	if (args[0]->IsNumber() && (GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT > args[0]->IntegerValue() || GK_SYMBOL_NODE_CLASS_BOND_CONSTANT < args[0]->IntegerValue())) {
+		GK_EXCEPTION("[GraphKit Error: Please specify a correct NodeClass value.]");
+	}
+
+	if (!args[1]->IsString()) {
+		GK_EXCEPTION("[GraphKit Error: Please specify a correct Type value.]");
+	}
+
+	if (!args[2]->IsNumber() || 0 > args[3]->IntegerValue()) {
+		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
+	}
+
+	auto s = node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(args.Holder());
+	v8::String::Utf8Value type(args[1]->ToString());
+	auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + ":" + *type + ":" + std::to_string(args[2]->IntegerValue())};
+	auto n = s->findByKey(k);
+	if (n) {
+		GK_RETURN(n->handle());
+	}
+	GK_RETURN(GK_UNDEFINED());
 }
 
 template <typename G, typename T, typename O>

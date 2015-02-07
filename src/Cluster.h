@@ -29,7 +29,7 @@
 #include "exports.h"
 #include "symbols.h"
 #include "NodeClass.h"
-#include "ObjectWrapPolicy.h"
+#include "Export.h"
 #include "RedBlackTree.h"
 
 namespace gk {
@@ -38,7 +38,7 @@ namespace gk {
 		typename K = std::string,
 		typename O = long long
 	>
-	class Cluster : public gk::ObjectWrapPolicy,
+	class Cluster : public gk::Export,
 					public gk::RedBlackTree<T, true, K, O> {
 	public:
 		Cluster(const gk::NodeClass& nodeClass) noexcept;
@@ -83,7 +83,7 @@ GK_CONSTRUCTOR(gk::Cluster<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>::Cluster(const gk::NodeClass& nodeClass) noexcept
-	: gk::ObjectWrapPolicy{},
+	: gk::Export{},
 	  gk::RedBlackTree<T, true, K, O>{},
 	  nodeClass_{std::move(nodeClass)} {}
 
@@ -130,7 +130,7 @@ template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>* gk::Cluster<T, K, O>::Instance(v8::Isolate* isolate, gk::NodeClass& nodeClass) noexcept {
 	const int argc = 1;
 	v8::Local<v8::Value> argv[argc] = {GK_INTEGER(gk::NodeClassToInt(nodeClass))};
-	auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+	auto cons = GK_FUNCTION(constructor_);
 	return node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(cons->NewInstance(argc, argv));
 }
 
@@ -171,7 +171,7 @@ GK_METHOD(gk::Cluster<T, K, O>::New) {
 	} else {
 		const int argc = 1;
 		v8::Local<v8::Value> argv[argc] = {args[0]};
-		auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+		auto cons = GK_FUNCTION(constructor_);
 		GK_RETURN(cons->NewInstance(argc, argv));
 	}
 }

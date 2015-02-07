@@ -27,7 +27,7 @@
 #include <string>
 #include "exports.h"
 #include "NodeClass.h"
-#include "ObjectWrapPolicy.h"
+#include "Export.h"
 #include "RedBlackTree.h"
 #include "Index.h"
 #include "Cluster.h"
@@ -35,7 +35,7 @@
 
 
 namespace gk {
-	class Node : public gk::ObjectWrapPolicy {
+	class Node : public gk::Export {
 	public:
 		Node(const gk::NodeClass& nodeClass, const std::string& type) noexcept;
 		virtual ~Node();

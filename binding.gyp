@@ -9,7 +9,7 @@
 			],
 			"sources": [
 				"./src/GraphKit.cpp",
-				"./src/ObjectWrapPolicy.cpp",
+				"./src/Export.cpp",
 				"./src/Node.cpp",
 				"./src/Entity.cpp"
 			],

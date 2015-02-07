@@ -27,7 +27,7 @@
 #include "exports.h"
 #include "symbols.h"
 #include "NodeClass.h"
-#include "ObjectWrapPolicy.h"
+#include "Export.h"
 #include "RedBlackTree.h"
 #include "Set.h"
 
@@ -37,7 +37,7 @@ namespace gk {
 		typename K = gk::NodeClass,
 		typename O = long long
 	>
-	class Graph : public gk::ObjectWrapPolicy,
+	class Graph : public gk::Export,
 				  public gk::RedBlackTree<T, true, K, O> {
 	public:
 		Graph() noexcept;
@@ -82,7 +82,7 @@ GK_CONSTRUCTOR(gk::Graph<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::Graph() noexcept
-	: gk::ObjectWrapPolicy{},
+	: gk::Export{},
 	  gk::RedBlackTree<T, true, K, O>{} {}
 
 template <typename T, typename K, typename O>
@@ -129,7 +129,7 @@ template <typename T, typename K, typename O>
 gk::Graph<T, K, O>* gk::Graph<T, K, O>::Instance(v8::Isolate* isolate) noexcept {
 	const int argc = 0;
 	v8::Local<v8::Value> argv[argc] = {};
-	auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+	auto cons = GK_FUNCTION(constructor_);
 	return node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(cons->NewInstance(argc, argv));
 }
 
@@ -167,7 +167,7 @@ GK_METHOD(gk::Graph<T, K, O>::New) {
 	} else {
 		const int argc = 0;
 		v8::Local<v8::Value> argv[argc] = {};
-		auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+		auto cons = GK_FUNCTION(constructor_);
 		GK_RETURN(cons->NewInstance(argc, argv));
 	}
 }

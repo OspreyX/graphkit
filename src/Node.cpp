@@ -21,7 +21,7 @@
 #include <cassert>
 
 gk::Node::Node(const gk::NodeClass& nodeClass, const std::string& type) noexcept
-	: gk::ObjectWrapPolicy{},
+	: gk::Export{},
 	  nodeClass_{nodeClass},
 	  type_{std::move(type)},
 	  id_{},

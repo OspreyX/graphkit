@@ -1,2 +1,4 @@
 GraphKit
 ========
+
+npm install graphkit
