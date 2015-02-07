@@ -29,6 +29,7 @@
 #include "NodeClass.h"
 #include "ObjectWrapPolicy.h"
 #include "RedBlackTree.h"
+#include "Set.h"
 
 namespace gk {
 	template <
@@ -72,6 +73,7 @@ namespace gk {
 		static GK_PROPERTY_QUERY(PropertyQuery);
 		static GK_PROPERTY_DELETER(PropertyDeleter);
 		static GK_PROPERTY_ENUMERATOR(PropertyEnumerator);
+		static GK_METHOD(Set);
 	};
 }
 
@@ -146,6 +148,9 @@ GK_INIT(gk::Graph<T, K, O>::Init) {
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_FIND, Find);
+
+	// Data Structures
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_SET, Set);
 
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -332,6 +337,14 @@ GK_PROPERTY_ENUMERATOR(gk::Graph<T, K, O>::PropertyEnumerator) {
 		array->Set(i, GK_STRING(gk::NodeClassToString(node->key()).c_str()));
 	}
 	GK_RETURN(array);
+}
+
+template <typename T, typename K, typename O>
+GK_METHOD(gk::Graph<T, K, O>::Set) {
+	GK_SCOPE();
+	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
+	auto s = gk::Set<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
+	GK_RETURN(s->handle());
 }
 
 #endif

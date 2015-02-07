@@ -33,23 +33,25 @@
 
 namespace gk {
 	template <
+		typename G,
 		typename T,
 		typename O = long long
 	>
 	class Set : public gk::ObjectWrapPolicy,
 				public gk::RedBlackTree<T, true, std::string, O> {
 	public:
-		Set() noexcept;
+		explicit Set(G* graph) noexcept;
 		virtual ~Set();
 		Set(const Set&) = default;
 		Set& operator= (const Set&) = default;
 		Set(Set&&) = default;
 		Set& operator= (Set&&) = default;
 		
-		static gk::Set<T, O>* Instance(v8::Isolate* isolate) noexcept;
+		static gk::Set<G, T, O>* Instance(v8::Isolate* isolate, G* graph) noexcept;
 		static GK_INIT(Init);
 
 	private:
+		G* graph_;
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
 		static GK_METHOD(NodeClassToString);
@@ -63,27 +65,32 @@ namespace gk {
 	};
 }
 
-template <typename T, typename O>
-GK_CONSTRUCTOR(gk::Set<T, O>::constructor_);
+template <typename G, typename T, typename O>
+GK_CONSTRUCTOR(gk::Set<G, T, O>::constructor_);
 
-template <typename T, typename O>
-gk::Set<T, O>::Set() noexcept
+template <typename G, typename T, typename O>
+gk::Set<G, T, O>::Set(G* graph) noexcept
 	: gk::ObjectWrapPolicy{},
-	  gk::RedBlackTree<T, true, std::string, O>{} {}
+	  gk::RedBlackTree<T, true, std::string, O>{},
+	  graph_{graph} {
+		graph_->Ref();
+	}
 
-template <typename T, typename O>
-gk::Set<T, O>::~Set() {}
-
-template <typename T, typename O>
-gk::Set<T, O>* gk::Set<T, O>::Instance(v8::Isolate* isolate) noexcept {
-	const int argc = 0;
-	v8::Local<v8::Value> argv[argc] = {};
-	auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
-	return node::ObjectWrap::Unwrap<gk::Set<T, O>>(cons->NewInstance(argc, argv));
+template <typename G, typename T, typename O>
+gk::Set<G, T, O>::~Set() {
+	graph_->Unref();
 }
 
-template <typename T, typename O>
-GK_INIT(gk::Set<T, O>::Init) {
+template <typename G, typename T, typename O>
+gk::Set<G, T, O>* gk::Set<G, T, O>::Instance(v8::Isolate* isolate, G* graph) noexcept {
+	const int argc = 1;
+	v8::Local<v8::Value> argv[argc] = {graph->handle()};
+	auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+	return node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(cons->NewInstance(argc, argv));
+}
+
+template <typename G, typename T, typename O>
+GK_INIT(gk::Set<G, T, O>::Init) {
 	GK_SCOPE();
 
 	auto t = GK_TEMPLATE(New);
@@ -96,67 +103,72 @@ GK_INIT(gk::Set<T, O>::Init) {
 	exports->Set(GK_STRING(symbol), t->GetFunction());
 }
 
-template <typename T, typename O>
-GK_METHOD(gk::Set<T, O>::New) {
+template <typename G, typename T, typename O>
+GK_METHOD(gk::Set<G, T, O>::New) {
 	GK_SCOPE();
 
+	if (!args[0]->IsObject()) {
+		GK_EXCEPTION("[GraphKit Error: Argument 0 expects a Graph instance.]");
+	}
+
 	if (args.IsConstructCall()) {
-		auto obj = new gk::Set<T, O>{};
+		auto g = node::ObjectWrap::Unwrap<G>(args[0]->ToObject());
+		auto obj = new gk::Set<G, T, O>{g};
 		obj->Wrap(args.This());
 		GK_RETURN(args.This());
 	} else {
-		const int argc = 0;
-		v8::Local<v8::Value> argv[argc] = {};
+		const int argc = 1;
+		v8::Local<v8::Value> argv[argc] = {args[0]};
 		auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
 		GK_RETURN(cons->NewInstance(argc, argv));
 	}
 }
 
-template <typename T, typename O>
-GK_INDEX_GETTER(gk::Set<T, O>::IndexGetter) {
+template <typename G, typename T, typename O>
+GK_INDEX_GETTER(gk::Set<G, T, O>::IndexGetter) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Set<T, O>>(args.Holder());
+	auto i = node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(args.Holder());
 	if (++index > i->size()) {
 		GK_EXCEPTION("[GraphKit Error: Set out of range.]");
 	}
 	GK_RETURN(i->select(index)->handle());
 }
 
-template <typename T, typename O>
-GK_INDEX_SETTER(gk::Set<T, O>::IndexSetter) {
+template <typename G, typename T, typename O>
+GK_INDEX_SETTER(gk::Set<G, T, O>::IndexSetter) {
 	GK_SCOPE();
 	GK_EXCEPTION("[GraphKit Error: Set values may not be set.]");
 }
 
-template <typename T, typename O>
-GK_INDEX_DELETER(gk::Set<T, O>::IndexDeleter) {
+template <typename G, typename T, typename O>
+GK_INDEX_DELETER(gk::Set<G, T, O>::IndexDeleter) {
 	GK_SCOPE();
 	GK_EXCEPTION("[GraphKit Error: Set values may not be deleted.]");
 }
 
-template <typename T, typename O>
-GK_PROPERTY_GETTER(gk::Set<T, O>::PropertyGetter) {
+template <typename G, typename T, typename O>
+GK_PROPERTY_GETTER(gk::Set<G, T, O>::PropertyGetter) {
 	GK_SCOPE();
 //	v8::String::Utf8Value p(property);
-//	auto i = node::ObjectWrap::Unwrap<gk::Set<T, O>>(args.Holder());
+//	auto i = node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(args.Holder());
 }
 
-template <typename T, typename O>
-GK_PROPERTY_SETTER(gk::Set<T, O>::PropertySetter) {
+template <typename G, typename T, typename O>
+GK_PROPERTY_SETTER(gk::Set<G, T, O>::PropertySetter) {
 	GK_SCOPE();
 	GK_EXCEPTION("[GraphKit Error: Set values may not be set.]");
 }
 
-template <typename T, typename O>
-GK_PROPERTY_DELETER(gk::Set<T, O>::PropertyDeleter) {
+template <typename G, typename T, typename O>
+GK_PROPERTY_DELETER(gk::Set<G, T, O>::PropertyDeleter) {
 	GK_SCOPE();
 	GK_EXCEPTION("[GraphKit Error: Set values may not be deleted.]");
 }
 
-template <typename T, typename O>
-GK_PROPERTY_ENUMERATOR(gk::Set<T, O>::PropertyEnumerator) {
+template <typename G, typename T, typename O>
+GK_PROPERTY_ENUMERATOR(gk::Set<G, T, O>::PropertyEnumerator) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Set<T, O>>(args.Holder());
+	auto i = node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(args.Holder());
 	auto is = i->size();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {

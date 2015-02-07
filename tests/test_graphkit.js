@@ -30,6 +30,7 @@ let Bond = gk.Bond;
 let Index = gk.Index;
 let Cluster = gk.Cluster;
 let Graph = gk.Graph;
+let Set = gk.Set;
 
 console.log('\nEntity Tests\n');
 
@@ -473,9 +474,9 @@ console.log('\nGraph Tests\n');
 		onsole.log('Graph find(ENTITY, "Book", 1) test failed');
 	}
 
-	if (e1.addGroup('admin') || e1.id != g1.Group['admin'].find(e1).id) {
-		console.log('Graph Group["admin"] test failed', g1.Group['admin'].find(e1));
-	}
+	//if (e1.addGroup('admin') || e1.id != g1.Group['admin'].find(e1).id) {
+	//	console.log('Graph Group["admin"] test failed', g1.Group['admin'].find(e1));
+	//}
 
 	if (!g1.remove(e1.nodeClass, e1.type, e1.id) || !g1.remove(e2)) {
 		console.log('Graph remove() test failed');
@@ -507,4 +508,14 @@ console.log('\nGraph Tests\n');
 	}
 
 	console.log('Graph tests executed');
+})();
+
+console.log('\nSet Tests\n');
+
+// Set tests
+(function() {
+	let g1 = new Graph();
+	let s1 = new Set(g1);
+	let s2 = g1.Set();
+
 })();

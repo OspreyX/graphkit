@@ -36,11 +36,10 @@
 #define GK_SYMBOL_ENTITY 							"Entity"
 #define GK_SYMBOL_ACTION 							"Action"
 #define GK_SYMBOL_BOND 								"Bond"
-#define GK_SYMBOL_SET 								"Set"
 #define GK_SYMBOL_INDEX 							"Index"
 #define GK_SYMBOL_CLUSTER 							"Cluster"
 #define GK_SYMBOL_GRAPH 							"Graph"
-#define GK_SYMBOL_GROUP 							"Group"
+#define GK_SYMBOL_SET 								"Set"
 
 // operations
 #define GK_SYMBOL_OPERATION_NODE_CLASS 				"nodeClass"
