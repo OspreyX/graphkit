@@ -19,17 +19,17 @@
 'use strict';
 'use esnext';
 
-let graphkit = require('../build/Release/graphkit');
-const NODE = graphkit.NODE;
-const ENTITY = graphkit.ENTITY;
-const ACTION = graphkit.ACTION;
-const BOND = graphkit.BOND;
-let Entity = graphkit.Entity;
-let Action = graphkit.Action;
-let Bond = graphkit.Bond;
-let Index = graphkit.Index;
-let Cluster = graphkit.Cluster;
-let Graph = graphkit.Graph;
+let gk = require('../');
+const NODE = gk.NODE;
+const ENTITY = gk.ENTITY;
+const ACTION = gk.ACTION;
+const BOND = gk.BOND;
+let Entity = gk.Entity;
+let Action = gk.Action;
+let Bond = gk.Bond;
+let Index = gk.Index;
+let Cluster = gk.Cluster;
+let Graph = gk.Graph;
 
 // Entity tests
 (function() {
@@ -50,9 +50,12 @@ let Graph = graphkit.Graph;
 		console.log('Entity instanceof test failed');
 	}
 
-
 	if (ENTITY != e.nodeClass) {
 		console.log('Entity nodeClass test failed');
+	}
+
+	if ('Entity' != e.nodeClassToString()) {
+		console.log('Entity nodeClassToString() test failed');
 	}
 
 	if ('User' != e.type) {
@@ -83,17 +86,17 @@ let Graph = graphkit.Graph;
 		console.log('Entity hasGroup("female") test failed');
 	}
 
-	//if (!e.removeGroup('admin')) {
-	//	console.log('Entity removeGroup("admin") test failed');
-	//}
+	if (!e.removeGroup('admin')) {
+		console.log('Entity removeGroup("admin") test failed');
+	}
 
-	//if (!e.removeGroup('female')) {
-	//	console.log('Entity removeGroup("female") test failed');
-	//}
+	if (!e.removeGroup('female')) {
+		console.log('Entity removeGroup("female") test failed');
+	}
 
-	//if (0 != e.groupSize()) {
-	//	console.log('Entity groupSize() test failed');
-	//}
+	if (0 != e.groupSize()) {
+		console.log('Entity groupSize() test failed');
+	}
 
 	e['name'] = 'Eve';
 	e['age'] = 26;
@@ -117,7 +120,7 @@ let Graph = graphkit.Graph;
 		console.log('Entity remove e["age"] test failed');
 	}
 
-	console.log('Entity tests passed');
+	console.log('Entity tests executed');
 })();
 
 // Action tests
@@ -143,6 +146,10 @@ let Graph = graphkit.Graph;
 		console.log('Action nodeClass test failed');
 	}
 
+	if ('Action' != a.nodeClassToString()) {
+		console.log('Action nodeClassToString() test failed');
+	}
+
 	if ('User' != a.type) {
 		console.log('Action type test failed');
 	}
@@ -151,7 +158,61 @@ let Graph = graphkit.Graph;
 		console.log('Action id test failed');
 	}
 
-	console.log('Action tests passed');
+	if (!a.addGroup('ios')) {
+		console.log('Action addGroup("ios") test failed');
+	}
+
+	if (!a.addGroup('mobile')) {
+		console.log('Action addGroup("mobile") test failed');
+	}
+
+	if (2 != a.groupSize()) {
+		console.log('Action groupSize() test failed');
+	}
+
+	if (!a.hasGroup('ios')) {
+		console.log('Action hasGroup("ios") test failed');
+	}
+
+	if (!a.hasGroup('mobile')) {
+		console.log('Action hasGroup("mobile") test failed');
+	}
+
+	if (!a.removeGroup('ios')) {
+		console.log('Action removeGroup("ios") test failed');
+	}
+
+	if (!a.removeGroup('mobile')) {
+		console.log('Action removeGroup("mobile") test failed');
+	}
+
+	if (0 != a.groupSize()) {
+		console.log('Action groupSize() test failed');
+	}
+
+	a['campaign'] = 'holidays';
+	a['session'] = 123;
+
+	if ('holidays' != a['campaign']) {
+		console.log('Action insert e["campaign"] test failed');
+	}
+
+	if (123 != a['session']) {
+		console.log('Action insert e["session"] test failed');
+	}
+
+	delete a['campaign'];
+	delete a['session'];
+
+	if ('holidays' == a['campaign']) {
+		console.log('Action remove e["campaign"] test failed');
+	}
+
+	if (123 == a['session']) {
+		console.log('Action remove e["session"] test failed');
+	}
+
+	console.log('Action tests executed');
 })();
 
 // Bond tests
@@ -177,6 +238,10 @@ let Graph = graphkit.Graph;
 		console.log('Bond nodeClass test failed');
 	}
 
+	if ('Bond' != b.nodeClassToString()) {
+		console.log('Bond nodeClassToString() test failed');
+	}
+
 	if ('User' != b.type) {
 		console.log('Bond type test failed');
 	}
@@ -185,7 +250,61 @@ let Graph = graphkit.Graph;
 		console.log('Bond id test failed');
 	}
 
-	console.log('Bond tests passed');
+	if (!b.addGroup('family')) {
+		console.log('Bond addGroup("family") test failed');
+	}
+
+	if (!b.addGroup('cousin')) {
+		console.log('Bond addGroup("cousin") test failed');
+	}
+
+	if (2 != b.groupSize()) {
+		console.log('Bond groupSize() test failed');
+	}
+
+	if (!b.hasGroup('family')) {
+		console.log('Bond hasGroup("family") test failed');
+	}
+
+	if (!b.hasGroup('cousin')) {
+		console.log('Bond hasGroup("cousin") test failed');
+	}
+
+	if (!b.removeGroup('family')) {
+		console.log('Bond removeGroup("family") test failed');
+	}
+
+	if (!b.removeGroup('cousin')) {
+		console.log('Bond removeGroup("cousin") test failed');
+	}
+
+	if (0 != b.groupSize()) {
+		console.log('Bond groupSize() test failed');
+	}
+
+	b['confirmed'] = true;
+	b['session'] = 123;
+
+	if (true != b['confirmed']) {
+		console.log('Bond insert e["confirmed"] test failed');
+	}
+
+	if (123 != b['session']) {
+		console.log('Bond insert e["session"] test failed');
+	}
+
+	delete b['confirmed'];
+	delete b['session'];
+
+	if (true == b['confirmed']) {
+		console.log('Bond remove e["confirmed"] test failed');
+	}
+
+	if (123 == b['session']) {
+		console.log('Bond remove e["session"] test failed');
+	}
+
+	console.log('Bond tests executed');
 })();
 
 // Index tests
@@ -196,7 +315,7 @@ let Graph = graphkit.Graph;
 	let a1 = new Action('Read');
 
 	if (ENTITY != i1.nodeClass) {
-		console.log('Index nodeClass test failed - got', i1.nodeClassToString);
+		console.log('Index nodeClass test failed - got', i1.nodeClassToString());
 	}
 
 	if ('User' != i1.type) {
@@ -248,10 +367,14 @@ let Graph = graphkit.Graph;
 		onsole.log('Index find(3) test failed');
 	}
 
+	console.log(i1);
+
 	i1.clear();
 	if (0 != i1.size()) {
 		console.log('Index clear() test failed, Count', 0, 'Size', i1.size());
 	}
+
+	console.log('Index tests executed');
 })();
 
 // Cluster tests
@@ -261,7 +384,7 @@ let Graph = graphkit.Graph;
 	let e2 = new Entity('Book');
 
 	if (ENTITY != c1.nodeClass) {
-		console.log('Cluster nodeClass test failed - got', c1.nodeClassToString);
+		console.log('Cluster nodeClass test failed - got', c1.nodeClassToString());
 	}
 
 	if (0 != c1.size()) {
@@ -305,12 +428,14 @@ let Graph = graphkit.Graph;
 		}
 	}
 
+	console.log(c1);
+
 	c1.clear();
 	if (0 != c1.size()) {
 		console.log('Cluster clear() test failed, Count', 0, 'Size', c1.size());
 	}
 
-	console.log('Cluster tests passed');
+	console.log('Cluster tests executed');
 })();
 
 // Graph tests
@@ -343,33 +468,32 @@ let Graph = graphkit.Graph;
 		console.log('Graph remove() test failed');
 	}
 
-	setInterval(function() {
-		let count = 1000000;
-		let start = Date.now();
-		for (let i = count; 0 < i; --i) {
-			g1.insert(new Entity('User'));
-			//g1.insert(0 == i % 2 ? new Entity('User') : new Entity('Book'));
-			//g1.insert(0 == i % 2 ? new Action('Bought') : new Action('Read'));
+	let count = 1000000;
+	let start = Date.now();
+	for (let i = count; 0 < i; --i) {
+		g1.insert(0 == i % 2 ? new Entity('User') : new Entity('Book'));
+		g1.insert(0 == i % 2 ? new Action('Bought') : new Action('Read'));
+	}
+	console.log('Graph insert() tests passed', 'Operations', g1.Entity.User.size(), 'Time', Date.now() - start);
+
+	for (let i = g1.size() - 1; 0 <= i; --i) {
+		for (let j = g1[i].size() - 1; 0 <= j; --j) {
+			if (500000 != g1[i][j].size()) {
+				console.log('Graph iterator[] test failed');
+				break;
+			}
 		}
-		console.log('Graph insert() tests passed', 'Operations', g1[0].User.size(), 'Time', Date.now() - start);
-	}, 1000);
+		if (i == 0) {
+			console.log('Graph iterator[] test passed');
+		}
+	}
 
-	//for (let i = g1.size() - 1; 0 <= i; --i) {
-	//	for (let j = g1[i].size() - 1; 0 <= j; --j) {
-	//		if (500000 != g1[i][j].size()) {
-	//			console.log('Graph iterator[] test failed');
-	//			break;
-	//		}
-	//	}
-	//	if (i == 0) {
-	//		console.log('Graph iterator[] test passed');
-	//	}
-	//}
-	//
-	//g1.clear();
-	//if (0 != g1.size()) {
-	//	console.log('Graph clear() test failed, Count', 0, 'Size', g1.size());
-	//}
+	console.log(g1);
 
-	console.log('Graph tests passed');
+	g1.clear();
+	if (0 != g1.size()) {
+		console.log('Graph clear() test failed, Count', 0, 'Size', g1.size());
+	}
+
+	console.log('Graph tests executed');
 })();

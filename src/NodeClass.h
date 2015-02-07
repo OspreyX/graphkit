@@ -23,6 +23,7 @@
 #ifndef GRAPHKIT_SRC_NODE_CLASS_H
 #define GRAPHKIT_SRC_NODE_CLASS_H
 
+#include <cstring>
 #include <string>
 #include "symbols.h"
 
@@ -33,6 +34,19 @@ namespace gk {
 		Action,
 		Bond
 	};
+
+	inline gk::NodeClass NodeClassFromString(const char* nodeClass) noexcept {
+		if (0 == strcmp(GK_SYMBOL_ENTITY, nodeClass)) {
+			return gk::NodeClass::Entity;
+		}
+		if (0 == strcmp(GK_SYMBOL_ACTION, nodeClass)) {
+			return gk::NodeClass::Action;
+		}
+		if (0 == strcmp(GK_SYMBOL_BOND, nodeClass)) {
+			return gk::NodeClass::Bond;
+		}
+		return gk::NodeClass::Node;
+	}
 
 	inline const char* NodeClassToString(const NodeClass& nodeClass) noexcept {
 		switch (nodeClass) {

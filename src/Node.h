@@ -69,6 +69,7 @@ namespace gk {
 		static GK_METHOD(RemoveGroup);
 		static GK_METHOD(groupSize);
 		static GK_METHOD(propertySize);
+		static GK_METHOD(NodeClassToString);
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
 		static GK_INDEX_DELETER(IndexDeleter);

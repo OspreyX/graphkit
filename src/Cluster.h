@@ -52,14 +52,12 @@ namespace gk {
 		const gk::NodeClass& nodeClass() const noexcept;
 		bool insert(v8::Isolate* isolate, typename T::Node* node) noexcept;
 		void cleanUp() noexcept;
-		gk::Set<std::string, std::string>* properties() noexcept;
 
 		static gk::Cluster<T, K, O>* Instance(v8::Isolate* isolate, gk::NodeClass& nodeClass) noexcept;
 		static GK_INIT(Init);
 
 	private:
 		const gk::NodeClass nodeClass_;
-		gk::Set<std::string, std::string>* properties_;
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
@@ -68,7 +66,7 @@ namespace gk {
 		static GK_METHOD(Remove);
 		static GK_METHOD(Clear);
 		static GK_METHOD(Find);
-		static GK_METHOD(propertySize);
+		static GK_METHOD(NodeClassToString);
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
 		static GK_INDEX_DELETER(IndexDeleter);
@@ -86,20 +84,11 @@ template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>::Cluster(const gk::NodeClass& nodeClass) noexcept
 	: gk::ObjectWrapPolicy{},
 	  gk::Set<T, K, O>{},
-	  nodeClass_{nodeClass},
-	  properties_{nullptr} {
-		properties();
-	}
+	  nodeClass_{nodeClass} {}
 
 template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>::~Cluster() {
 	cleanUp();
-	if (nullptr != properties_) {
-		properties_->clear([&](std::string* v) {
-			delete v;
-		});
-		delete properties_;
-	}
 }
 
 template <typename T, typename K, typename O>
@@ -130,13 +119,10 @@ void gk::Cluster<T, K, O>::cleanUp() noexcept {
 }
 
 template  <typename T, typename K, typename O>
-gk::Set<std::string, std::string>* gk::Cluster<T, K, O>::properties() noexcept {
-	if (nullptr == properties_) {
-		properties_ = new gk::Set<std::string, std::string>{};
-		properties_->insert(std::string{GK_SYMBOL_OPERATION_NODE_CLASS}, new std::string{GK_SYMBOL_OPERATION_NODE_CLASS});
-		properties_->insert(std::string{GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING}, new std::string{GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING});
-	}
-	return properties_;
+GK_METHOD(gk::Cluster<T, K, O>::NodeClassToString) {
+	GK_SCOPE();
+	auto c = node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(args.Holder());
+	GK_RETURN(GK_STRING(gk::NodeClassToString(c->nodeClass())));
 }
 
 template <typename T, typename K, typename O>
@@ -162,7 +148,7 @@ GK_INIT(gk::Cluster<T, K, O>::Init) {
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_FIND, Find);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_SIZE, propertySize);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING, NodeClassToString);
 
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -317,59 +303,42 @@ GK_PROPERTY_GETTER(gk::Cluster<T, K, O>::PropertyGetter) {
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS)) {
 		GK_RETURN(GK_INTEGER(gk::NodeClassToInt(c->nodeClass())));
 	}
-	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
-		GK_RETURN(GK_STRING(gk::NodeClassToString(c->nodeClass())));
-	}
 	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_SIZE) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_INSERT) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_CLEAR) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_FIND)) {
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_FIND) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
 		auto v = c->findByKey(*p);
 		if (v) {
 			GK_RETURN(v->handle());
 		}
-		GK_RETURN(GK_UNDEFINED());
 	}
 }
 
 template <typename T, typename K, typename O>
 GK_PROPERTY_SETTER(gk::Cluster<T, K, O>::PropertySetter) {
 	GK_SCOPE();
-	v8::String::Utf8Value p(property);
-	v8::String::Utf8Value v(value);
-	auto c = node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(c->properties()->insert(std::string{*p}, new std::string{*v})));
+	GK_EXCEPTION("[GraphKit Error: Cluster values may not be set.]");
 }
 
 template <typename T, typename K, typename O>
 GK_PROPERTY_DELETER(gk::Cluster<T, K, O>::PropertyDeleter) {
 	GK_SCOPE();
-	v8::String::Utf8Value p(property);
-	auto c = node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(c->properties()->remove(*p, [&](std::string* v) {
-		delete v;
-	})));
+	GK_EXCEPTION("[GraphKit Error: Cluster values may not be deleted.]");
 }
 
 template <typename T, typename K, typename O>
 GK_PROPERTY_ENUMERATOR(gk::Cluster<T, K, O>::PropertyEnumerator) {
 	GK_SCOPE();
 	auto c = node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(args.Holder());
-	auto ps = c->properties()->size();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, ps);
-	for (auto i = ps - 1; 0 <= i; --i) {
-		auto node = c->properties()->node(i + 1);
+	auto cs = c->size();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, cs);
+	for (auto i = cs - 1; 0 <= i; --i) {
+		auto node = c->node(i + 1);
 		array->Set(i, GK_STRING(node->key().c_str()));
 	}
 	GK_RETURN(array);
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Cluster<T, K, O>::propertySize) {
-	GK_SCOPE();
-	auto c = node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(args.Holder());
-	GK_RETURN(GK_INTEGER(c->properties()->size()));
 }
 
 #endif

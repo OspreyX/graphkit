@@ -50,14 +50,11 @@ namespace gk {
 
 		bool insert(v8::Isolate* isolate, typename T::Index::Node* node) noexcept;
 		void cleanUp() noexcept;
-		gk::Set<std::string, std::string>* properties() noexcept;
 
 		static gk::Graph<T, K, O>* Instance(v8::Isolate* isolate) noexcept;
 		static GK_INIT(Init);
 
 	private:
-		gk::Set<std::string, std::string>* properties_;
-
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
 		static GK_METHOD(Size);
@@ -65,7 +62,6 @@ namespace gk {
 		static GK_METHOD(Remove);
 		static GK_METHOD(Clear);
 		static GK_METHOD(Find);
-		static GK_METHOD(propertySize);
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
 		static GK_INDEX_QUERY(IndexQuery);
@@ -84,18 +80,11 @@ v8::Persistent<v8::Function> gk::Graph<T, K, O>::constructor_;
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::Graph() noexcept
 	: gk::ObjectWrapPolicy{},
-	  gk::Set<T, K, O>{},
-	  properties_{nullptr} {}
+	  gk::Set<T, K, O>{} {}
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::~Graph() {
 	cleanUp();
-	if (nullptr != properties_) {
-		properties_->clear([&](std::string* v) {
-			delete v;
-		});
-		delete properties_;
-	}
 }
 
 template  <typename T, typename K, typename O>
@@ -117,14 +106,6 @@ void gk::Graph<T, K, O>::cleanUp() noexcept {
 		c->cleanUp();
 		c->Unref();
 	});
-}
-
-template  <typename T, typename K, typename O>
-gk::Set<std::string, std::string>* gk::Graph<T, K, O>::properties() noexcept {
-	if (nullptr == properties_) {
-		properties_ = new gk::Set<std::string, std::string>{};
-	}
-	return properties_;
 }
 
 template <typename T, typename K, typename O>
@@ -150,7 +131,6 @@ GK_INIT(gk::Graph<T, K, O>::Init) {
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_FIND, Find);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_SIZE, propertySize);
 
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -292,9 +272,6 @@ GK_INDEX_SETTER(gk::Graph<T, K, O>::IndexSetter) {
 }
 
 template <typename T, typename K, typename O>
-GK_INDEX_QUERY(gk::Graph<T, K, O>::IndexQuery) {}
-
-template <typename T, typename K, typename O>
 GK_INDEX_DELETER(gk::Graph<T, K, O>::IndexDeleter) {
 	GK_SCOPE();
 	GK_EXCEPTION("[GraphKit Error: Graph values may not be deleted.]");
@@ -310,51 +287,36 @@ GK_PROPERTY_GETTER(gk::Graph<T, K, O>::PropertyGetter) {
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_CLEAR) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_FIND)) {
 		auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-		auto v = g->properties()->findByKey(*p);
+		auto v = g->findByKey(gk::NodeClassFromString(*p));
 		if (v) {
-			GK_RETURN(GK_STRING((*v).c_str()));
+			GK_RETURN(v->handle());
 		}
-		GK_RETURN(GK_UNDEFINED());
 	}
 }
 
 template <typename T, typename K, typename O>
 GK_PROPERTY_SETTER(gk::Graph<T, K, O>::PropertySetter) {
 	GK_SCOPE();
-	v8::String::Utf8Value p(property);
-	v8::String::Utf8Value v(value);
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(g->properties()->insert(std::string{*p}, new std::string{*v})));
+	GK_EXCEPTION("[GraphKit Error: Graph values may not be set.]");
 }
 
 template <typename T, typename K, typename O>
 GK_PROPERTY_DELETER(gk::Graph<T, K, O>::PropertyDeleter) {
 	GK_SCOPE();
-	v8::String::Utf8Value p(property);
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(g->properties()->remove(*p, [&](std::string* v) {
-		delete v;
-	})));
+	GK_EXCEPTION("[GraphKit Error: Graph values may not be deleted.]");
 }
 
 template <typename T, typename K, typename O>
 GK_PROPERTY_ENUMERATOR(gk::Graph<T, K, O>::PropertyEnumerator) {
 	GK_SCOPE();
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto ps = g->properties()->size();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, ps);
-	for (auto i = ps - 1; 0 <= i; --i) {
-		auto node = g->properties()->node(i + 1);
-		array->Set(i, GK_STRING(node->key().c_str()));
+	auto gs = g->size();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, gs);
+	for (auto i = gs - 1; 0 <= i; --i) {
+		auto node = g->node(i + 1);
+		array->Set(i, GK_STRING(gk::NodeClassToString(node->key()).c_str()));
 	}
 	GK_RETURN(array);
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::propertySize) {
-	GK_SCOPE();
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	GK_RETURN(GK_INTEGER(g->properties()->size()));
 }
 
 #endif

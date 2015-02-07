@@ -82,7 +82,6 @@ gk::Set<std::string, std::string>* gk::Node::properties() noexcept {
 	if (nullptr == properties_) {
 		properties_ = new gk::Set<std::string, std::string>{};
 		properties_->insert(std::string{GK_SYMBOL_OPERATION_NODE_CLASS}, new std::string{GK_SYMBOL_OPERATION_NODE_CLASS});
-		properties_->insert(std::string{GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING}, new std::string{GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING});
 		properties_->insert(std::string{GK_SYMBOL_OPERATION_ID}, new std::string{GK_SYMBOL_OPERATION_ID});
 		properties_->insert(std::string{GK_SYMBOL_OPERATION_TYPE}, new std::string{GK_SYMBOL_OPERATION_TYPE});
 		properties_->insert(std::string{GK_SYMBOL_OPERATION_INDEXED}, new std::string{GK_SYMBOL_OPERATION_INDEXED});
@@ -129,6 +128,12 @@ GK_METHOD(gk::Node::groupSize) {
 	GK_RETURN(GK_INTEGER(n->groups()->size()));
 }
 
+GK_METHOD(gk::Node::NodeClassToString) {
+	GK_SCOPE();
+	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
+	GK_RETURN(GK_STRING(gk::NodeClassToString(n->nodeClass())));
+}
+
 GK_INDEX_GETTER(gk::Node::IndexGetter) {
 	GK_SCOPE();
 	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
@@ -155,9 +160,6 @@ GK_PROPERTY_GETTER(gk::Node::PropertyGetter) {
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS)) {
 		GK_RETURN(GK_INTEGER(gk::NodeClassToInt(n->nodeClass())));
 	}
-	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
-		GK_RETURN(GK_STRING(gk::NodeClassToString(n->nodeClass())));
-	}
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_TYPE)) {
 		GK_RETURN(GK_STRING(n->type().c_str()));
 	}
@@ -171,7 +173,8 @@ GK_PROPERTY_GETTER(gk::Node::PropertyGetter) {
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_HAS_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_SIZE) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_SIZE)) {
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_SIZE) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
 		auto v = n->properties()->findByKey(*p);
 		if (v) {
 			GK_RETURN(GK_STRING((*v).c_str()));
