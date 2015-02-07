@@ -15,18 +15,18 @@
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 *
-* RedBlackNodePolicy.h
+* RedBlackNode.h
 *
 * A Red-Black Node implementation using generic programming.
 */
 
-#ifndef GRAPHKIT_SRC_RED_BLACK_NODE_POLICY_H
-#define GRAPHKIT_SRC_RED_BLACK_NODE_POLICY_H
+#ifndef GRAPHKIT_SRC_RED_BLACK_NODE_H
+#define GRAPHKIT_SRC_RED_BLACK_NODE_H
 
-#include "RedBlackTreePolicy.h"
+#include "RedBlackTree.h"
 
 namespace gk {
-	template <typename, bool, typename, typename> class RedBlackTreePolicy;
+	template <typename, bool, typename, typename> class RedBlackTree;
 
 	template <
 		typename T,
@@ -34,16 +34,16 @@ namespace gk {
 		typename K = long long,
 		typename O = long long
 	>
-	class RedBlackNodePolicy {
+	class RedBlackNode {
 	public:
-		constexpr RedBlackNodePolicy() noexcept
+		constexpr RedBlackNode() noexcept
 			: parent_{this}, left_{this}, right_{this}, colour_{false}, key_{}, order_{}, data_{} {}
-		constexpr RedBlackNodePolicy(RedBlackNodePolicy* parent, RedBlackNodePolicy* nil, const K& key, T* data) noexcept
+		constexpr RedBlackNode(RedBlackNode* parent, RedBlackNode* nil, const K& key, T* data) noexcept
 			: parent_{parent}, left_{nil}, right_{nil}, colour_{true}, key_{key}, order_{1}, data_{data} {}
-		RedBlackNodePolicy(const RedBlackNodePolicy&) = default;
-		RedBlackNodePolicy& operator= (const RedBlackNodePolicy&) = default;
-		RedBlackNodePolicy(RedBlackNodePolicy&&) = default;
-		RedBlackNodePolicy& operator= (RedBlackNodePolicy&&) = default;
+		RedBlackNode(const RedBlackNode&) = default;
+		RedBlackNode& operator= (const RedBlackNode&) = default;
+		RedBlackNode(RedBlackNode&&) = default;
+		RedBlackNode& operator= (RedBlackNode&&) = default;
 
 		inline const K key() const noexcept {
 			return key_;
@@ -58,16 +58,16 @@ namespace gk {
 		}
 
 	protected:
-		~RedBlackNodePolicy() {}
-		RedBlackNodePolicy* parent_;
-		RedBlackNodePolicy* left_;
-		RedBlackNodePolicy* right_;
+		~RedBlackNode() {}
+		RedBlackNode* parent_;
+		RedBlackNode* left_;
+		RedBlackNode* right_;
 		bool colour_; // false = black, true = red
 		const K key_;
 		O order_;
 		T* data_;
 
-		friend class RedBlackTreePolicy<T, U, K, O>;
+		friend class RedBlackTree<T, U, K, O>;
 	};
 }
 

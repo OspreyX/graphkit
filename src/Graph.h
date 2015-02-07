@@ -27,7 +27,8 @@
 #include "exports.h"
 #include "symbols.h"
 #include "NodeClass.h"
-#include "ObjectWrapPolicy.h"
+#include "Export.h"
+#include "RedBlackTree.h"
 #include "Set.h"
 
 namespace gk {
@@ -36,8 +37,8 @@ namespace gk {
 		typename K = gk::NodeClass,
 		typename O = long long
 	>
-	class Graph : public gk::ObjectWrapPolicy,
-					public gk::Set<T, K, O> {
+	class Graph : public gk::Export,
+				  public gk::RedBlackTree<T, true, K, O> {
 	public:
 		Graph() noexcept;
 		virtual ~Graph();
@@ -49,6 +50,7 @@ namespace gk {
 		using Cluster = T;
 
 		bool insert(v8::Isolate* isolate, typename T::Index::Node* node) noexcept;
+		bool index(v8::Isolate* isolate, gk::NodeClass nodeClass, typename T::Index::Node* node) noexcept;
 		void cleanUp() noexcept;
 
 		static gk::Graph<T, K, O>* Instance(v8::Isolate* isolate) noexcept;
@@ -71,16 +73,17 @@ namespace gk {
 		static GK_PROPERTY_QUERY(PropertyQuery);
 		static GK_PROPERTY_DELETER(PropertyDeleter);
 		static GK_PROPERTY_ENUMERATOR(PropertyEnumerator);
+		static GK_METHOD(Set);
 	};
 }
 
 template <typename T, typename K, typename O>
-v8::Persistent<v8::Function> gk::Graph<T, K, O>::constructor_;
+GK_CONSTRUCTOR(gk::Graph<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::Graph() noexcept
-	: gk::ObjectWrapPolicy{},
-	  gk::Set<T, K, O>{} {}
+	: gk::Export{},
+	  gk::RedBlackTree<T, true, K, O>{} {}
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::~Graph() {
@@ -93,7 +96,21 @@ bool gk::Graph<T, K, O>::insert(v8::Isolate* isolate, typename T::Index::Node* n
 	if (!c) {
 		auto nc = node->nodeClass();
 		c = T::Instance(isolate, nc);
-		gk::Set<T, K, O>::insert(c->nodeClass(), c, [&](T* c) {
+		gk::RedBlackTree<T, true, K, O>::insert(c->nodeClass(), c, [&](T* c) {
+			c->Ref();
+		});
+	}
+	node->graph(isolate, this);
+	return c->insert(isolate, node);
+}
+
+template  <typename T, typename K, typename O>
+bool gk::Graph<T, K, O>::index(v8::Isolate* isolate, gk::NodeClass nodeClass, typename T::Index::Node* node) noexcept {
+	auto c = this->findByKey(nodeClass);
+	if (!c) {
+		auto nc = nodeClass;
+		c = T::Instance(isolate, nc);
+		gk::RedBlackTree<T, true, K, O>::insert(c->nodeClass(), c, [&](T* c) {
 			c->Ref();
 		});
 	}
@@ -112,7 +129,7 @@ template <typename T, typename K, typename O>
 gk::Graph<T, K, O>* gk::Graph<T, K, O>::Instance(v8::Isolate* isolate) noexcept {
 	const int argc = 0;
 	v8::Local<v8::Value> argv[argc] = {};
-	auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+	auto cons = GK_FUNCTION(constructor_);
 	return node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(cons->NewInstance(argc, argv));
 }
 
@@ -132,6 +149,9 @@ GK_INIT(gk::Graph<T, K, O>::Init) {
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_FIND, Find);
 
+	// Data Structures
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_SET, Set);
+
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
 }
@@ -147,7 +167,7 @@ GK_METHOD(gk::Graph<T, K, O>::New) {
 	} else {
 		const int argc = 0;
 		v8::Local<v8::Value> argv[argc] = {};
-		auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+		auto cons = GK_FUNCTION(constructor_);
 		GK_RETURN(cons->NewInstance(argc, argv));
 	}
 }
@@ -163,7 +183,7 @@ template <typename T, typename K, typename O>
 GK_METHOD(gk::Graph<T, K, O>::Insert) {
 	GK_SCOPE();
 
-	if (0 == args.Length() || !args[0]->IsObject()) {
+	if (!args[0]->IsObject()) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
@@ -317,6 +337,14 @@ GK_PROPERTY_ENUMERATOR(gk::Graph<T, K, O>::PropertyEnumerator) {
 		array->Set(i, GK_STRING(gk::NodeClassToString(node->key()).c_str()));
 	}
 	GK_RETURN(array);
+}
+
+template <typename T, typename K, typename O>
+GK_METHOD(gk::Graph<T, K, O>::Set) {
+	GK_SCOPE();
+	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
+	auto s = gk::Set<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
+	GK_RETURN(s->handle());
 }
 
 #endif

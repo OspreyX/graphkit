@@ -28,8 +28,8 @@
 #include <string>
 #include "exports.h"
 #include "symbols.h"
-#include "ObjectWrapPolicy.h"
-#include "Set.h"
+#include "Export.h"
+#include "RedBlackTree.h"
 #include "NodeClass.h"
 
 namespace gk {
@@ -38,8 +38,8 @@ namespace gk {
 		typename K = long long,
 		typename O = long long
 	>
-	class Index : public gk::ObjectWrapPolicy,
-				  public gk::Set<T, K, O> {
+	class Index : public gk::Export,
+				  public gk::RedBlackTree<T, true, K, O> {
 	public:
 		Index(const gk::NodeClass& nodeClass, const std::string& type) noexcept;
 		virtual ~Index();
@@ -52,10 +52,8 @@ namespace gk {
 
 		const gk::NodeClass& nodeClass() const noexcept;
 		const std::string& type() const noexcept;
-
 		O incrementId() noexcept;
 		O decrementId() noexcept;
-
 		bool insert(T* node) noexcept;
 		bool remove(T* node) noexcept;
 		bool remove(const int k) noexcept;
@@ -88,14 +86,14 @@ namespace gk {
 }
 
 template <typename T, typename K, typename O>
-v8::Persistent<v8::Function> gk::Index<T, K, O>::constructor_;
+GK_CONSTRUCTOR(gk::Index<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& type) noexcept
-	: gk::ObjectWrapPolicy{},
-	  gk::Set<T, K, O>{},
-	  nodeClass_{nodeClass},
-	  type_{type},
+	: gk::Export{},
+	  gk::RedBlackTree<T, true, K, O>{},
+	  nodeClass_{std::move(nodeClass)},
+	  type_{std::move(type)},
 	  ids_{} {}
 
 template <typename T, typename K, typename O>
@@ -126,7 +124,7 @@ O gk::Index<T, K, O>::decrementId() noexcept {
 template  <typename T, typename K, typename O>
 bool gk::Index<T, K, O>::insert(T* node) noexcept {
 	node->id(incrementId());
-	return gk::Set<T, K, O>::insert(node->id(), node, [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::insert(node->id(), node, [&](T* n) {
 		n->indexed(true);
 		n->Ref();
 	});
@@ -137,7 +135,7 @@ bool gk::Index<T, K, O>::remove(T* node) noexcept {
 	if (!node->indexed()) {
 		return false;
 	}
-	return gk::Set<T, K, O>::remove(node->id(), [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::remove(node->id(), [&](T* n) {
 		n->indexed(false);
 		n->Unref();
 	});
@@ -145,7 +143,7 @@ bool gk::Index<T, K, O>::remove(T* node) noexcept {
 
 template  <typename T, typename K, typename O>
 bool gk::Index<T, K, O>::remove(const int k) noexcept {
-	return gk::Set<T, K, O>::remove(k, [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::remove(k, [&](T* n) {
 		n->indexed(false);
 		n->Unref();
 	});
@@ -170,7 +168,7 @@ template <typename T, typename K, typename O>
 gk::Index<T, K, O>* gk::Index<T, K, O>::Instance(v8::Isolate* isolate, gk::NodeClass& nodeClass, std::string& type) noexcept {
 	const int argc = 2;
 	v8::Local<v8::Value> argv[argc] = {GK_INTEGER(gk::NodeClassToInt(nodeClass)), GK_STRING(type.c_str())};
-	auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+	auto cons = GK_FUNCTION(constructor_);
 	return node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(cons->NewInstance(argc, argv));
 }
 
@@ -199,12 +197,12 @@ template <typename T, typename K, typename O>
 GK_METHOD(gk::Index<T, K, O>::New) {
 	GK_SCOPE();
 
-	if (!args[1]->IsString()) {
-		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
-	}
-
 	if (args[0]->IsNumber() && (GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT > args[0]->IntegerValue() || GK_SYMBOL_NODE_CLASS_BOND_CONSTANT < args[0]->IntegerValue())) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct NodeClass value.]");
+	}
+
+	if (!args[1]->IsString()) {
+		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
 	}
 
 	if (args.IsConstructCall()) {
@@ -216,7 +214,7 @@ GK_METHOD(gk::Index<T, K, O>::New) {
 	} else {
 		const int argc = 2;
 		v8::Local<v8::Value> argv[argc] = {args[0], args[1]};
-		auto cons = v8::Local<v8::Function>::New(isolate, constructor_);
+		auto cons = GK_FUNCTION(constructor_);
 		GK_RETURN(cons->NewInstance(argc, argv));
 	}
 }
@@ -232,7 +230,7 @@ template <typename T, typename K, typename O>
 GK_METHOD(gk::Index<T, K, O>::Insert) {
 	GK_SCOPE();
 
-	if (0 == args.Length() || !args[0]->IsObject()) {
+	if (!args[0]->IsObject()) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 

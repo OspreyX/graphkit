@@ -30,6 +30,7 @@ let Bond = gk.Bond;
 let Index = gk.Index;
 let Cluster = gk.Cluster;
 let Graph = gk.Graph;
+let Set = gk.Set;
 
 console.log('\nEntity Tests\n');
 
@@ -355,7 +356,7 @@ console.log('\nIndex Tests\n');
 	if (count + 1 != i1.size()) {
 		console.log('Index size() test failed, Count', count + 1, 'Size', i1.size());
 	}
-	console.log('Index insert() tests passed', 'Operations', count, 'Time', Date.now() - start);
+	console.log('Index insert() stress tests passed', 'Operation Count', count, 'Time', Date.now() - start);
 
 	if (!i1.remove(2) || !i1.remove(e1) || count - 1 != i1.size()) {
 		console.log('Index remove() test failed');
@@ -406,7 +407,7 @@ console.log('\nCluster Tests\n');
 	if (!c1.insert(e2) || 1 != e2.id) {
 		console.log('Cluster insert(e2) test failed');
 	}
-	console.log(c1);
+
 	if (1 != c1.User.find(1).id) {
 		onsole.log('Cluster find("User", 1) test failed');
 	}
@@ -424,7 +425,7 @@ console.log('\nCluster Tests\n');
 	for (let i = count; 0 < i; --i) {
 		c1.insert(0 == i % 2 ? new Entity('User') : new Entity('Book'));
 	}
-	console.log('Cluster insert() tests passed', 'Operations', count, 'Time', Date.now() - start);
+	console.log('Cluster insert() stress tests passed', 'Operation Count', count, 'Time', Date.now() - start);
 
 	for (let i = c1.size() - 1; 0 <= i; --i) {
 		if (500000 != c1[i].size()) {
@@ -456,6 +457,7 @@ console.log('\nGraph Tests\n');
 		console.log('Graph size() test failed, Count', 0, 'Size', g1.size());
 	}
 
+	e1.addGroup('admin');
 	if (!g1.insert(e1) || 1 != e1.id) {
 		console.log('Graph insert(e1) test failed');
 	}
@@ -472,6 +474,10 @@ console.log('\nGraph Tests\n');
 		onsole.log('Graph find(ENTITY, "Book", 1) test failed');
 	}
 
+	//if (e1.addGroup('admin') || e1.id != g1.Group['admin'].find(e1).id) {
+	//	console.log('Graph Group["admin"] test failed', g1.Group['admin'].find(e1));
+	//}
+
 	if (!g1.remove(e1.nodeClass, e1.type, e1.id) || !g1.remove(e2)) {
 		console.log('Graph remove() test failed');
 	}
@@ -482,7 +488,7 @@ console.log('\nGraph Tests\n');
 		g1.insert(0 == i % 2 ? new Entity('User') : new Entity('Book'));
 		g1.insert(0 == i % 2 ? new Action('Bought') : new Action('Read'));
 	}
-	console.log('Graph insert() tests passed', 'Operations', g1.Entity.User.size(), 'Time', Date.now() - start);
+	console.log('Graph insert() stress tests passed', 'Operation Count', g1.Entity.User.size() + g1.Entity.Book.size() + g1.Action.Bought.size() + g1.Action.Read.size(), 'Time', Date.now() - start);
 
 	for (let i = g1.size() - 1; 0 <= i; --i) {
 		for (let j = g1[i].size() - 1; 0 <= j; --j) {
@@ -502,4 +508,46 @@ console.log('\nGraph Tests\n');
 	}
 
 	console.log('Graph tests executed');
+})();
+
+console.log('\nSet Tests\n');
+
+// Set tests
+(function() {
+	let g1 = new Graph();
+	let s1 = new Set(g1);
+	let s2 = g1.Set();
+	let e1 = new Entity('User');
+	let e2 = new Entity('User');
+
+	if (!s1.insert(e1) || s1.insert(e1) || 1 != s1.size() || g1.Entity.User[0] != e1) {
+		console.log('Set insert(e1) test failed');
+	}
+
+	if (e1 != s1.find(ENTITY, 'User', 1)) {
+		console.log('Set find(ENTITY, "User", 1) test failed', s1.find(ENTITY, 'User', 1));
+	}
+
+	if (!s1.insert(e2) || 2 != s1.size() || !s1.remove(e2) || 1 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
+		console.log('Set remove() test failed');
+	}
+
+	let count = 1000000;
+	let start = Date.now();
+	for (let i = count; 0 < i; --i) {
+		s2.insert(new Entity('Book'));
+	}
+	if (g1.Entity.Book.size() != s2.size()) {
+		console.log('Set insert stress test failed');
+	} else {
+		console.log('Set insert() stress tests passed', 'Operation Count', g1.Entity.Book.size(), 'Time', Date.now() - start);	
+	}
+
+	s1.clear();
+	s2.clear();
+	if (0 != s1.size() || 0 != s2.size()) {
+		console.log('Set clear() test failed, Count', 0, 'Size', s1.size(), s2.size());
+	}
+
+	console.log('Set tests executed');
 })();

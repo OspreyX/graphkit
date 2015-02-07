@@ -15,24 +15,32 @@
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 *
-* ObjectWrapPolicy.cpp
+* Export.h
+*
+* Base Class used for all exports for the Node.js environment.
 */
 
-#include "ObjectWrapPolicy.h"
+#ifndef GRAPHKIT_SRC_EXPORT_H
+#define GRAPHKIT_SRC_EXPORT_H
 
-gk::ObjectWrapPolicy::ObjectWrapPolicy() noexcept
-	: node::ObjectWrap{} {}
+#include "exports.h"
 
-gk::ObjectWrapPolicy::~ObjectWrapPolicy() {}
+namespace gk {
+	class Export : public node::ObjectWrap {
+	public:
+		Export() noexcept;
+		Export(const Export&) = default;
+		Export& operator= (const Export&) = default;
+		Export(Export&&) = default;
+		Export& operator= (Export&&) = default;
 
-void gk::ObjectWrapPolicy::Ref() noexcept {
-	node::ObjectWrap::Ref();
+		void Ref() noexcept;
+		void Unref() noexcept;
+		int refs() const noexcept;
+
+	protected:
+		virtual ~Export();
+	};
 }
 
-void gk::ObjectWrapPolicy::Unref() noexcept {
-	node::ObjectWrap::Unref();
-}
-
-int gk::ObjectWrapPolicy::refs() const noexcept {
-	return refs_;
-}
+#endif
