@@ -177,6 +177,12 @@ GK_PROPERTY_GETTER(gk::Node::PropertyGetter) {
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
 		auto v = n->properties()->findByKey(*p);
 		if (v) {
+			if (0 == v->compare("true")) {
+				GK_RETURN(GK_BOOLEAN(true));
+			}
+			if (0 == v->compare("false")) {
+				GK_RETURN(GK_BOOLEAN(false));
+			}
 			GK_RETURN(GK_STRING((*v).c_str()));
 		}
 		GK_RETURN(GK_UNDEFINED());

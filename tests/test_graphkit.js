@@ -31,6 +31,8 @@ let Index = gk.Index;
 let Cluster = gk.Cluster;
 let Graph = gk.Graph;
 
+console.log('\nEntity Tests\n');
+
 // Entity tests
 (function() {
 	let e;
@@ -123,6 +125,8 @@ let Graph = gk.Graph;
 	console.log('Entity tests executed');
 })();
 
+console.log('\nAction Tests\n');
+
 // Action tests
 (function() {
 	let a;
@@ -136,7 +140,7 @@ let Graph = gk.Graph;
 		console.log('Action numeric initialization test failed');
 	} catch (error) {}
 
-	a = new Action('User');
+	a = new Action('Clicked');
 
 	if (!(a instanceof Action)) {
 		console.log('Action instanceof test failed');
@@ -150,7 +154,7 @@ let Graph = gk.Graph;
 		console.log('Action nodeClassToString() test failed');
 	}
 
-	if ('User' != a.type) {
+	if ('Clicked' != a.type) {
 		console.log('Action type test failed');
 	}
 
@@ -194,26 +198,28 @@ let Graph = gk.Graph;
 	a['session'] = 123;
 
 	if ('holidays' != a['campaign']) {
-		console.log('Action insert e["campaign"] test failed');
+		console.log('Action insert a["campaign"] test failed');
 	}
 
 	if (123 != a['session']) {
-		console.log('Action insert e["session"] test failed');
+		console.log('Action insert a["session"] test failed');
 	}
 
 	delete a['campaign'];
 	delete a['session'];
 
 	if ('holidays' == a['campaign']) {
-		console.log('Action remove e["campaign"] test failed');
+		console.log('Action remove a["campaign"] test failed');
 	}
 
 	if (123 == a['session']) {
-		console.log('Action remove e["session"] test failed');
+		console.log('Action remove a["session"] test failed');
 	}
 
 	console.log('Action tests executed');
 })();
+
+console.log('\nBond Tests\n');
 
 // Bond tests
 (function() {
@@ -228,7 +234,7 @@ let Graph = gk.Graph;
 		console.log('Bond numeric initialization test failed');
 	} catch (error) {}
 
-	b = new Bond('User');
+	b = new Bond('Relationship');
 
 	if (!(b instanceof Bond)) {
 		console.log('Bond instanceof test failed');
@@ -242,7 +248,7 @@ let Graph = gk.Graph;
 		console.log('Bond nodeClassToString() test failed');
 	}
 
-	if ('User' != b.type) {
+	if ('Relationship' != b.type) {
 		console.log('Bond type test failed');
 	}
 
@@ -286,26 +292,28 @@ let Graph = gk.Graph;
 	b['session'] = 123;
 
 	if (true != b['confirmed']) {
-		console.log('Bond insert e["confirmed"] test failed');
+		console.log('Bond insert b["confirmed"] test failed');
 	}
 
 	if (123 != b['session']) {
-		console.log('Bond insert e["session"] test failed');
+		console.log('Bond insert b["session"] test failed');
 	}
 
 	delete b['confirmed'];
 	delete b['session'];
 
 	if (true == b['confirmed']) {
-		console.log('Bond remove e["confirmed"] test failed');
+		console.log('Bond remove b["confirmed"] test failed');
 	}
 
 	if (123 == b['session']) {
-		console.log('Bond remove e["session"] test failed');
+		console.log('Bond remove b["session"] test failed');
 	}
 
 	console.log('Bond tests executed');
 })();
+
+console.log('\nIndex Tests\n');
 
 // Index tests
 (function() {
@@ -367,8 +375,6 @@ let Graph = gk.Graph;
 		onsole.log('Index find(3) test failed');
 	}
 
-	console.log(i1);
-
 	i1.clear();
 	if (0 != i1.size()) {
 		console.log('Index clear() test failed, Count', 0, 'Size', i1.size());
@@ -376,6 +382,8 @@ let Graph = gk.Graph;
 
 	console.log('Index tests executed');
 })();
+
+console.log('\nCluster Tests\n');
 
 // Cluster tests
 (function() {
@@ -428,8 +436,6 @@ let Graph = gk.Graph;
 		}
 	}
 
-	console.log(c1);
-
 	c1.clear();
 	if (0 != c1.size()) {
 		console.log('Cluster clear() test failed, Count', 0, 'Size', c1.size());
@@ -437,6 +443,8 @@ let Graph = gk.Graph;
 
 	console.log('Cluster tests executed');
 })();
+
+console.log('\nGraph Tests\n');
 
 // Graph tests
 (function() {
@@ -487,8 +495,6 @@ let Graph = gk.Graph;
 			console.log('Graph iterator[] test passed');
 		}
 	}
-
-	console.log(g1);
 
 	g1.clear();
 	if (0 != g1.size()) {
