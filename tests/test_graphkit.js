@@ -518,9 +518,14 @@ console.log('\nSet Tests\n');
 	let s1 = new Set(g1);
 	let s2 = g1.Set();
 	let e1 = new Entity('User');
+	let e2 = new Entity('User');
 
-	if (!s1.insert(e1) || 1 != s1.size() || g1.Entity.User[0].id != e1.id) {
+	if (!s1.insert(e1) || s1.insert(e1) || 1 != s1.size() || g1.Entity.User[0].id != e1.id) {
 		console.log('Set insert(e1) test failed');
+	}
+
+	if (!s1.insert(e2) || 2 != s1.size() || !s1.remove(e2) || 1 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
+		console.log('Set remove() test failed');
 	}
 
 	let count = 1000000;

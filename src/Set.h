@@ -23,7 +23,6 @@
 #ifndef GRAPHKIT_SRC_SET_H
 #define GRAPHKIT_SRC_SET_H
 
-#include <cstring>
 #include <string>
 #include "exports.h"
 #include "symbols.h"
@@ -48,6 +47,9 @@ namespace gk {
 		Set& operator= (Set&&) = default;
 
 		bool insert(v8::Isolate* isolate, T* node) noexcept;
+		bool remove(T* node) noexcept;
+		bool remove(const std::string& k) noexcept;
+		void cleanUp() noexcept;
 
 		static gk::Set<G, T, O>* Instance(v8::Isolate* isolate, G* graph) noexcept;
 		static GK_INIT(Init);
@@ -58,6 +60,7 @@ namespace gk {
 		static GK_METHOD(New);
 		static GK_METHOD(Size);
 		static GK_METHOD(Insert);
+		static GK_METHOD(Remove);
 		static GK_METHOD(NodeClassToString);
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
@@ -82,6 +85,7 @@ gk::Set<G, T, O>::Set(G* graph) noexcept
 
 template <typename G, typename T, typename O>
 gk::Set<G, T, O>::~Set() {
+	cleanUp();
 	graph_->Unref();
 }
 
@@ -95,6 +99,30 @@ bool gk::Set<G, T, O>::insert(v8::Isolate* isolate, T* node) noexcept {
 	}
 	return gk::RedBlackTree<T, true, std::string, O>::insert(node->hash(), node, [&](T* n) {
 		n->Ref();
+	});
+}
+
+template <typename G, typename T, typename O>
+bool gk::Set<G, T, O>::remove(T* node) noexcept {
+	if (!node->indexed()) {
+		return false;
+	}
+	return gk::RedBlackTree<T, true, std::string, O>::remove(node->hash(), [&](T* n) {
+		n->Unref();
+	});
+}
+
+template <typename G, typename T, typename O>
+bool gk::Set<G, T, O>::remove(const std::string& k) noexcept {
+	return gk::RedBlackTree<T, true, std::string, O>::remove(k, [&](T* n) {
+		n->Unref();
+	});
+}
+
+template <typename G, typename T, typename O>
+void gk::Set<G, T, O>::cleanUp() noexcept {
+	this->clear([&](T *n) {
+		n->Unref();
 	});
 }
 
@@ -118,6 +146,7 @@ GK_INIT(gk::Set<G, T, O>::Init) {
 
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -162,6 +191,29 @@ GK_METHOD(gk::Set<G, T, O>::Insert) {
 	auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
 	auto s = node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(args.Holder());
 	GK_RETURN(GK_BOOLEAN(s->insert(isolate, n)));
+}
+
+template <typename G, typename T, typename O>
+GK_METHOD(gk::Set<G, T, O>::Remove) {
+	GK_SCOPE();
+
+	if (0 == args.Length()) {
+		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
+	}
+
+	auto s = node::ObjectWrap::Unwrap<gk::Set<G, T, O>>(args.Holder());
+	if (args[0]->IsNumber() && args[1]->IsString() && args[2]->IsNumber()) {
+		v8::String::Utf8Value type(args[1]->ToString());
+		auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + ":" + *type + ":" + std::to_string(args[2]->IntegerValue())};
+		GK_RETURN(GK_BOOLEAN(s->remove(k)));
+	}
+
+	if (!args[0]->IsObject()) {
+		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
+	}
+
+	auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
+	GK_RETURN(GK_BOOLEAN(s->remove(n)));
 }
 
 template <typename G, typename T, typename O>
