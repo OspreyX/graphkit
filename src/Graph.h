@@ -76,7 +76,7 @@ namespace gk {
 }
 
 template <typename T, typename K, typename O>
-v8::Persistent<v8::Function> gk::Graph<T, K, O>::constructor_;
+GK_CONSTRUCTOR(gk::Graph<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::Graph() noexcept

@@ -33,6 +33,7 @@
 #include "Index.h"
 #include "Cluster.h"
 #include "Graph.h"
+#include "Set.h"
 
 GK_EXPORT(GraphKit) {
 	// classes
@@ -40,6 +41,7 @@ GK_EXPORT(GraphKit) {
 	gk::Action<gk::Entity>::Init(exports, GK_SYMBOL_ACTION);
 	gk::Bond<gk::Entity>::Init(exports, GK_SYMBOL_BOND);
 	gk::Index<gk::Node>::Init(exports, GK_SYMBOL_INDEX);
+	gk::Set<gk::Node>::Init(exports, GK_SYMBOL_SET);
 	gk::Cluster<gk::Index<gk::Node>>::Init(exports, GK_SYMBOL_CLUSTER);
 	gk::Graph<gk::Cluster<gk::Index<gk::Node>>>::Init(exports, GK_SYMBOL_GRAPH);
 

@@ -28,7 +28,8 @@ gk::Node::Node(const gk::NodeClass& nodeClass, const std::string& type) noexcept
 	  indexed_{false},
 	  groups_{nullptr},
 	  properties_{nullptr},
-	  graph_{nullptr} {}
+	  graph_{nullptr},
+	  hash_{} {}
 
 gk::Node::~Node() {
 	if (nullptr != groups_) {
@@ -79,9 +80,9 @@ void gk::Node::graph(v8::Isolate* isolate, gk::Graph<gk::Cluster<gk::Index<gk::N
 	graph_->Ref();
 
 	// add the node to the graph groups
-	for (auto i = groups()->size() - 1; 0 <= i; --i) {
-		graph_->index(isolate, gk::NodeClass::Node, this);
-	}
+//	for (auto i = groups()->size() - 1; 0 <= i; --i) {
+//		graph_->index(isolate, GK_SYMBOL_GROUP, this);
+//	}
 }
 
 void gk::Node::indexed(bool indexed) noexcept {
@@ -108,6 +109,13 @@ gk::RedBlackTree<std::string, true, std::string>* gk::Node::properties() noexcep
 
 gk::Graph<gk::Cluster<gk::Index<gk::Node>>>* gk::Node::graph() const noexcept {
 	return graph_;
+}
+
+const std::string& gk::Node::hash() noexcept {
+	if (0 < id_ && hash_.empty()) {
+		hash_ = std::string{std::string(gk::NodeClassToString(nodeClass_)) + ":" + type_ + ":" + std::to_string(id_)};
+	}
+	return hash_;
 }
 
 GK_METHOD(gk::Node::AddGroup) {

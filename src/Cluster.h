@@ -25,6 +25,7 @@
 
 #include <cstring>
 #include <string>
+#include <utility>
 #include "exports.h"
 #include "symbols.h"
 #include "NodeClass.h"
@@ -78,13 +79,13 @@ namespace gk {
 }
 
 template <typename T, typename K, typename O>
-v8::Persistent<v8::Function> gk::Cluster<T, K, O>::constructor_;
+GK_CONSTRUCTOR(gk::Cluster<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>::Cluster(const gk::NodeClass& nodeClass) noexcept
 	: gk::ObjectWrapPolicy{},
 	  gk::RedBlackTree<T, true, K, O>{},
-	  nodeClass_{nodeClass} {}
+	  nodeClass_{std::move(nodeClass)} {}
 
 template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>::~Cluster() {

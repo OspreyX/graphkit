@@ -52,10 +52,8 @@ namespace gk {
 
 		const gk::NodeClass& nodeClass() const noexcept;
 		const std::string& type() const noexcept;
-
 		O incrementId() noexcept;
 		O decrementId() noexcept;
-
 		bool insert(T* node) noexcept;
 		bool remove(T* node) noexcept;
 		bool remove(const int k) noexcept;
@@ -88,14 +86,14 @@ namespace gk {
 }
 
 template <typename T, typename K, typename O>
-v8::Persistent<v8::Function> gk::Index<T, K, O>::constructor_;
+GK_CONSTRUCTOR(gk::Index<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& type) noexcept
 	: gk::ObjectWrapPolicy{},
 	  gk::RedBlackTree<T, true, K, O>{},
-	  nodeClass_{nodeClass},
-	  type_{type},
+	  nodeClass_{std::move(nodeClass)},
+	  type_{std::move(type)},
 	  ids_{} {}
 
 template <typename T, typename K, typename O>

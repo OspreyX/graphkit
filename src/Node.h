@@ -51,6 +51,7 @@ namespace gk {
 		gk::RedBlackTree<std::string, true, std::string>* groups() noexcept;
 		gk::RedBlackTree<std::string, true, std::string>* properties() noexcept;
 		gk::Graph<gk::Cluster<gk::Index<Node>>>* graph() const noexcept;
+		const std::string& hash() noexcept;
 
 	protected:
 		const gk::NodeClass nodeClass_;
@@ -60,6 +61,7 @@ namespace gk {
 		gk::RedBlackTree<std::string, true, std::string>* groups_;
 		gk::RedBlackTree<std::string, true, std::string>* properties_;
 		gk::Graph<gk::Cluster<gk::Index<Node>>>* graph_;
+		std::string hash_;
 
 		void id(long long& id) noexcept;
 		void id(long long&& id) noexcept;
