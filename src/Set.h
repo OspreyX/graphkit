@@ -15,7 +15,7 @@
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 *
-* Index.h
+* Set.h
 *
 * A Class used to manage Nodes.
 */

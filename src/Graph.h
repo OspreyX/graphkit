@@ -30,6 +30,7 @@
 #include "Export.h"
 #include "RedBlackTree.h"
 #include "Set.h"
+#include "Multiset.h"
 
 namespace gk {
 	template <
@@ -74,6 +75,7 @@ namespace gk {
 		static GK_PROPERTY_DELETER(PropertyDeleter);
 		static GK_PROPERTY_ENUMERATOR(PropertyEnumerator);
 		static GK_METHOD(Set);
+		static GK_METHOD(Multiset);
 	};
 }
 
@@ -151,6 +153,7 @@ GK_INIT(gk::Graph<T, K, O>::Init) {
 
 	// Data Structures
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_SET, Set);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_MULTISET, Multiset);
 
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -344,6 +347,14 @@ GK_METHOD(gk::Graph<T, K, O>::Set) {
 	GK_SCOPE();
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
 	auto s = gk::Set<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
+	GK_RETURN(s->handle());
+}
+
+template <typename T, typename K, typename O>
+GK_METHOD(gk::Graph<T, K, O>::Multiset) {
+	GK_SCOPE();
+	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
+	auto s = gk::Multiset<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
 	GK_RETURN(s->handle());
 }
 
