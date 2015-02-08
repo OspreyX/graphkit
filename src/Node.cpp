@@ -28,7 +28,6 @@ gk::Node::Node(const gk::NodeClass& nodeClass, const std::string& type) noexcept
 	  indexed_{false},
 	  groups_{nullptr},
 	  properties_{nullptr},
-	  graph_{nullptr},
 	  hash_{} {}
 
 gk::Node::~Node() {
@@ -43,9 +42,6 @@ gk::Node::~Node() {
 			delete v;
 		});
 		delete properties_;
-	}
-	if (nullptr != graph_) {
-		graph_->Unref();
 	}
 }
 
@@ -62,22 +58,17 @@ long long gk::Node::id() const noexcept {
 }
 
 void gk::Node::id(long long& id) noexcept {
+	assert(0 < id);
 	id_ = id;
 }
 
 void gk::Node::id(long long&& id) noexcept {
+	assert(0 < id);
 	id_ = id;
 }
 
 bool gk::Node::indexed() const noexcept {
 	return indexed_;
-}
-
-void gk::Node::graph(v8::Isolate* isolate, gk::Graph<gk::Cluster<gk::Index<gk::Node>>>* graph) noexcept {
-	assert(graph);
-	assert(nullptr == graph_);
-	graph_ = graph;
-	graph_->Ref();
 }
 
 void gk::Node::indexed(bool indexed) noexcept {
@@ -100,10 +91,6 @@ gk::RedBlackTree<std::string, true, std::string>* gk::Node::properties() noexcep
 		properties_->insert(std::string{GK_SYMBOL_OPERATION_INDEXED}, new std::string{GK_SYMBOL_OPERATION_INDEXED});
 	}
 	return properties_;
-}
-
-gk::Graph<gk::Cluster<gk::Index<gk::Node>>>* gk::Node::graph() const noexcept {
-	return graph_;
 }
 
 const std::string& gk::Node::hash() noexcept {

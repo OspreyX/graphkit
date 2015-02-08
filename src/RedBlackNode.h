@@ -23,8 +23,6 @@
 #ifndef GRAPHKIT_SRC_RED_BLACK_NODE_H
 #define GRAPHKIT_SRC_RED_BLACK_NODE_H
 
-#include "RedBlackTree.h"
-
 namespace gk {
 	template <typename, bool, typename, typename> class RedBlackTree;
 

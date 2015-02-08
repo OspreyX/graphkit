@@ -29,10 +29,6 @@
 #include "NodeClass.h"
 #include "Export.h"
 #include "RedBlackTree.h"
-#include "Index.h"
-#include "Cluster.h"
-#include "Graph.h"
-
 
 namespace gk {
 	class Node : public gk::Export {
@@ -48,9 +44,14 @@ namespace gk {
 		const std::string& type() const noexcept;
 		long long id() const noexcept;
 		bool indexed() const noexcept;
+
 		gk::RedBlackTree<std::string, true, std::string>* groups() noexcept;
 		gk::RedBlackTree<std::string, true, std::string>* properties() noexcept;
-		gk::Graph<gk::Cluster<gk::Index<Node>>>* graph() const noexcept;
+
+		void id(long long& id) noexcept;
+		void id(long long&& id) noexcept;
+		void indexed(bool indexed) noexcept;
+
 		const std::string& hash() noexcept;
 
 	protected:
@@ -58,15 +59,11 @@ namespace gk {
 		const std::string type_;
 		long long id_;
 		bool indexed_;
+
 		gk::RedBlackTree<std::string, true, std::string>* groups_;
 		gk::RedBlackTree<std::string, true, std::string>* properties_;
-		gk::Graph<gk::Cluster<gk::Index<Node>>>* graph_;
-		std::string hash_;
 
-		void id(long long& id) noexcept;
-		void id(long long&& id) noexcept;
-		void indexed(bool indexed) noexcept;
-		void graph(v8::Isolate* isolate, gk::Graph<gk::Cluster<gk::Index<Node>>>* graph) noexcept;
+		std::string hash_;
 
 		static GK_METHOD(New);
 		static GK_METHOD(AddGroup);
@@ -82,10 +79,6 @@ namespace gk {
 		static GK_PROPERTY_SETTER(PropertySetter);
 		static GK_PROPERTY_DELETER(PropertyDeleter);
 		static GK_PROPERTY_ENUMERATOR(PropertyEnumerator);
-
-		friend class gk::Index<Node>;
-		friend class gk::Cluster<gk::Index<Node>>;
-		friend class gk::Graph<gk::Cluster<gk::Index<Node>>>;
 	};
 }
 

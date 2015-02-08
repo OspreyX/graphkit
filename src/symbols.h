@@ -58,5 +58,8 @@
 #define GK_SYMBOL_OPERATION_REMOVE_GROUP			"removeGroup"
 #define GK_SYMBOL_OPERATION_GROUP_SIZE				"groupSize"
 #define GK_SYMBOL_OPERATION_PROPERTY_SIZE			"propertySize"
+#define GK_SYMBOL_OPERATION_CREATE_ENTITY			"createEntity"
+#define GK_SYMBOL_OPERATION_CREATE_ACTION			"createAction"
+#define GK_SYMBOL_OPERATION_CREATE_BOND				"createBond"
 
 #endif

@@ -23,8 +23,10 @@
 #ifndef GRAPHKIT_SRC_ACTION_H
 #define GRAPHKIT_SRC_ACTION_H
 
+#include <cassert>
 #include "Node.h"
 #include "symbols.h"
+#include "RedBlackTree.h"
 
 namespace gk {
 	template <typename T>
@@ -37,9 +39,17 @@ namespace gk {
 		Action(Action&& other) = default;
 		Action& operator= (Action&&) = default;
 
+		bool addSubject(T* subject) {
+			assert(nullptr != subject);
+		}
+
+		static Action<T>* Instance(v8::Isolate* isolate, const char* type) noexcept;
 		static GK_INIT(Init);
 
 	protected:
+		T* subjects_;
+		T* objects_;
+
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
 	};
@@ -53,6 +63,14 @@ namespace gk {
 
 	template <typename T>
 	gk::Action<T>::~Action() {}
+
+	template <typename T>
+	gk::Action<T>* gk::Action<T>::Instance(v8::Isolate* isolate, const char* type) noexcept {
+		const int argc = 1;
+		v8::Local<v8::Value> argv[argc] = {GK_STRING(type)};
+		auto cons = GK_FUNCTION(constructor_);
+		return node::ObjectWrap::Unwrap<gk::Action<T>>(cons->NewInstance(argc, argv));
+	}
 
 	template <typename T>
 	GK_INIT(gk::Action<T>::Init) {
