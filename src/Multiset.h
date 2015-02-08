@@ -267,7 +267,7 @@ GK_INDEX_GETTER(gk::Multiset<G, T, O>::IndexGetter) {
 	GK_SCOPE();
 	auto i = node::ObjectWrap::Unwrap<gk::Multiset<G, T, O>>(args.Holder());
 	if (++index > i->size()) {
-		GK_EXCEPTION("[GraphKit Error: Set out of range.]");
+		GK_EXCEPTION("[GraphKit Error: Multiset out of range.]");
 	}
 	GK_RETURN(i->select(index)->handle());
 }
@@ -275,13 +275,13 @@ GK_INDEX_GETTER(gk::Multiset<G, T, O>::IndexGetter) {
 template <typename G, typename T, typename O>
 GK_INDEX_SETTER(gk::Multiset<G, T, O>::IndexSetter) {
 	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Set values may not be set.]");
+	GK_EXCEPTION("[GraphKit Error: Multiset values may not be set.]");
 }
 
 template <typename G, typename T, typename O>
 GK_INDEX_DELETER(gk::Multiset<G, T, O>::IndexDeleter) {
 	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Set values may not be deleted.]");
+	GK_EXCEPTION("[GraphKit Error: Multiset values may not be deleted.]");
 }
 
 template <typename G, typename T, typename O>
@@ -292,13 +292,13 @@ GK_PROPERTY_GETTER(gk::Multiset<G, T, O>::PropertyGetter) {
 template <typename G, typename T, typename O>
 GK_PROPERTY_SETTER(gk::Multiset<G, T, O>::PropertySetter) {
 	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Set values may not be set.]");
+	GK_EXCEPTION("[GraphKit Error: Multiset values may not be set.]");
 }
 
 template <typename G, typename T, typename O>
 GK_PROPERTY_DELETER(gk::Multiset<G, T, O>::PropertyDeleter) {
 	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Set values may not be deleted.]");
+	GK_EXCEPTION("[GraphKit Error: Multiset values may not be deleted.]");
 }
 
 template <typename G, typename T, typename O>
