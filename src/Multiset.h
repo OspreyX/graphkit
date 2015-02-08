@@ -209,7 +209,11 @@ GK_METHOD(gk::Multiset<G, T, O>::Remove) {
 	if (args[0]->IsNumber() && args[1]->IsString() && args[2]->IsNumber()) {
 		v8::String::Utf8Value type(args[1]->ToString());
 		auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + ":" + *type + ":" + std::to_string(args[2]->IntegerValue())};
-		GK_RETURN(GK_BOOLEAN(s->remove(k)));
+		bool result = false;
+		while (s->remove(k)) {
+			result = true;
+		}
+		GK_RETURN(GK_BOOLEAN(result));
 	}
 
 	if (!args[0]->IsObject()) {
@@ -217,7 +221,11 @@ GK_METHOD(gk::Multiset<G, T, O>::Remove) {
 	}
 
 	auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
-	GK_RETURN(GK_BOOLEAN(s->remove(n)));
+	bool result = false;
+	while (s->remove(n)) {
+		result = true;
+	}
+	GK_RETURN(GK_BOOLEAN(result));
 }
 
 template <typename G, typename T, typename O>

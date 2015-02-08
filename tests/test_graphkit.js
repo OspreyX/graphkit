@@ -571,7 +571,7 @@ console.log('\nMultiset Tests\n');
 		console.log('Multiset find(ENTITY, "User", 1) test failed', s1.find(ENTITY, 'User', 1));
 	}
 
-	if (!s1.insert(e2) || 3 != s1.size() || !s1.remove(e2) || 1 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
+	if (!s1.insert(e2) || 3 != s1.size() || !s1.remove(e2) || 2 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
 		console.log('Multiset remove() test failed');
 	}
 
