@@ -51,7 +51,6 @@ namespace gk {
 		using Cluster = T;
 
 		bool insert(v8::Isolate* isolate, typename T::Index::Node* node) noexcept;
-		bool index(v8::Isolate* isolate, gk::NodeClass nodeClass, typename T::Index::Node* node) noexcept;
 		void cleanUp() noexcept;
 
 		static gk::Graph<T, K, O>* Instance(v8::Isolate* isolate) noexcept;
@@ -103,19 +102,6 @@ bool gk::Graph<T, K, O>::insert(v8::Isolate* isolate, typename T::Index::Node* n
 		});
 	}
 	node->graph(isolate, this);
-	return c->insert(isolate, node);
-}
-
-template  <typename T, typename K, typename O>
-bool gk::Graph<T, K, O>::index(v8::Isolate* isolate, gk::NodeClass nodeClass, typename T::Index::Node* node) noexcept {
-	auto c = this->findByKey(nodeClass);
-	if (!c) {
-		auto nc = nodeClass;
-		c = T::Instance(isolate, nc);
-		gk::RedBlackTree<T, true, K, O>::insert(c->nodeClass(), c, [&](T* c) {
-			c->Ref();
-		});
-	}
 	return c->insert(isolate, node);
 }
 
