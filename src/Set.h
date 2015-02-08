@@ -168,6 +168,10 @@ GK_METHOD(gk::Set<T, O>::Insert) {
 	}
 
 	auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
+	if (!n->indexed()) {
+		GK_EXCEPTION("[GraphKit Error: NodeClass has not been indexed.]");
+	}
+
 	auto s = node::ObjectWrap::Unwrap<gk::Set<T, O>>(args.Holder());
 	GK_RETURN(GK_BOOLEAN(s->insert(isolate, n)));
 }

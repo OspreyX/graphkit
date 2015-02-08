@@ -35,10 +35,9 @@ let GraphMultiset = gk.GraphMultiset;
 let Set = gk.Set;
 let Multiset = gk.Multiset;
 
-console.log('\nEntity Tests\n');
-
-// Entity tests
 (function() {
+	console.log('\nEntity Tests\n');
+
 	let e;
 	try {
 		e = new Entity();
@@ -129,10 +128,9 @@ console.log('\nEntity Tests\n');
 	console.log('Entity tests executed');
 })();
 
-console.log('\nAction Tests\n');
-
-// Action tests
 (function() {
+	console.log('\nAction Tests\n');
+
 	let a;
 	try {
 		a = new Action();
@@ -223,10 +221,9 @@ console.log('\nAction Tests\n');
 	console.log('Action tests executed');
 })();
 
-console.log('\nBond Tests\n');
-
-// Bond tests
 (function() {
+	console.log('\nBond Tests\n');
+
 	let b;
 	try {
 		b = new Bond();
@@ -317,10 +314,9 @@ console.log('\nBond Tests\n');
 	console.log('Bond tests executed');
 })();
 
-console.log('\nIndex Tests\n');
-
-// Index tests
 (function() {
+	console.log('\nIndex Tests\n');
+
 	let i1 = new Index(ENTITY, 'User');
 	let e1 = new Entity('User');
 	let e2 = new Entity('Book');
@@ -387,10 +383,9 @@ console.log('\nIndex Tests\n');
 	console.log('Index tests executed');
 })();
 
-console.log('\nCluster Tests\n');
-
-// Cluster tests
 (function() {
+	console.log('\nCluster Tests\n');
+
 	let c1 = new Cluster(ENTITY);
 	let e1 = new Entity('User');
 	let e2 = new Entity('Book');
@@ -448,10 +443,9 @@ console.log('\nCluster Tests\n');
 	console.log('Cluster tests executed');
 })();
 
-console.log('\nGraph Tests\n');
-
-// Graph tests
 (function() {
+	console.log('\nGraph Tests\n');
+
 	let g1 = new Graph();
 	let e1 = new Entity('User');
 	let e2 = new Entity('Book');
@@ -513,10 +507,9 @@ console.log('\nGraph Tests\n');
 	console.log('Graph tests executed');
 })();
 
-console.log('\nSet Tests\n');
-
-// Set tests
 (function() {
+	console.log('\nGraphSet Tests\n');
+
 	let g1 = new Graph();
 	let s1 = new GraphSet(g1);
 	let s2 = g1.Set();
@@ -543,7 +536,7 @@ console.log('\nSet Tests\n');
 	if (g1.Entity.Book.size() != s2.size()) {
 		console.log('Set insert stress test failed');
 	} else {
-		console.log('Set insert() stress tests passed', 'Operation Count', g1.Entity.Book.size(), 'Time', Date.now() - start);	
+		console.log('Set insert() stress tests passed', 'Operation Count', g1.Entity.Book.size(), 'Time', Date.now() - start);
 	}
 
 	s1.clear();
@@ -555,10 +548,9 @@ console.log('\nSet Tests\n');
 	console.log('Set tests executed');
 })();
 
-console.log('\nMultiset Tests\n');
-
-// Multiset tests
 (function() {
+	console.log('\nGraphMultiset Tests\n');
+
 	let g1 = new Graph();
 	let s1 = new GraphMultiset(g1);
 	let s2 = g1.Multiset();
@@ -592,6 +584,104 @@ console.log('\nMultiset Tests\n');
 	s2.clear();
 	if (0 != s1.size() || 0 != s2.size()) {
 		console.log('Multiset clear() test failed, Count', 0, 'Size', s1.size(), s2.size());
+	}
+
+	console.log('Multiset tests executed');
+})();
+
+(function() {
+	console.log('\nSet Tests\n');
+
+	let g1 = new Graph();
+	let s1 = new Set();
+	let e1 = g1.createEntity('User');
+	let e2 = g1.createEntity('User');
+
+	if (!s1.insert(e1) || s1.insert(e1) || 1 != s1.size() || g1.Entity.User[0] != e1) {
+		console.log('Set insert(e1) test failed');
+	}
+
+	if (e1 != s1.find(ENTITY, 'User', 1)) {
+		console.log('Set find(ENTITY, "User", 1) test failed', s1.find(ENTITY, 'User', 1));
+	}
+
+	if (!s1.insert(e2) || 2 != s1.size() || !s1.remove(e2) || 1 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
+		console.log('Set remove() test failed');
+	}
+
+	s1.clear();
+	let count = 1000000;
+	let start = Date.now();
+	for (let i = count; 0 < i; --i) {
+		let e = new Entity('Book');
+		if (0 == i % 2) {
+			g1.insert(e);
+			s1.insert(e);
+			s1.insert(e);
+		} else {
+			try {
+				s1.insert(e);
+			} catch (error) {}
+		}
+	}
+	if (count / 2 != s1.size()) {
+		console.log('Set insert stress test failed', s1.size());
+	} else {
+		console.log('Set insert() stress tests passed', 'Operation Count', s1.size(), 'Time', Date.now() - start);
+	}
+
+	s1.clear();
+	if (0 != s1.size()) {
+		console.log('Set clear() test failed, Count', 0, 'Size', s1.size());
+	}
+
+	console.log('Set tests executed');
+})();
+
+(function() {
+	console.log('\nMultiset Tests\n');
+
+	let g1 = new Graph();
+	let s1 = new Multiset();
+	let e1 = g1.createEntity('User');
+	let e2 = g1.createEntity('User');
+
+	if (!s1.insert(e1) || !s1.insert(e1) || 2 != s1.size() || g1.Entity.User[0] != e1) {
+		console.log('Multiset insert(e1) test failed', s1.size());
+	}
+
+	if (e1 != s1.find(ENTITY, 'User', 1)) {
+		console.log('Multiset find(ENTITY, "User", 1) test failed', s1.find(ENTITY, 'User', 1));
+	}
+
+	if (!s1.insert(e2) || 3 != s1.size() || !s1.remove(e2) || 2 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
+		console.log('Multiset remove() test failed');
+	}
+
+	s1.clear();
+	let count = 1000000;
+	let start = Date.now();
+	for (let i = count; 0 < i; --i) {
+		let e = new Entity('Book');
+		if (0 == i % 2) {
+			g1.insert(e);
+			s1.insert(e);
+			s1.insert(e);
+		} else {
+			try {
+				s1.insert(e);
+			} catch (error) {}
+		}
+	}
+	if (count != s1.size()) {
+		console.log('Multiset insert stress test failed', s1.size());
+	} else {
+		console.log('Multiset insert() stress tests passed', 'Operation Count', s1.size(), 'Time', Date.now() - start);
+	}
+
+	s1.clear();
+	if (0 != s1.size()) {
+		console.log('Multiset clear() test failed, Count', 0, 'Size', s1.size());
 	}
 
 	console.log('Multiset tests executed');
