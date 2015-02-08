@@ -36,7 +36,7 @@ namespace gk {
 	>
 	class RedBlackTree {
 	protected:
-		typedef gk::RedBlackNode<T, U, K, O> RBNode;
+		using RBNode = gk::RedBlackNode<T, U, K, O>;
 		RBNode* nil_;
 		RBNode* root_;
 		O size_;

@@ -78,11 +78,6 @@ void gk::Node::graph(v8::Isolate* isolate, gk::Graph<gk::Cluster<gk::Index<gk::N
 	assert(nullptr == graph_);
 	graph_ = graph;
 	graph_->Ref();
-
-	// add the node to the graph groups
-//	for (auto i = groups()->size() - 1; 0 <= i; --i) {
-//		graph_->index(isolate, GK_SYMBOL_GROUP, this);
-//	}
 }
 
 void gk::Node::indexed(bool indexed) noexcept {
