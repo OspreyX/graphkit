@@ -1,9 +1,9 @@
 {
   "name": "graphkit",
   "author": "Daniel Dahan",
-  "version": "0.1.0-rc-02072015-05",
+  "version": "0.1.0-rc-02072015-06",
   "engines": {
-    "node": ">=0.11.13"
+    "node": ">=0.12.0"
   },
   "repository": {
     "type": "git",
