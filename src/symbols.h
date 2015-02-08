@@ -40,6 +40,7 @@
 #define GK_SYMBOL_CLUSTER 							"Cluster"
 #define GK_SYMBOL_GRAPH 							"Graph"
 #define GK_SYMBOL_SET 								"Set"
+#define GK_SYMBOL_MULTISET 							"Multiset"
 
 // operations
 #define GK_SYMBOL_OPERATION_NODE_CLASS 				"nodeClass"

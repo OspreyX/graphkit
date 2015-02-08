@@ -34,6 +34,7 @@
 #include "Cluster.h"
 #include "Graph.h"
 #include "Set.h"
+#include "Multiset.h"
 
 GK_EXPORT(GraphKit) {
 	// classes
@@ -44,6 +45,7 @@ GK_EXPORT(GraphKit) {
 	gk::Cluster<gk::Index<gk::Node>>::Init(exports, GK_SYMBOL_CLUSTER);
 	gk::Graph<gk::Cluster<gk::Index<gk::Node>>>::Init(exports, GK_SYMBOL_GRAPH);
 	gk::Set<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_SET);
+	gk::Multiset<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_MULTISET);
 
 	// constants
 	GK_SCOPE();
