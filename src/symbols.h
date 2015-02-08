@@ -39,6 +39,8 @@
 #define GK_SYMBOL_INDEX 							"Index"
 #define GK_SYMBOL_CLUSTER 							"Cluster"
 #define GK_SYMBOL_GRAPH 							"Graph"
+#define GK_SYMBOL_GRAPH_SET 						"GraphSet"
+#define GK_SYMBOL_GRAPH_MULTISET 					"GraphMultiset"
 #define GK_SYMBOL_SET 								"Set"
 #define GK_SYMBOL_MULTISET 							"Multiset"
 

@@ -15,13 +15,13 @@
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 *
-* Multiset.h
+* GraphMultiset.h
 *
 * A Class used to manage Nodes.
 */
 
-#ifndef GRAPHKIT_SRC_MULTISET_H
-#define GRAPHKIT_SRC_MULTISET_H
+#ifndef GRAPHKIT_SRC_GRAPH_MULTISET_H
+#define GRAPHKIT_SRC_GRAPH_MULTISET_H
 
 #include <string>
 #include "exports.h"
@@ -32,27 +32,29 @@
 
 namespace gk {
 	template <
+		typename G,
 		typename T,
 		typename O = long long
 	>
-	class Multiset : public gk::Export,
+	class GraphMultiset : public gk::Export,
 					 public gk::RedBlackTree<T, false, std::string, O> {
 	public:
-		explicit Multiset() noexcept;
-		virtual ~Multiset();
-		Multiset(const Multiset&) = default;
-		Multiset& operator= (const Multiset&) = default;
-		Multiset(Multiset&&) = default;
-		Multiset& operator= (Multiset&&) = default;
+		explicit GraphMultiset(G* graph) noexcept;
+		virtual ~GraphMultiset();
+		GraphMultiset(const GraphMultiset&) = default;
+		GraphMultiset& operator= (const GraphMultiset&) = default;
+		GraphMultiset(GraphMultiset&&) = default;
+		GraphMultiset& operator= (GraphMultiset&&) = default;
 
 		bool insert(v8::Isolate* isolate, T* node) noexcept;
 		bool remove(const std::string& k) noexcept;
 		void cleanUp() noexcept;
 
-		static gk::Multiset<T, O>* Instance(v8::Isolate* isolate) noexcept;
+		static gk::GraphMultiset<G, T, O>* Instance(v8::Isolate* isolate, G* graph) noexcept;
 		static GK_INIT(Init);
 
 	private:
+		G* graph_;
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
 		static GK_METHOD(Size);
@@ -71,21 +73,28 @@ namespace gk {
 	};
 }
 
-template <typename T, typename O>
-GK_CONSTRUCTOR(gk::Multiset<T, O>::constructor_);
+template <typename G, typename T, typename O>
+GK_CONSTRUCTOR(gk::GraphMultiset<G, T, O>::constructor_);
 
-template <typename T, typename O>
-gk::Multiset<T, O>::Multiset() noexcept
+template <typename G, typename T, typename O>
+gk::GraphMultiset<G, T, O>::GraphMultiset(G* graph) noexcept
 	: gk::Export{},
-	  gk::RedBlackTree<T, false, std::string, O>{} {}
-
-template <typename T, typename O>
-gk::Multiset<T, O>::~Multiset() {
-	cleanUp();
+	  gk::RedBlackTree<T, false, std::string, O>{},
+	  graph_{graph} {
+	graph_->Ref();
 }
 
-template <typename T, typename O>
-bool gk::Multiset<T, O>::insert(v8::Isolate* isolate, T* node) noexcept {
+template <typename G, typename T, typename O>
+gk::GraphMultiset<G, T, O>::~GraphMultiset() {
+	cleanUp();
+	graph_->Unref();
+}
+
+template <typename G, typename T, typename O>
+bool gk::GraphMultiset<G, T, O>::insert(v8::Isolate* isolate, T* node) noexcept {
+	if (!node->indexed()) {
+		graph_->insert(isolate, node);
+	}
 	if (!node->indexed()) {
 		return false;
 	}
@@ -94,30 +103,30 @@ bool gk::Multiset<T, O>::insert(v8::Isolate* isolate, T* node) noexcept {
 	});
 }
 
-template <typename T, typename O>
-bool gk::Multiset<T, O>::remove(const std::string& k) noexcept {
+template <typename G, typename T, typename O>
+bool gk::GraphMultiset<G, T, O>::remove(const std::string& k) noexcept {
 	return gk::RedBlackTree<T, false, std::string, O>::remove(k, [&](T* n) {
 		n->Unref();
 	});
 }
 
-template <typename T, typename O>
-void gk::Multiset<T, O>::cleanUp() noexcept {
+template <typename G, typename T, typename O>
+void gk::GraphMultiset<G, T, O>::cleanUp() noexcept {
 	this->clear([&](T *n) {
 		n->Unref();
 	});
 }
 
-template <typename T, typename O>
-gk::Multiset<T, O>* gk::Multiset<T, O>::Instance(v8::Isolate* isolate) noexcept {
-	const int argc = 0;
-	v8::Local<v8::Value> argv[argc] = {};
+template <typename G, typename T, typename O>
+gk::GraphMultiset<G, T, O>* gk::GraphMultiset<G, T, O>::Instance(v8::Isolate* isolate, G* graph) noexcept {
+	const int argc = 1;
+	v8::Local<v8::Value> argv[argc] = {graph->handle()};
 	auto cons = GK_FUNCTION(constructor_);
-	return node::ObjectWrap::Unwrap<gk::Multiset<T, O>>(cons->NewInstance(argc, argv));
+	return node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(cons->NewInstance(argc, argv));
 }
 
-template <typename T, typename O>
-GK_INIT(gk::Multiset<T, O>::Init) {
+template <typename G, typename T, typename O>
+GK_INIT(gk::GraphMultiset<G, T, O>::Init) {
 	GK_SCOPE();
 
 	auto t = GK_TEMPLATE(New);
@@ -136,31 +145,36 @@ GK_INIT(gk::Multiset<T, O>::Init) {
 	exports->Set(GK_STRING(symbol), t->GetFunction());
 }
 
-template <typename T, typename O>
-GK_METHOD(gk::Multiset<T, O>::New) {
+template <typename G, typename T, typename O>
+GK_METHOD(gk::GraphMultiset<G, T, O>::New) {
 	GK_SCOPE();
 
+	if (!args[0]->IsObject()) {
+		GK_EXCEPTION("[GraphKit Error: Argument 0 expects a Graph instance.]");
+	}
+
 	if (args.IsConstructCall()) {
-		auto obj = new gk::Multiset<T, O>{};
+		auto g = node::ObjectWrap::Unwrap<G>(args[0]->ToObject());
+		auto obj = new gk::GraphMultiset<G, T, O>{g};
 		obj->Wrap(args.This());
 		GK_RETURN(args.This());
 	} else {
-		const int argc = 0;
-		v8::Local<v8::Value> argv[argc] = {};
+		const int argc = 1;
+		v8::Local<v8::Value> argv[argc] = {args[0]};
 		auto cons = GK_FUNCTION(constructor_);
 		GK_RETURN(cons->NewInstance(argc, argv));
 	}
 }
 
-template <typename T, typename O>
-GK_METHOD(gk::Multiset<T, O>::Size) {
+template <typename G, typename T, typename O>
+GK_METHOD(gk::GraphMultiset<G, T, O>::Size) {
 	GK_SCOPE();
-	auto s = node::ObjectWrap::Unwrap<gk::Multiset<T, O>>(args.Holder());
+	auto s = node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(args.Holder());
 	GK_RETURN(GK_NUMBER(s->size()));
 }
 
-template <typename T, typename O>
-GK_METHOD(gk::Multiset<T, O>::Insert) {
+template <typename G, typename T, typename O>
+GK_METHOD(gk::GraphMultiset<G, T, O>::Insert) {
 	GK_SCOPE();
 
 	if (!args[0]->IsObject()) {
@@ -168,19 +182,19 @@ GK_METHOD(gk::Multiset<T, O>::Insert) {
 	}
 
 	auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
-	auto s = node::ObjectWrap::Unwrap<gk::Multiset<T, O>>(args.Holder());
+	auto s = node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(args.Holder());
 	GK_RETURN(GK_BOOLEAN(s->insert(isolate, n)));
 }
 
-template <typename T, typename O>
-GK_METHOD(gk::Multiset<T, O>::Remove) {
+template <typename G, typename T, typename O>
+GK_METHOD(gk::GraphMultiset<G, T, O>::Remove) {
 	GK_SCOPE();
 
 	if (0 == args.Length()) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
-	auto s = node::ObjectWrap::Unwrap<gk::Multiset<T, O>>(args.Holder());
+	auto s = node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(args.Holder());
 	if (args[0]->IsNumber() && args[1]->IsString() && args[2]->IsNumber()) {
 		v8::String::Utf8Value type(args[1]->ToString());
 		auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + ":" + *type + ":" + std::to_string(args[2]->IntegerValue())};
@@ -203,16 +217,16 @@ GK_METHOD(gk::Multiset<T, O>::Remove) {
 	GK_RETURN(GK_BOOLEAN(result));
 }
 
-template <typename T, typename O>
-GK_METHOD(gk::Multiset<T, O>::Clear) {
+template <typename G, typename T, typename O>
+GK_METHOD(gk::GraphMultiset<G, T, O>::Clear) {
 	GK_SCOPE();
-	auto s = node::ObjectWrap::Unwrap<gk::Multiset<T, O>>(args.Holder());
+	auto s = node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(args.Holder());
 	s->cleanUp();
 	GK_RETURN(GK_UNDEFINED());
 }
 
-template <typename T, typename O>
-GK_METHOD(gk::Multiset<T, O>::Find) {
+template <typename G, typename T, typename O>
+GK_METHOD(gk::GraphMultiset<G, T, O>::Find) {
 	GK_SCOPE();
 
 	if (args[0]->IsNumber() && (GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT > args[0]->IntegerValue() || GK_SYMBOL_NODE_CLASS_BOND_CONSTANT < args[0]->IntegerValue())) {
@@ -227,7 +241,7 @@ GK_METHOD(gk::Multiset<T, O>::Find) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
 
-	auto s = node::ObjectWrap::Unwrap<gk::Multiset<T, O>>(args.Holder());
+	auto s = node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(args.Holder());
 	v8::String::Utf8Value type(args[1]->ToString());
 	auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + ":" + *type + ":" + std::to_string(args[2]->IntegerValue())};
 	auto n = s->findByKey(k);
@@ -237,49 +251,49 @@ GK_METHOD(gk::Multiset<T, O>::Find) {
 	GK_RETURN(GK_UNDEFINED());
 }
 
-template <typename T, typename O>
-GK_INDEX_GETTER(gk::Multiset<T, O>::IndexGetter) {
+template <typename G, typename T, typename O>
+GK_INDEX_GETTER(gk::GraphMultiset<G, T, O>::IndexGetter) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Multiset<T, O>>(args.Holder());
+	auto i = node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(args.Holder());
 	if (++index > i->size()) {
-		GK_EXCEPTION("[GraphKit Error: Multiset out of range.]");
+		GK_EXCEPTION("[GraphKit Error: GraphMultiset out of range.]");
 	}
 	GK_RETURN(i->select(index)->handle());
 }
 
-template <typename T, typename O>
-GK_INDEX_SETTER(gk::Multiset<T, O>::IndexSetter) {
+template <typename G, typename T, typename O>
+GK_INDEX_SETTER(gk::GraphMultiset<G, T, O>::IndexSetter) {
 	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Multiset values may not be set.]");
+	GK_EXCEPTION("[GraphKit Error: GraphMultiset values may not be set.]");
 }
 
-template <typename T, typename O>
-GK_INDEX_DELETER(gk::Multiset<T, O>::IndexDeleter) {
+template <typename G, typename T, typename O>
+GK_INDEX_DELETER(gk::GraphMultiset<G, T, O>::IndexDeleter) {
 	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Multiset values may not be deleted.]");
+	GK_EXCEPTION("[GraphKit Error: GraphMultiset values may not be deleted.]");
 }
 
-template <typename T, typename O>
-GK_PROPERTY_GETTER(gk::Multiset<T, O>::PropertyGetter) {
+template <typename G, typename T, typename O>
+GK_PROPERTY_GETTER(gk::GraphMultiset<G, T, O>::PropertyGetter) {
 	GK_SCOPE();
 }
 
-template <typename T, typename O>
-GK_PROPERTY_SETTER(gk::Multiset<T, O>::PropertySetter) {
+template <typename G, typename T, typename O>
+GK_PROPERTY_SETTER(gk::GraphMultiset<G, T, O>::PropertySetter) {
 	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Multiset values may not be set.]");
+	GK_EXCEPTION("[GraphKit Error: GraphMultiset values may not be set.]");
 }
 
-template <typename T, typename O>
-GK_PROPERTY_DELETER(gk::Multiset<T, O>::PropertyDeleter) {
+template <typename G, typename T, typename O>
+GK_PROPERTY_DELETER(gk::GraphMultiset<G, T, O>::PropertyDeleter) {
 	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Multiset values may not be deleted.]");
+	GK_EXCEPTION("[GraphKit Error: GraphMultiset values may not be deleted.]");
 }
 
-template <typename T, typename O>
-GK_PROPERTY_ENUMERATOR(gk::Multiset<T, O>::PropertyEnumerator) {
+template <typename G, typename T, typename O>
+GK_PROPERTY_ENUMERATOR(gk::GraphMultiset<G, T, O>::PropertyEnumerator) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Multiset<T, O>>(args.Holder());
+	auto i = node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(args.Holder());
 	auto is = i->size();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {

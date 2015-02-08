@@ -30,6 +30,8 @@ let Bond = gk.Bond;
 let Index = gk.Index;
 let Cluster = gk.Cluster;
 let Graph = gk.Graph;
+let GraphSet = gk.GraphSet;
+let GraphMultiset = gk.GraphMultiset;
 let Set = gk.Set;
 let Multiset = gk.Multiset;
 
@@ -516,7 +518,7 @@ console.log('\nSet Tests\n');
 // Set tests
 (function() {
 	let g1 = new Graph();
-	let s1 = new Set(g1);
+	let s1 = new GraphSet(g1);
 	let s2 = g1.Set();
 	let e1 = new Entity('User');
 	let e2 = new Entity('User');
@@ -558,7 +560,7 @@ console.log('\nMultiset Tests\n');
 // Multiset tests
 (function() {
 	let g1 = new Graph();
-	let s1 = new Multiset(g1);
+	let s1 = new GraphMultiset(g1);
 	let s2 = g1.Multiset();
 	let e1 = new Entity('User');
 	let e2 = new Entity('User');

@@ -23,10 +23,10 @@
 #ifndef GRAPHKIT_SRC_ACTION_H
 #define GRAPHKIT_SRC_ACTION_H
 
+#include <string>
 #include <cassert>
 #include "Node.h"
 #include "symbols.h"
-#include "RedBlackTree.h"
 
 namespace gk {
 	template <typename T>
@@ -39,16 +39,17 @@ namespace gk {
 		Action(Action&& other) = default;
 		Action& operator= (Action&&) = default;
 
-		bool addSubject(T* subject) {
-			assert(nullptr != subject);
-		}
+//		bool addSubject(T* subject) {
+//			assert(nullptr != subject);
+//			assert(subject->indexed());
+//		}
 
 		static Action<T>* Instance(v8::Isolate* isolate, const char* type) noexcept;
 		static GK_INIT(Init);
 
 	protected:
-		T* subjects_;
-		T* objects_;
+//		gk::RedBlackTree<T, true, std::string>* subjects_;
+//		gk::RedBlackTree<T, true, std::string>* objects_;
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);

@@ -29,8 +29,8 @@
 #include "NodeClass.h"
 #include "Export.h"
 #include "RedBlackTree.h"
-#include "Set.h"
-#include "Multiset.h"
+#include "GraphSet.h"
+#include "GraphMultiset.h"
 #include "Entity.h"
 #include "Action.h"
 #include "Bond.h"
@@ -70,6 +70,8 @@ namespace gk {
 		static GK_METHOD(CreateEntity);
 		static GK_METHOD(CreateAction);
 		static GK_METHOD(CreateBond);
+		static GK_METHOD(GraphSet);
+		static GK_METHOD(GraphMultiset);
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
 		static GK_INDEX_QUERY(IndexQuery);
@@ -79,8 +81,6 @@ namespace gk {
 		static GK_PROPERTY_QUERY(PropertyQuery);
 		static GK_PROPERTY_DELETER(PropertyDeleter);
 		static GK_PROPERTY_ENUMERATOR(PropertyEnumerator);
-		static GK_METHOD(Set);
-		static GK_METHOD(Multiset);
 	};
 }
 
@@ -144,10 +144,8 @@ GK_INIT(gk::Graph<T, K, O>::Init) {
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_ENTITY, CreateEntity);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_ACTION, CreateAction);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_BOND, CreateBond);
-
-	// Data Structures
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_SET, Set);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_MULTISET, Multiset);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_SET, GraphSet);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_MULTISET, GraphMultiset);
 
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -337,18 +335,18 @@ GK_PROPERTY_ENUMERATOR(gk::Graph<T, K, O>::PropertyEnumerator) {
 }
 
 template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::Set) {
+GK_METHOD(gk::Graph<T, K, O>::GraphSet) {
 	GK_SCOPE();
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto s = gk::Set<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
+	auto s = gk::GraphSet<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
 	GK_RETURN(s->handle());
 }
 
 template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::Multiset) {
+GK_METHOD(gk::Graph<T, K, O>::GraphMultiset) {
 	GK_SCOPE();
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto s = gk::Multiset<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
+	auto s = gk::GraphMultiset<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
 	GK_RETURN(s->handle());
 }
 
