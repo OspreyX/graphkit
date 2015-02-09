@@ -22,7 +22,7 @@ let Graph = gk.Graph;
 let g = new Graph();
 
 // Create a User Entity.
-// Entities represent person, places, or things -- a noun. 
+// Entities represent a person, place, or thing -- a noun. 
 let u1 = g.createEntity('User');
 
 // Give the user some properties.
