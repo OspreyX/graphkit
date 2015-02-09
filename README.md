@@ -50,7 +50,8 @@ b1.addGroup('Thriller');
  
 let b2 = g.createEntity('Book');
 b2['title'] = 'Mastering Node.js';
-b2.addGroup('Drama');
+b2.addGroup('Suspense');
+b2.addGroup('Favourite');
  
 // Add the books as the objects for the Action. 
 a1.objects().insert(b1);
