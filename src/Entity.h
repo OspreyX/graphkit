@@ -37,10 +37,11 @@ namespace gk {
 		Entity(Entity&& other) = default;
 		Entity& operator= (Entity&&) = default;
 
+		static Entity* Instance(v8::Isolate* isolate, const char* type) noexcept;
 		static GK_INIT(Init);
+		static GK_CONSTRUCTOR(constructor_);
 
 	protected:
-		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
 	};
 }

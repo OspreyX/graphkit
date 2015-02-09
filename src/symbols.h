@@ -39,7 +39,11 @@
 #define GK_SYMBOL_INDEX 							"Index"
 #define GK_SYMBOL_CLUSTER 							"Cluster"
 #define GK_SYMBOL_GRAPH 							"Graph"
+#define GK_SYMBOL_GRAPH_SET 						"GraphSet"
+#define GK_SYMBOL_GRAPH_MULTISET 					"GraphMultiset"
 #define GK_SYMBOL_SET 								"Set"
+#define GK_SYMBOL_ENTITY_SET 						"EntitySet"
+#define GK_SYMBOL_ACTION_SET 						"ActionSet"
 #define GK_SYMBOL_MULTISET 							"Multiset"
 
 // operations
@@ -58,5 +62,11 @@
 #define GK_SYMBOL_OPERATION_REMOVE_GROUP			"removeGroup"
 #define GK_SYMBOL_OPERATION_GROUP_SIZE				"groupSize"
 #define GK_SYMBOL_OPERATION_PROPERTY_SIZE			"propertySize"
+#define GK_SYMBOL_OPERATION_CREATE_ENTITY			"createEntity"
+#define GK_SYMBOL_OPERATION_CREATE_ACTION			"createAction"
+#define GK_SYMBOL_OPERATION_CREATE_BOND				"createBond"
+#define GK_SYMBOL_OPERATION_SUBJECTS				"subjects"
+#define GK_SYMBOL_OPERATION_OBJECTS					"objects"
+#define GK_SYMBOL_OPERATION_ACTIONS					"actions"
 
 #endif
