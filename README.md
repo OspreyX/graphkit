@@ -38,7 +38,7 @@ u1.addGroup('female');
 let a1 = g.createAction('Read');
 
 // Record the session the Action occurred in. 
- a1['session'] = 123;
+a1['session'] = 123;
  
 // Set Eve as the subject. 
 a1.subjects().insert(u1);

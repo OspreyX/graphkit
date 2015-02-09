@@ -529,15 +529,15 @@ let Multiset = gk.Multiset;
 	let e2 = new Entity('User');
 
 	if (!s1.insert(e1) || s1.insert(e1) || 1 != s1.size() || g1.Entity.User[0] != e1) {
-		console.log('Set insert(e1) test failed');
+		console.log('GraphSet insert(e1) test failed');
 	}
 
 	if (e1 != s1.find(ENTITY, 'User', 1)) {
-		console.log('Set find(ENTITY, "User", 1) test failed', s1.find(ENTITY, 'User', 1));
+		console.log('GraphSet find(ENTITY, "User", 1) test failed', s1.find(ENTITY, 'User', 1));
 	}
 
 	if (!s1.insert(e2) || 2 != s1.size() || !s1.remove(e2) || 1 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
-		console.log('Set remove() test failed');
+		console.log('GraphSet remove() test failed');
 	}
 
 	let count = 1000000;
@@ -546,18 +546,18 @@ let Multiset = gk.Multiset;
 		s2.insert(new Entity('Book'));
 	}
 	if (g1.Entity.Book.size() != s2.size()) {
-		console.log('Set insert stress test failed');
+		console.log('GraphSet insert stress test failed');
 	} else {
-		console.log('Set insert() stress tests passed', 'Operation Count', g1.Entity.Book.size(), 'Time', Date.now() - start);
+		console.log('GraphSet insert() stress tests passed', 'Operation Count', g1.Entity.Book.size(), 'Time', Date.now() - start);
 	}
 
 	s1.clear();
 	s2.clear();
 	if (0 != s1.size() || 0 != s2.size()) {
-		console.log('Set clear() test failed, Count', 0, 'Size', s1.size(), s2.size());
+		console.log('GraphSet clear() test failed, Count', 0, 'Size', s1.size(), s2.size());
 	}
 
-	console.log('Set tests executed');
+	console.log('GraphSet tests executed');
 })();
 
 (function() {
@@ -570,15 +570,15 @@ let Multiset = gk.Multiset;
 	let e2 = new Entity('User');
 
 	if (!s1.insert(e1) || !s1.insert(e1) || 2 != s1.size() || g1.Entity.User[0] != e1) {
-		console.log('Multiset insert(e1) test failed');
+		console.log('GraphMultiset insert(e1) test failed');
 	}
 
 	if (e1 != s1.find(ENTITY, 'User', 1)) {
-		console.log('Multiset find(ENTITY, "User", 1) test failed', s1.find(ENTITY, 'User', 1));
+		console.log('GraphMultiset find(ENTITY, "User", 1) test failed', s1.find(ENTITY, 'User', 1));
 	}
 
 	if (!s1.insert(e2) || 3 != s1.size() || !s1.remove(e2) || 2 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
-		console.log('Multiset remove() test failed');
+		console.log('GraphMultiset remove() test failed');
 	}
 
 	let count = 1000000;
@@ -587,18 +587,18 @@ let Multiset = gk.Multiset;
 		s2.insert(new Entity('Book'));
 	}
 	if (g1.Entity.Book.size() != s2.size()) {
-		console.log('Multiset insert stress test failed');
+		console.log('GraphMultiset insert stress test failed');
 	} else {
-		console.log('Multiset insert() stress tests passed', 'Operation Count', g1.Entity.Book.size(), 'Time', Date.now() - start);
+		console.log('GraphMultiset insert() stress tests passed', 'Operation Count', g1.Entity.Book.size(), 'Time', Date.now() - start);
 	}
 
 	s1.clear();
 	s2.clear();
 	if (0 != s1.size() || 0 != s2.size()) {
-		console.log('Multiset clear() test failed, Count', 0, 'Size', s1.size(), s2.size());
+		console.log('GraphMultiset clear() test failed, Count', 0, 'Size', s1.size(), s2.size());
 	}
 
-	console.log('Multiset tests executed');
+	console.log('GraphMultiset tests executed');
 })();
 
 (function() {
