@@ -33,27 +33,28 @@ u1['age'] = 26;
 u1.addGroup('female');
 
 // Create a Read Action.
-// Actions represent events, and may capture the subject and objects involved in that action.
+// Actions represent events, and may capture the subject and objects 
+// involved in that action.
 let a1 = g.createAction('Read');
 
 // Record the session the Action occurred in. 
  a1['session'] = 123;
  
- // Set Eve as the subject. 
- a1.subjects().insert(u1);
+// Set Eve as the subject. 
+a1.subjects().insert(u1);
  
- // Create some Book Entities. 
- let b1 = g.createEntity('Book');
- b1['title'] = 'Deep C Secrets';
- b1.addGroup('Thriller');
+// Create some Book Entities. 
+let b1 = g.createEntity('Book');
+b1['title'] = 'Deep C Secrets';
+b1.addGroup('Thriller');
  
- let b2 = g.createEntity('Book');
- b2['title'] = 'Mastering Node.js';
- b2.addGroup('Drama');
+let b2 = g.createEntity('Book');
+b2['title'] = 'Mastering Node.js';
+b2.addGroup('Drama');
  
- // Add the books as the objects for the Action. 
- a1.objects().insert(b1);
- a1.objects().insert(b2);
+// Add the books as the objects for the Action. 
+a1.objects().insert(b1);
+a1.objects().insert(b2);
 
 ```
 
