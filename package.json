@@ -6,7 +6,7 @@
 		"email": "dahan.daniel@me.com"
 	},
 	"version": "0.1.0-rc-02072015-12",
-	"license": "AGPL-v3.0",
+	"license": "AGPLv3",
 	"engines": {
 		"node": ">=0.12.0"
 	},
