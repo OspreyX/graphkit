@@ -20,10 +20,6 @@
 * Source that is compiled to create the module exports in Node.js.
 */
 
-#ifndef BUILDING_NODE_EXTENSION
-#define BUILDING_NODE_EXTENSION
-#endif
-
 #include "exports.h"
 #include "symbols.h"
 #include "Node.h"
@@ -33,6 +29,8 @@
 #include "Index.h"
 #include "Cluster.h"
 #include "Graph.h"
+#include "GraphSet.h"
+#include "GraphMultiset.h"
 #include "Set.h"
 #include "Multiset.h"
 
@@ -44,8 +42,12 @@ GK_EXPORT(GraphKit) {
 	gk::Index<gk::Node>::Init(exports, GK_SYMBOL_INDEX);
 	gk::Cluster<gk::Index<gk::Node>>::Init(exports, GK_SYMBOL_CLUSTER);
 	gk::Graph<gk::Cluster<gk::Index<gk::Node>>>::Init(exports, GK_SYMBOL_GRAPH);
-	gk::Set<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_SET);
-	gk::Multiset<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_MULTISET);
+	gk::GraphSet<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_GRAPH_SET);
+	gk::GraphMultiset<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_GRAPH_MULTISET);
+	gk::Set<gk::Node>::Init(exports, GK_SYMBOL_SET);
+	gk::Set<gk::Entity>::Init(exports, GK_SYMBOL_ENTITY_SET);
+	gk::Set<gk::Action<gk::Entity>>::Init(exports, GK_SYMBOL_ACTION_SET);
+	gk::Multiset<gk::Node>::Init(exports, GK_SYMBOL_MULTISET);
 
 	// constants
 	GK_SCOPE();

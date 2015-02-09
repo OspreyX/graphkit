@@ -29,8 +29,11 @@
 #include "NodeClass.h"
 #include "Export.h"
 #include "RedBlackTree.h"
-#include "Set.h"
-#include "Multiset.h"
+#include "GraphSet.h"
+#include "GraphMultiset.h"
+#include "Entity.h"
+#include "Action.h"
+#include "Bond.h"
 
 namespace gk {
 	template <
@@ -64,6 +67,11 @@ namespace gk {
 		static GK_METHOD(Remove);
 		static GK_METHOD(Clear);
 		static GK_METHOD(Find);
+		static GK_METHOD(CreateEntity);
+		static GK_METHOD(CreateAction);
+		static GK_METHOD(CreateBond);
+		static GK_METHOD(GraphSet);
+		static GK_METHOD(GraphMultiset);
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
 		static GK_INDEX_QUERY(IndexQuery);
@@ -73,8 +81,6 @@ namespace gk {
 		static GK_PROPERTY_QUERY(PropertyQuery);
 		static GK_PROPERTY_DELETER(PropertyDeleter);
 		static GK_PROPERTY_ENUMERATOR(PropertyEnumerator);
-		static GK_METHOD(Set);
-		static GK_METHOD(Multiset);
 	};
 }
 
@@ -101,7 +107,6 @@ bool gk::Graph<T, K, O>::insert(v8::Isolate* isolate, typename T::Index::Node* n
 			c->Ref();
 		});
 	}
-	node->graph(isolate, this);
 	return c->insert(isolate, node);
 }
 
@@ -136,10 +141,11 @@ GK_INIT(gk::Graph<T, K, O>::Init) {
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_FIND, Find);
-
-	// Data Structures
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_SET, Set);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_MULTISET, Multiset);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_ENTITY, CreateEntity);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_ACTION, CreateAction);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_BOND, CreateBond);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_SET, GraphSet);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_MULTISET, GraphMultiset);
 
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -329,19 +335,58 @@ GK_PROPERTY_ENUMERATOR(gk::Graph<T, K, O>::PropertyEnumerator) {
 }
 
 template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::Set) {
+GK_METHOD(gk::Graph<T, K, O>::GraphSet) {
 	GK_SCOPE();
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto s = gk::Set<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
+	auto s = gk::GraphSet<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
 	GK_RETURN(s->handle());
 }
 
 template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::Multiset) {
+GK_METHOD(gk::Graph<T, K, O>::GraphMultiset) {
 	GK_SCOPE();
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto s = gk::Multiset<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
+	auto s = gk::GraphMultiset<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
 	GK_RETURN(s->handle());
+}
+
+template <typename T, typename K, typename O>
+GK_METHOD(gk::Graph<T, K, O>::CreateEntity) {
+	GK_SCOPE();
+	if (!args[0]->IsString()) {
+		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
+	}
+	v8::String::Utf8Value type(args[0]->ToString());
+	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
+	auto e = gk::Entity::Instance(isolate, *type);
+	g->insert(isolate, e);
+	GK_RETURN(e->handle());
+}
+
+template <typename T, typename K, typename O>
+GK_METHOD(gk::Graph<T, K, O>::CreateAction) {
+	GK_SCOPE();
+	if (!args[0]->IsString()) {
+		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
+	}
+	v8::String::Utf8Value type(args[0]->ToString());
+	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
+	auto a = gk::Action<gk::Entity>::Instance(isolate, *type);
+	g->insert(isolate, a);
+	GK_RETURN(a->handle());
+}
+
+template <typename T, typename K, typename O>
+GK_METHOD(gk::Graph<T, K, O>::CreateBond) {
+	GK_SCOPE();
+	if (!args[0]->IsString()) {
+		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
+	}
+	v8::String::Utf8Value type(args[0]->ToString());
+	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
+	auto b = gk::Bond<gk::Entity>::Instance(isolate, *type);
+	g->insert(isolate, b);
+	GK_RETURN(b->handle());
 }
 
 #endif

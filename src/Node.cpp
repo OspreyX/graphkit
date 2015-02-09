@@ -28,7 +28,6 @@ gk::Node::Node(const gk::NodeClass& nodeClass, const std::string& type) noexcept
 	  indexed_{false},
 	  groups_{nullptr},
 	  properties_{nullptr},
-	  graph_{nullptr},
 	  hash_{} {}
 
 gk::Node::~Node() {
@@ -43,9 +42,6 @@ gk::Node::~Node() {
 			delete v;
 		});
 		delete properties_;
-	}
-	if (nullptr != graph_) {
-		graph_->Unref();
 	}
 }
 
@@ -73,13 +69,6 @@ bool gk::Node::indexed() const noexcept {
 	return indexed_;
 }
 
-void gk::Node::graph(v8::Isolate* isolate, gk::Graph<gk::Cluster<gk::Index<gk::Node>>>* graph) noexcept {
-	assert(graph);
-	assert(nullptr == graph_);
-	graph_ = graph;
-	graph_->Ref();
-}
-
 void gk::Node::indexed(bool indexed) noexcept {
 	indexed_ = indexed;
 }
@@ -100,10 +89,6 @@ gk::RedBlackTree<std::string, true, std::string>* gk::Node::properties() noexcep
 		properties_->insert(std::string{GK_SYMBOL_OPERATION_INDEXED}, new std::string{GK_SYMBOL_OPERATION_INDEXED});
 	}
 	return properties_;
-}
-
-gk::Graph<gk::Cluster<gk::Index<gk::Node>>>* gk::Node::graph() const noexcept {
-	return graph_;
 }
 
 const std::string& gk::Node::hash() noexcept {
@@ -198,7 +183,9 @@ GK_PROPERTY_GETTER(gk::Node::PropertyGetter) {
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_SIZE) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_SIZE) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_SUBJECTS) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_OBJECTS)) {
 		auto v = n->properties()->findByKey(*p);
 		if (v) {
 			if (0 == v->compare("true")) {

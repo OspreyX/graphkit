@@ -23,8 +23,11 @@
 #ifndef GRAPHKIT_SRC_ACTION_H
 #define GRAPHKIT_SRC_ACTION_H
 
+#include <string>
+#include <cassert>
 #include "Node.h"
 #include "symbols.h"
+#include "Set.h"
 
 namespace gk {
 	template <typename T>
@@ -37,11 +40,20 @@ namespace gk {
 		Action(Action&& other) = default;
 		Action& operator= (Action&&) = default;
 
+		gk::Set<T>* subjects(v8::Isolate* isolate) noexcept;
+		gk::Set<T>* objects(v8::Isolate* isolate) noexcept;
+
+		static Action<T>* Instance(v8::Isolate* isolate, const char* type) noexcept;
 		static GK_INIT(Init);
 
 	protected:
+		gk::Set<T>* subjects_;
+		gk::Set<T>* objects_;
+
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
+		static GK_METHOD(Subjects);
+		static GK_METHOD(Objects);
 	};
 
 	template <typename T>
@@ -49,10 +61,47 @@ namespace gk {
 
 	template <typename T>
 	gk::Action<T>::Action(const std::string& type) noexcept
-		: gk::Node{gk::NodeClass::Action, type} {}
+		: gk::Node{gk::NodeClass::Action, type},
+		  subjects_{nullptr},
+		  objects_{nullptr} {}
 
 	template <typename T>
-	gk::Action<T>::~Action() {}
+	gk::Action<T>::~Action() {
+		if (nullptr != subjects_) {
+			subjects_->cleanUp();
+			subjects_->Unref();
+		}
+		if (nullptr != objects_) {
+			objects_->cleanUp();
+			objects_->Unref();
+		}
+	}
+
+	template <typename T>
+	gk::Set<T>* gk::Action<T>::subjects(v8::Isolate* isolate) noexcept {
+		if (nullptr == subjects_) {
+			subjects_ = gk::Set<T>::Instance(isolate);
+			subjects_->Ref();
+		}
+		return subjects_;
+	}
+
+	template <typename T>
+	gk::Set<T>* gk::Action<T>::objects(v8::Isolate* isolate) noexcept {
+		if (nullptr == objects_) {
+			objects_ = gk::Set<T>::Instance(isolate);
+			objects_->Ref();
+		}
+		return objects_;
+	}
+
+	template <typename T>
+	gk::Action<T>* gk::Action<T>::Instance(v8::Isolate* isolate, const char* type) noexcept {
+		const int argc = 1;
+		v8::Local<v8::Value> argv[argc] = {GK_STRING(type)};
+		auto cons = GK_FUNCTION(constructor_);
+		return node::ObjectWrap::Unwrap<gk::Action<T>>(cons->NewInstance(argc, argv));
+	}
 
 	template <typename T>
 	GK_INIT(gk::Action<T>::Init) {
@@ -70,7 +119,9 @@ namespace gk {
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_SIZE, groupSize);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_SIZE, propertySize);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING, NodeClassToString);
-	
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SUBJECTS, Subjects);
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_OBJECTS, Objects);
+
 		constructor_.Reset(isolate, t->GetFunction());
 		exports->Set(GK_STRING(symbol), t->GetFunction());
 	}
@@ -94,6 +145,20 @@ namespace gk {
 			auto cons = GK_FUNCTION(constructor_);
 			GK_RETURN(cons->NewInstance(argc, argv));
 		}
+	}
+
+	template <typename T>
+	GK_METHOD(gk::Action<T>::Subjects) {
+		GK_SCOPE();
+		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		GK_RETURN(a->subjects(isolate)->handle());
+	}
+
+	template <typename T>
+	GK_METHOD(gk::Action<T>::Objects) {
+		GK_SCOPE();
+		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		GK_RETURN(a->objects(isolate)->handle());
 	}
 }
 

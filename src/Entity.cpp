@@ -26,8 +26,15 @@ gk::Entity::Entity(const std::string& type) noexcept
 
 gk::Entity::~Entity() {}
 
+gk::Entity* gk::Entity::Instance(v8::Isolate* isolate, const char* type) noexcept {
+	const int argc = 1;
+	v8::Local<v8::Value> argv[argc] = {GK_STRING(type)};
+	auto cons = GK_FUNCTION(constructor_);
+	return node::ObjectWrap::Unwrap<gk::Entity>(cons->NewInstance(argc, argv));
+}
+
 GK_INIT(gk::Entity::Init) {
-	GK_SCOPE();
+GK_SCOPE();
 
 	auto t = GK_TEMPLATE(New);
 	t->SetClassName(GK_STRING(symbol));

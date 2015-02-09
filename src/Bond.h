@@ -37,6 +37,7 @@ namespace gk {
 		Bond(Bond&& other) = default;
 		Bond& operator= (Bond&&) = default;
 
+		static Bond<T>* Instance(v8::Isolate* isolate, const char* type) noexcept;
 		static GK_INIT(Init);
 
 	protected:
@@ -54,6 +55,14 @@ namespace gk {
 	template <typename T>
 	gk::Bond<T>::~Bond() {}
 
+	template <typename T>
+	gk::Bond<T>* gk::Bond<T>::Instance(v8::Isolate* isolate, const char* type) noexcept {
+		const int argc = 1;
+		v8::Local<v8::Value> argv[argc] = {GK_STRING(type)};
+		auto cons = GK_FUNCTION(constructor_);
+		return node::ObjectWrap::Unwrap<gk::Bond<T>>(cons->NewInstance(argc, argv));
+	}
+	
 	template <typename T>
 	GK_INIT(gk::Bond<T>::Init) {
 		GK_SCOPE();
