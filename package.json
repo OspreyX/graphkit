@@ -1,8 +1,12 @@
 {
 	"name": "graphkit",
 	"homepage": "http://graphkit.io",
-	"author": "Daniel Dahan",
+	"author": {
+		"name": "Daniel Dahan",
+		"email": "dahan.daniel@me.com"
+	},
 	"version": "0.1.0-rc-02072015-11",
+	"license": "AGPL-v3.0",
 	"engines": {
 		"node": ">=0.12.0"
 	},
