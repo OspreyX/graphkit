@@ -218,6 +218,18 @@ let Multiset = gk.Multiset;
 		console.log('Action remove a["session"] test failed');
 	}
 
+	let g1 = new Graph();
+	let a1 = g1.createAction('Read');
+	let e1 = g1.createEntity('User');
+	a1.subjects().insert(e1);
+	a1.subjects().insert(e1);
+	a1.objects().insert(g1.createEntity('Book'));
+	a1.objects().insert(g1.createEntity('Book'));
+
+	if (1 != a1.subjects().size() || 2 != a1.objects().size()) {
+		console.log('Action relationship test failed');
+	}
+
 	console.log('Action tests executed');
 })();
 

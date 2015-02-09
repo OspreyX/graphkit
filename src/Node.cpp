@@ -58,12 +58,10 @@ long long gk::Node::id() const noexcept {
 }
 
 void gk::Node::id(long long& id) noexcept {
-	assert(0 < id);
 	id_ = id;
 }
 
 void gk::Node::id(long long&& id) noexcept {
-	assert(0 < id);
 	id_ = id;
 }
 
@@ -185,7 +183,9 @@ GK_PROPERTY_GETTER(gk::Node::PropertyGetter) {
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_SIZE) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_SIZE) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_SUBJECTS) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_OBJECTS)) {
 		auto v = n->properties()->findByKey(*p);
 		if (v) {
 			if (0 == v->compare("true")) {

@@ -34,7 +34,7 @@ gk::Entity* gk::Entity::Instance(v8::Isolate* isolate, const char* type) noexcep
 }
 
 GK_INIT(gk::Entity::Init) {
-	GK_SCOPE();
+GK_SCOPE();
 
 	auto t = GK_TEMPLATE(New);
 	t->SetClassName(GK_STRING(symbol));

@@ -45,6 +45,8 @@ GK_EXPORT(GraphKit) {
 	gk::GraphSet<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_GRAPH_SET);
 	gk::GraphMultiset<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_GRAPH_MULTISET);
 	gk::Set<gk::Node>::Init(exports, GK_SYMBOL_SET);
+	gk::Set<gk::Entity>::Init(exports, GK_SYMBOL_ENTITY_SET);
+	gk::Set<gk::Action<gk::Entity>>::Init(exports, GK_SYMBOL_ACTION_SET);
 	gk::Multiset<gk::Node>::Init(exports, GK_SYMBOL_MULTISET);
 
 	// constants
