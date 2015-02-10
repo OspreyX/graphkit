@@ -104,9 +104,11 @@ bool gk::Cluster<T, K, O>::insert(v8::Isolate* isolate, typename T::Node* node) 
 		auto nc = node->nodeClass();
 		auto t = node->type();
 		i = T::Instance(isolate, nc, t);
-		gk::RedBlackTree<T, true, K, O>::insert(i->type(), i, [&](T* i) {
+		if (!gk::RedBlackTree<T, true, K, O>::insert(i->type(), i, [&](T* i) {
 			i->Ref();
-		});
+		})) {
+			return false;
+		}
 	}
 	return i->insert(node);
 }

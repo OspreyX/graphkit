@@ -5,7 +5,7 @@
 		"name": "Daniel Dahan",
 		"email": "dahan.daniel@me.com"
 	},
-	"version": "0.1.0-rc-02072015-13",
+	"version": "0.1.0-rc-02072015-15",
 	"license": "AGPLv3",
 	"engines": {
 		"node": ">=0.12.0"
@@ -15,7 +15,31 @@
 		"url": "https://github.com/graphkit/graphkit.git"
 	},
 	"description": "Native Graph Framework",
-	"keywords": ["graph", "machine learning", "predictive analytics", "c", "c++", "javascript", "data store", "modelling", "data model", "data", "model", "node", "action", "entity", "event", "set theory", "graph theory", "set", "multiset", "theory", "framework", "native"],
+	"keywords": [
+		"graph",
+		"machine learning",
+		"predictive analytics",
+		"c",
+		"c++",
+		"data store",
+		"modelling",
+		"data model",
+		"data",
+		"model",
+		"node",
+		"entity",
+		"action",
+		"bond",
+		"event",
+		"set theory",
+		"graph theory",
+		"set",
+		"multiset",
+		"theory",
+		"framework",
+		"native",
+		"kit"
+	],
 	"devDependencies": {},
 	"dependencies": {}
 }
