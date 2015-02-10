@@ -103,9 +103,11 @@ bool gk::Graph<T, K, O>::insert(v8::Isolate* isolate, typename T::Index::Node* n
 	if (!c) {
 		auto nc = node->nodeClass();
 		c = T::Instance(isolate, nc);
-		gk::RedBlackTree<T, true, K, O>::insert(c->nodeClass(), c, [&](T* c) {
+		if (!gk::RedBlackTree<T, true, K, O>::insert(c->nodeClass(), c, [&](T* c) {
 			c->Ref();
-		});
+		})) {
+			return false;
+		}
 	}
 	return c->insert(isolate, node);
 }
