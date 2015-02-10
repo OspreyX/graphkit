@@ -5,8 +5,11 @@
 		"name": "Daniel Dahan",
 		"email": "dahan.daniel@me.com"
 	},
-	"version": "0.1.0-rc-02072015-15",
-	"license": "AGPLv3",
+	"version": "0.1.0-rc-02072015-16",
+	"license": [{
+		"type": "AGPLv3",
+		"url": "http://choosealicense.com/licenses/agpl-3.0/"
+	}],
 	"engines": {
 		"node": ">=0.12.0"
 	},
