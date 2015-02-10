@@ -28,14 +28,14 @@ let Entity = gk.Entity;
 let g1 = new Graph();
 
 // Create a User Entity.
-let u1 = new Entity("User");
+let u1 = new Entity('User');
 
 // Give u1 some properties.
-u1["name"] = "Eve";
-u1["age"] = 26;
+u1['name'] = 'Eve';
+u1['age'] = 26;
 
-// Add u1 to a group. This creates a subset in the Graph named "female".
-u1.addGroup("Female");
+// Add u1 to a group. This creates a subset in the Graph named 'female'.
+u1.addGroup('Female');
 
 // Output: 0, before inserting in the Graph.
 console.log(u1.id);
@@ -45,7 +45,7 @@ g1.insert(u1);
 console.log(u1.id);
 
 // Create a Book Entity using Graph factory methods.
-let b1 = g1.createEntity("Book");
+let b1 = g1.createEntity('Book');
 b1['title'] = 'Deep C Secrets';
 b1.addGroup('Thriller');
 
@@ -83,11 +83,17 @@ console.log(a1.subjects().size());
 // Output: 2
 console.log(a1.objects().size());
 
-// Output: Eve read 2 books.
-console.log(a1.subjects()[0]['name'], a1.type.toLowerCase(), a1.objects().size(), a1.objects()[0].type.toLowerCase() + 's.');
+// Output: 'Eve read 2 books.'
+console.log(a1.subjects()[0]['name'], a1.type.toLowerCase(), 
+a1.objects().size(), 
+a1.objects()[0].type.toLowerCase() + 's.');
 
-// Output: There is 1 user and 2 books in the graph.
-console.log('There is', g1.Entity.User.size(), g1.Entity.User.type.toLowerCase(), 'and', g1.Entity.Book.size(), g1.Entity.Book.type.toLowerCase() + 's', 'in the graph.');
+// Output: 'There is 1 user and 2 books in the graph.'
+console.log('There is', g1.Entity.User.size(), 
+g1.Entity.User.type.toLowerCase(), 'and', 
+g1.Entity.Book.size(), 
+g1.Entity.Book.type.toLowerCase() + 's', 
+'in the graph.');
 ```
 
 ##License
