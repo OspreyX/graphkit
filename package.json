@@ -5,7 +5,7 @@
 		"name": "Daniel Dahan",
 		"email": "dahan.daniel@me.com"
 	},
-	"version": "0.1.0-rc-02072015-19",
+	"version": "0.1.0-rc-02072015-20",
 	"license": [{
 		"type": "AGPLv3",
 		"url": "http://choosealicense.com/licenses/agpl-3.0/"
@@ -15,7 +15,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/graphkit/graphkit.git"
+		"url": "https://github.com/GraphKit/graphkit-js.git"
 	},
 	"description": "Native Graph Framework",
 	"keywords": [
