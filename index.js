@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2015 GraphKit, Inc. <http://graphkit.io> and Daniel Dahan <daniel@graphkit.io>
+ * Copyright (C) 2015 GraphKit, Inc. <http://graphkit.io> and other GraphKit contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
