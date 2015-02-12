@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2015 GraphKit, Inc. <http://graphkit.io> and Daniel Dahan <daniel@graphkit.io>
+* Copyright (C) 2015 GraphKit, Inc. <http://graphkit.io> and other GraphKit contributors.
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU Affero General Public License as published
@@ -14,10 +14,6 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
-*
-* Action.h
-*
-* A Node Class that represents an event or action between subject (stimulus) Entities and object (affected) Entities.
 */
 
 #ifndef GRAPHKIT_SRC_ACTION_H
