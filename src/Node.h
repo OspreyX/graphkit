@@ -19,7 +19,6 @@
 #ifndef GRAPHKIT_SRC_NODE_H
 #define GRAPHKIT_SRC_NODE_H
 
-#include <utility>
 #include <string>
 #include "exports.h"
 #include "NodeClass.h"
@@ -29,7 +28,7 @@
 namespace gk {
 	class Node : public gk::Export {
 	public:
-		Node(const gk::NodeClass& nodeClass, const std::string& type) noexcept;
+		Node(const gk::NodeClass& nodeClass, const std::string&& type) noexcept;
 		virtual ~Node();
 		Node(const Node& other) = default;
 		Node& operator= (const Node&) = default;
@@ -44,7 +43,6 @@ namespace gk {
 		gk::RedBlackTree<std::string, true, std::string>* groups() noexcept;
 		gk::RedBlackTree<std::string, true, std::string>* properties() noexcept;
 
-		void id(long long& id) noexcept;
 		void id(long long&& id) noexcept;
 		void indexed(bool indexed) noexcept;
 

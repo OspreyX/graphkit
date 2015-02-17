@@ -26,7 +26,7 @@
 namespace gk {
 	class Entity : public gk::Node {
 	public:
-		explicit Entity(const std::string& type) noexcept;
+		explicit Entity(const std::string&& type) noexcept;
 		virtual ~Entity();
 		Entity(const Entity& other) = default;
 		Entity& operator= (const Entity&) = default;

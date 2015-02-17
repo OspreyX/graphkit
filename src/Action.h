@@ -19,6 +19,7 @@
 #ifndef GRAPHKIT_SRC_ACTION_H
 #define GRAPHKIT_SRC_ACTION_H
 
+#include <utility>
 #include <string>
 #include <cassert>
 #include "Node.h"
@@ -29,7 +30,7 @@ namespace gk {
 	template <typename T>
 	class Action : public gk::Node {
 	public:
-		explicit Action(const std::string& type) noexcept;
+		explicit Action(const std::string&& type) noexcept;
 		virtual ~Action();
 		Action(const Action& other) = default;
 		Action& operator= (const Action&) = default;
@@ -56,8 +57,8 @@ namespace gk {
 	GK_CONSTRUCTOR(gk::Action<T>::constructor_);
 
 	template <typename T>
-	gk::Action<T>::Action(const std::string& type) noexcept
-		: gk::Node{gk::NodeClass::Action, type},
+	gk::Action<T>::Action(const std::string&& type) noexcept
+		: gk::Node{gk::NodeClass::Action, std::move(type)},
 		  subjects_{nullptr},
 		  objects_{nullptr} {}
 

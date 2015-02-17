@@ -26,7 +26,7 @@ namespace gk {
 	template <typename T>
 	class Bond : public gk::Node {
 	public:
-		explicit Bond(const std::string& type) noexcept;
+		explicit Bond(const std::string&& type) noexcept;
 		virtual ~Bond();
 		Bond(const Bond& other) = default;
 		Bond& operator= (const Bond&) = default;
@@ -45,8 +45,8 @@ namespace gk {
 	GK_CONSTRUCTOR(gk::Bond<T>::constructor_);
 
 	template <typename T>
-	gk::Bond<T>::Bond(const std::string& type) noexcept
-		: gk::Node{gk::NodeClass::Bond, type} {}
+	gk::Bond<T>::Bond(const std::string&& type) noexcept
+		: gk::Node{gk::NodeClass::Bond, std::move(type)} {}
 
 	template <typename T>
 	gk::Bond<T>::~Bond() {}
