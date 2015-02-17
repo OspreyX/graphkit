@@ -16,11 +16,11 @@
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Node.h"
 #include <cstring>
-#include <cassert>
+#include <utility>
+#include "Node.h"
 
-gk::Node::Node(const gk::NodeClass& nodeClass, const std::string& type) noexcept
+gk::Node::Node(const gk::NodeClass& nodeClass, const std::string&& type) noexcept
 	: gk::Export{},
 	  nodeClass_{nodeClass},
 	  type_{std::move(type)},
@@ -57,12 +57,8 @@ long long gk::Node::id() const noexcept {
 	return id_;
 }
 
-void gk::Node::id(long long& id) noexcept {
-	id_ = id;
-}
-
 void gk::Node::id(long long&& id) noexcept {
-	id_ = id;
+	id_ = std::move(id);
 }
 
 bool gk::Node::indexed() const noexcept {

@@ -21,8 +21,8 @@
 
 GK_CONSTRUCTOR(gk::Entity::constructor_);
 
-gk::Entity::Entity(const std::string& type) noexcept
-	: gk::Node{gk::NodeClass::Entity, type} {}
+gk::Entity::Entity(const std::string&& type) noexcept
+	: gk::Node{gk::NodeClass::Entity, std::move(type)} {}
 
 gk::Entity::~Entity() {}
 
