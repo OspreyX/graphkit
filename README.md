@@ -1,7 +1,7 @@
 
 #GraphKit  
 
-A highly performant native graph data store for Node.js. Welcome to GraphKit. Written completely in C/C\+\+, GraphKit is woven into the fabric of Node.js. The power of graph data models may now be leveraged within the Node.js environment and can easily scale to complex networked systems. Classic mathematics is at the core of GraphKit, offering developers synthesized tools for machine learning and predictive analytics that expand the imagination of technology and science.
+next generation graph framework for node.js
 
 ##Installation
 
@@ -62,7 +62,7 @@ console.log(a1.id);
 a1['session'] = 123;
 
 // Insert u1 as a subject for the Action.
-a1.subjects().insert(u1);
+a1.subjects.insert(u1);
 
 // Create another Book Entity.
 let b2 = g1.createEntity('Book');
@@ -74,19 +74,19 @@ b2.addGroup('Favourite');
 console.log(b2.id);
 
 // Add the books as the objects for the Action.
-a1.objects().insert(b1);
-a1.objects().insert(b2);
+a1.objects.insert(b1);
+a1.objects.insert(b2);
 
 // Output: 1
-console.log(a1.subjects().size());
+console.log(a1.subjects.size());
 
 // Output: 2
-console.log(a1.objects().size());
+console.log(a1.objects.size());
 
 // Output: 'Eve read 2 books.'
-console.log(a1.subjects()[0]['name'], a1.type.toLowerCase(), 
-a1.objects().size(), 
-a1.objects()[0].type.toLowerCase() + 's.');
+console.log(a1.subjects[0]['name'], a1.type.toLowerCase(), 
+a1.objects.size(), 
+a1.objects[0].type.toLowerCase() + 's.');
 
 // Output: 'There is 1 user and 2 books in the graph.'
 console.log('There is', g1.Entity.User.size(), 

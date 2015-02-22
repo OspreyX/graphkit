@@ -72,3 +72,72 @@ GK_METHOD(gk::Entity::New) {
 		GK_RETURN(cons->NewInstance(argc, argv));
 	}
 }
+
+GK_PROPERTY_GETTER(gk::Entity::PropertyGetter) {
+	GK_SCOPE();
+	v8::String::Utf8Value p(property);
+	auto n = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS)) {
+		GK_RETURN(GK_INTEGER(gk::NodeClassToInt(n->nodeClass())));
+	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_TYPE)) {
+		GK_RETURN(GK_STRING(n->type().c_str()));
+	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ID)) {
+		GK_RETURN(GK_INTEGER(n->id()));
+	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_INDEXED)) {
+		GK_RETURN(GK_BOOLEAN(n->indexed()));
+	}
+	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_GROUP) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_HAS_GROUP) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_SIZE) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_SIZE) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
+		auto v = n->properties()->findByKey(*p);
+		if (v) {
+			if (0 == v->compare("true")) {
+				GK_RETURN(GK_BOOLEAN(true));
+			}
+			if (0 == v->compare("false")) {
+				GK_RETURN(GK_BOOLEAN(false));
+			}
+			GK_RETURN(GK_STRING((*v).c_str()));
+		}
+		GK_RETURN(GK_UNDEFINED());
+	}
+}
+
+GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
+	GK_SCOPE();
+	v8::String::Utf8Value p(property);
+	v8::String::Utf8Value v(value);
+	auto n = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
+	GK_RETURN(GK_BOOLEAN(n->properties()->insert(std::string{*p}, new std::string{*v})));
+}
+
+GK_PROPERTY_DELETER(gk::Entity::PropertyDeleter) {
+	GK_SCOPE();
+	v8::String::Utf8Value prop(property);
+	auto n = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
+	GK_RETURN(GK_BOOLEAN(n->properties()->remove(*prop, [&](std::string* v) {
+		delete v;
+	})));
+}
+
+GK_PROPERTY_ENUMERATOR(gk::Entity::PropertyEnumerator) {
+	GK_SCOPE();
+	auto n = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
+	auto ps = n->properties()->size();
+	auto gs = n->groups()->size();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, ps + gs);
+	for (auto i = ps - 1; 0 <= i; --i) {
+		auto node = n->properties()->node(i + 1);
+		array->Set(i, GK_STRING(node->key().c_str()));
+	}
+	for (auto i = gs - 1; 0 <= i; --i) {
+		array->Set(ps++, GK_INTEGER(i));
+	}
+	GK_RETURN(array);
+}

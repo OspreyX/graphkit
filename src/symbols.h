@@ -63,6 +63,7 @@
 #define GK_SYMBOL_OPERATION_CREATE_BOND				"createBond"
 #define GK_SYMBOL_OPERATION_SUBJECTS				"subjects"
 #define GK_SYMBOL_OPERATION_OBJECTS					"objects"
-#define GK_SYMBOL_OPERATION_ACTIONS					"actions"
+#define GK_SYMBOL_OPERATION_SUBJECT					"subject"
+#define GK_SYMBOL_OPERATION_OBJECT					"object"
 
 #endif

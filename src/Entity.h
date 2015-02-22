@@ -39,6 +39,10 @@ namespace gk {
 
 	protected:
 		static GK_METHOD(New);
+		static GK_PROPERTY_GETTER(PropertyGetter);
+		static GK_PROPERTY_SETTER(PropertySetter);
+		static GK_PROPERTY_DELETER(PropertyDeleter);
+		static GK_PROPERTY_ENUMERATOR(PropertyEnumerator);
 	};
 }
 

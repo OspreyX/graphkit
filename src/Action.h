@@ -49,8 +49,10 @@ namespace gk {
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
-		static GK_METHOD(Subjects);
-		static GK_METHOD(Objects);
+		static GK_PROPERTY_GETTER(PropertyGetter);
+		static GK_PROPERTY_SETTER(PropertySetter);
+		static GK_PROPERTY_DELETER(PropertyDeleter);
+		static GK_PROPERTY_ENUMERATOR(PropertyEnumerator);
 	};
 
 	template <typename T>
@@ -116,8 +118,6 @@ namespace gk {
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_SIZE, groupSize);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_SIZE, propertySize);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING, NodeClassToString);
-		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SUBJECTS, Subjects);
-		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_OBJECTS, Objects);
 
 		constructor_.Reset(isolate, t->GetFunction());
 		exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -145,17 +145,82 @@ namespace gk {
 	}
 
 	template <typename T>
-	GK_METHOD(gk::Action<T>::Subjects) {
+	GK_PROPERTY_GETTER(gk::Action<T>::PropertyGetter) {
 		GK_SCOPE();
-		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
-		GK_RETURN(a->subjects(isolate)->handle());
+		v8::String::Utf8Value p(property);
+		auto n = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS)) {
+			GK_RETURN(GK_INTEGER(gk::NodeClassToInt(n->nodeClass())));
+		}
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_TYPE)) {
+			GK_RETURN(GK_STRING(n->type().c_str()));
+		}
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ID)) {
+			GK_RETURN(GK_INTEGER(n->id()));
+		}
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_INDEXED)) {
+			GK_RETURN(GK_BOOLEAN(n->indexed()));
+		}
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_SUBJECTS)) {
+			GK_RETURN(n->subjects(isolate)->handle());
+		}
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_OBJECTS)) {
+			GK_RETURN(n->objects(isolate)->handle());
+		}
+		if (0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_GROUP) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_HAS_GROUP) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_SIZE) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_SIZE) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
+			auto v = n->properties()->findByKey(*p);
+			if (v) {
+				if (0 == v->compare("true")) {
+					GK_RETURN(GK_BOOLEAN(true));
+				}
+				if (0 == v->compare("false")) {
+					GK_RETURN(GK_BOOLEAN(false));
+				}
+				GK_RETURN(GK_STRING((*v).c_str()));
+			}
+			GK_RETURN(GK_UNDEFINED());
+		}
 	}
 
 	template <typename T>
-	GK_METHOD(gk::Action<T>::Objects) {
+	GK_PROPERTY_SETTER(gk::Action<T>::PropertySetter) {
 		GK_SCOPE();
-		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
-		GK_RETURN(a->objects(isolate)->handle());
+		v8::String::Utf8Value p(property);
+		v8::String::Utf8Value v(value);
+		auto n = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		GK_RETURN(GK_BOOLEAN(n->properties()->insert(std::string{*p}, new std::string{*v})));
+	}
+
+	template <typename T>
+	GK_PROPERTY_DELETER(gk::Action<T>::PropertyDeleter) {
+		GK_SCOPE();
+		v8::String::Utf8Value prop(property);
+		auto n = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		GK_RETURN(GK_BOOLEAN(n->properties()->remove(*prop, [&](std::string* v) {
+			delete v;
+		})));
+	}
+
+	template <typename T>
+	GK_PROPERTY_ENUMERATOR(gk::Action<T>::PropertyEnumerator) {
+		GK_SCOPE();
+		auto n = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		auto ps = n->properties()->size();
+		auto gs = n->groups()->size();
+		v8::Handle<v8::Array> array = v8::Array::New(isolate, ps + gs);
+		for (auto i = ps - 1; 0 <= i; --i) {
+			auto node = n->properties()->node(i + 1);
+			array->Set(i, GK_STRING(node->key().c_str()));
+		}
+		for (auto i = gs - 1; 0 <= i; --i) {
+			array->Set(ps++, GK_INTEGER(i));
+		}
+		GK_RETURN(array);
 	}
 }
 
