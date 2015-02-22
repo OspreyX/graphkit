@@ -115,11 +115,9 @@ GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
 	v8::String::Utf8Value v(value);
 	auto prop = std::string{*p};
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
-	if (e->properties()->has(prop)) {
-		e->properties()->remove(prop, [&](std::string* v) {
-			delete v;
-		});
-	}
+	e->properties()->remove(prop, [&](std::string* v) {
+		delete v;
+	});
 	GK_RETURN(GK_BOOLEAN(e->properties()->insert(prop, new std::string{*v})));
 }
 

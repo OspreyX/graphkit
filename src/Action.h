@@ -194,11 +194,9 @@ namespace gk {
 		v8::String::Utf8Value v(value);
 		auto prop = std::string{*p};
 		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
-		if (a->properties()->has(prop)) {
-			a->properties()->remove(prop, [&](std::string* v) {
-				delete v;
-			});
-		}
+		a->properties()->remove(prop, [&](std::string* v) {
+			delete v;
+		});
 		GK_RETURN(GK_BOOLEAN(a->properties()->insert(prop, new std::string{*v})));
 	}
 

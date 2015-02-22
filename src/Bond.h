@@ -230,11 +230,9 @@ namespace gk {
 
 		v8::String::Utf8Value v(value);
 		auto prop = std::string{*p};
-		if (b->properties()->has(prop)) {
-			b->properties()->remove(prop, [&](std::string* v) {
-				delete v;
-			});
-		}
+		b->properties()->remove(prop, [&](std::string* v) {
+			delete v;
+		});
 		GK_RETURN(GK_BOOLEAN(b->properties()->insert(prop, new std::string{*v})));
 	}
 
