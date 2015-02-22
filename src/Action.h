@@ -192,8 +192,8 @@ namespace gk {
 		GK_SCOPE();
 		v8::String::Utf8Value p(property);
 		v8::String::Utf8Value v(value);
-		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
 		auto prop = std::string{*p};
+		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
 		if (a->properties()->has(prop)) {
 			a->properties()->remove(prop, [&](std::string* v) {
 				delete v;
