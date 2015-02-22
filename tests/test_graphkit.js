@@ -221,12 +221,12 @@ let Multiset = gk.Multiset;
 	let g1 = new Graph();
 	let a1 = g1.createAction('Read');
 	let e1 = g1.createEntity('User');
-	a1.subjects().insert(e1);
-	a1.subjects().insert(e1);
-	a1.objects().insert(g1.createEntity('Book'));
-	a1.objects().insert(g1.createEntity('Book'));
+	a1.subjects.insert(e1);
+	a1.subjects.insert(e1);
+	a1.objects.insert(g1.createEntity('Book'));
+	a1.objects.insert(g1.createEntity('Book'));
 
-	if (1 != a1.subjects().size() || 2 != a1.objects().size()) {
+	if (1 != a1.subjects.size() || 2 != a1.objects.size()) {
 		console.log('Action relationship test failed');
 	}
 
@@ -321,6 +321,16 @@ let Multiset = gk.Multiset;
 
 	if (123 == b['session']) {
 		console.log('Bond remove b["session"] test failed');
+	}
+
+	let g1 = new Graph();
+	let e1 = g1.createEntity('User');
+	let e2 = g1.createEntity('Book');
+	b.subject = e1;
+	b.object = e2;
+
+	if ('User' != b.subject.type || 'Book' != b.object.type) {
+		console.log('Bond relationship test failed');
 	}
 
 	console.log('Bond tests executed');
