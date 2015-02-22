@@ -114,6 +114,17 @@ let Multiset = gk.Multiset;
 		console.log('Entity insert e["age"] test failed');
 	}
 
+	e['name'] = 'Daniel';
+	e['age'] = 31;
+
+	if ('Daniel' != e['name']) {
+		console.log('Entity update e["name"] test failed');
+	}
+
+	if (31 != e['age']) {
+		console.log('Entity update e["age"] test failed');
+	}
+
 	delete e['name'];
 	delete e['age'];
 
@@ -205,6 +216,17 @@ let Multiset = gk.Multiset;
 
 	if (123 != a['session']) {
 		console.log('Action insert a["session"] test failed');
+	}
+
+	a['campaign'] = 'X-MASS';
+	a['session'] = 456;
+
+	if ('X-MASS' != a['campaign']) {
+		console.log('Action update a["campaign"] test failed');
+	}
+
+	if (456 != a['session']) {
+		console.log('Action update a["session"] test failed');
 	}
 
 	delete a['campaign'];
@@ -310,6 +332,17 @@ let Multiset = gk.Multiset;
 
 	if (123 != b['session']) {
 		console.log('Bond insert b["session"] test failed');
+	}
+
+	b['confirmed'] = false;
+	b['session'] = 456;
+
+	if (false != b['confirmed']) {
+		console.log('Bond update b["confirmed"] test failed');
+	}
+
+	if (456 != b['session']) {
+		console.log('Bond update b["session"] test failed');
 	}
 
 	delete b['confirmed'];

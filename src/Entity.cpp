@@ -113,27 +113,33 @@ GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
 	GK_SCOPE();
 	v8::String::Utf8Value p(property);
 	v8::String::Utf8Value v(value);
-	auto n = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(n->properties()->insert(std::string{*p}, new std::string{*v})));
+	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
+	auto prop = std::string{*p};
+	if (e->properties()->has(prop)) {
+		e->properties()->remove(prop, [&](std::string* v) {
+			delete v;
+		});
+	}
+	GK_RETURN(GK_BOOLEAN(e->properties()->insert(prop, new std::string{*v})));
 }
 
 GK_PROPERTY_DELETER(gk::Entity::PropertyDeleter) {
 	GK_SCOPE();
 	v8::String::Utf8Value prop(property);
-	auto n = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(n->properties()->remove(*prop, [&](std::string* v) {
+	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
+	GK_RETURN(GK_BOOLEAN(e->properties()->remove(*prop, [&](std::string* v) {
 		delete v;
 	})));
 }
 
 GK_PROPERTY_ENUMERATOR(gk::Entity::PropertyEnumerator) {
 	GK_SCOPE();
-	auto n = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
-	auto ps = n->properties()->size();
-	auto gs = n->groups()->size();
+	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
+	auto ps = e->properties()->size();
+	auto gs = e->groups()->size();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, ps + gs);
 	for (auto i = ps - 1; 0 <= i; --i) {
-		auto node = n->properties()->node(i + 1);
+		auto node = e->properties()->node(i + 1);
 		array->Set(i, GK_STRING(node->key().c_str()));
 	}
 	for (auto i = gs - 1; 0 <= i; --i) {
