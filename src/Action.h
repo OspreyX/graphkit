@@ -192,16 +192,22 @@ namespace gk {
 		GK_SCOPE();
 		v8::String::Utf8Value p(property);
 		v8::String::Utf8Value v(value);
-		auto n = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
-		GK_RETURN(GK_BOOLEAN(n->properties()->insert(std::string{*p}, new std::string{*v})));
+		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		auto prop = std::string{*p};
+		if (a->properties()->has(prop)) {
+			a->properties()->remove(prop, [&](std::string* v) {
+				delete v;
+			});
+		}
+		GK_RETURN(GK_BOOLEAN(a->properties()->insert(prop, new std::string{*v})));
 	}
 
 	template <typename T>
 	GK_PROPERTY_DELETER(gk::Action<T>::PropertyDeleter) {
 		GK_SCOPE();
 		v8::String::Utf8Value prop(property);
-		auto n = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
-		GK_RETURN(GK_BOOLEAN(n->properties()->remove(*prop, [&](std::string* v) {
+		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		GK_RETURN(GK_BOOLEAN(a->properties()->remove(*prop, [&](std::string* v) {
 			delete v;
 		})));
 	}
@@ -209,12 +215,12 @@ namespace gk {
 	template <typename T>
 	GK_PROPERTY_ENUMERATOR(gk::Action<T>::PropertyEnumerator) {
 		GK_SCOPE();
-		auto n = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
-		auto ps = n->properties()->size();
-		auto gs = n->groups()->size();
+		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		auto ps = a->properties()->size();
+		auto gs = a->groups()->size();
 		v8::Handle<v8::Array> array = v8::Array::New(isolate, ps + gs);
 		for (auto i = ps - 1; 0 <= i; --i) {
-			auto node = n->properties()->node(i + 1);
+			auto node = a->properties()->node(i + 1);
 			array->Set(i, GK_STRING(node->key().c_str()));
 		}
 		for (auto i = gs - 1; 0 <= i; --i) {
