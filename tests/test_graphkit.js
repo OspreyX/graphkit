@@ -357,12 +357,13 @@ let Multiset = gk.Multiset;
 	}
 
 	let g1 = new Graph();
+	g1.insert(b);
 	let e1 = g1.createEntity('User');
 	let e2 = g1.createEntity('Book');
 	b.subject = e1;
 	b.object = e2;
 
-	if ('User' != b.subject.type || 'Book' != b.object.type) {
+	if ('User' != b.subject.type || b != e1.bonds[0] || 'Book' != b.object.type || b != e2.bonds[0]) {
 		console.log('Bond relationship test failed');
 	}
 

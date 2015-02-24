@@ -19,6 +19,7 @@
 #ifndef GRAPHKIT_SRC_ACTION_H
 #define GRAPHKIT_SRC_ACTION_H
 
+#include <cstring>
 #include <utility>
 #include <string>
 #include <cassert>

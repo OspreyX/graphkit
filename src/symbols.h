@@ -40,6 +40,7 @@
 #define GK_SYMBOL_SET 								"Set"
 #define GK_SYMBOL_ENTITY_SET 						"EntitySet"
 #define GK_SYMBOL_ACTION_SET 						"ActionSet"
+#define GK_SYMBOL_BOND_SET 							"BondSet"
 #define GK_SYMBOL_MULTISET 							"Multiset"
 
 // operations
@@ -65,5 +66,7 @@
 #define GK_SYMBOL_OPERATION_OBJECTS					"objects"
 #define GK_SYMBOL_OPERATION_SUBJECT					"subject"
 #define GK_SYMBOL_OPERATION_OBJECT					"object"
+#define GK_SYMBOL_OPERATION_ACTIONS					"actions"
+#define GK_SYMBOL_OPERATION_BONDS					"bonds"
 
 #endif
