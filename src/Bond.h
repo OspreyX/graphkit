@@ -19,6 +19,7 @@
 #ifndef GRAPHKIT_SRC_BOND_H
 #define GRAPHKIT_SRC_BOND_H
 
+#include <cstring>
 #include <cassert>
 #include "Node.h"
 #include "symbols.h"
@@ -35,9 +36,9 @@ namespace gk {
 		Bond& operator= (Bond&&) = default;
 
 		T* subject() const noexcept;
-		void subject(T* node) noexcept;
+		bool subject(v8::Isolate* isolate, T* node) noexcept;
 		T* object() const noexcept;
-		void object(T* node) noexcept;
+		bool object(v8::Isolate* isolate, T* node) noexcept;
 
 		static Bond<T>* Instance(v8::Isolate* isolate, const char* type) noexcept;
 		static GK_INIT(Init);
@@ -66,9 +67,11 @@ namespace gk {
 	template <typename T>
 	gk::Bond<T>::~Bond() {
 		if (nullptr != subject_) {
+			subject_->bonds(nullptr)->cleanUp();
 			subject_->Unref();
 		}
 		if (nullptr != object_) {
+			object_->bonds(nullptr)->cleanUp();
 			object_->Unref();
 		}
 	}
@@ -79,13 +82,15 @@ namespace gk {
 	}
 
 	template <typename T>
-	void gk::Bond<T>::subject(T* node) noexcept {
+	bool gk::Bond<T>::subject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
 		if (nullptr != subject_) {
+			subject_->bonds(isolate)->remove(this->hash());
 			subject_->Unref();
 		}
 		subject_ = node;
 		subject_->Ref();
+		return subject_->bonds(isolate)->insert(isolate, this);
 	}
 
 	template <typename T>
@@ -94,13 +99,15 @@ namespace gk {
 	}
 
 	template <typename T>
-	void gk::Bond<T>::object(T* node) noexcept {
+	bool gk::Bond<T>::object(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
 		if (nullptr != object_) {
+			object_->bonds(isolate)->remove(this->hash());
 			object_->Unref();
 		}
 		object_ = node;
 		object_->Ref();
+		return object_->bonds(isolate)->insert(isolate, this);
 	}
 
 	template <typename T>
@@ -172,13 +179,13 @@ namespace gk {
 		}
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_SUBJECT)) {
 			if (nullptr == n->subject()) {
-				GK_UNDEFINED();
+				GK_RETURN(GK_UNDEFINED());
 			}
 			GK_RETURN(n->subject()->handle());
 		}
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_OBJECT)) {
 			if (nullptr == n->object()) {
-				GK_UNDEFINED();
+				GK_RETURN(GK_UNDEFINED());
 			}
 			GK_RETURN(n->object()->handle());
 		}
@@ -211,8 +218,10 @@ namespace gk {
 			if (value->IsObject()) {
 				auto n = node::ObjectWrap::Unwrap<T>(value->ToObject());
 				if (gk::NodeClass::Entity == n->nodeClass()) {
-					b->subject(n);
-					GK_RETURN(GK_UNDEFINED());
+					if (b->subject(isolate, n)) {
+						GK_RETURN(n->handle());
+					}
+					GK_EXCEPTION("[GraphKit Error: Bond must be indexed prior to setting subject property.]");
 				}
 			}
 			GK_EXCEPTION("[GraphKit Error: Expecting Entity instance.]");
@@ -221,8 +230,10 @@ namespace gk {
 			if (value->IsObject()) {
 				auto n = node::ObjectWrap::Unwrap<T>(value->ToObject());
 				if (gk::NodeClass::Entity == n->nodeClass()) {
-					b->object(n);
-					GK_RETURN(GK_UNDEFINED());
+					if (b->object(isolate, n)) {
+						GK_RETURN(n->handle());
+					}
+					GK_EXCEPTION("[GraphKit Error: Bond must be indexed prior to setting object property.]");
 				}
 			}
 			GK_EXCEPTION("[GraphKit Error: Expecting Entity instance.]");
