@@ -22,6 +22,8 @@
 #include <string>
 #include "exports.h"
 #include "Node.h"
+#include "Bond.h"
+#include "Set.h"
 
 namespace gk {
 	class Entity : public gk::Node {
@@ -33,11 +35,14 @@ namespace gk {
 		Entity(Entity&& other) = default;
 		Entity& operator= (Entity&&) = default;
 
+		gk::Set<gk::Bond<Entity>>* bonds(v8::Isolate* isolate) noexcept;
+
 		static Entity* Instance(v8::Isolate* isolate, const char* type) noexcept;
 		static GK_INIT(Init);
 		static GK_CONSTRUCTOR(constructor_);
 
 	protected:
+		gk::Set<gk::Bond<Entity>>* bonds_;
 		static GK_METHOD(New);
 		static GK_PROPERTY_GETTER(PropertyGetter);
 		static GK_PROPERTY_SETTER(PropertySetter);

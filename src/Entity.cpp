@@ -16,15 +16,31 @@
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cstring>
 #include "Entity.h"
 #include "symbols.h"
+
 
 GK_CONSTRUCTOR(gk::Entity::constructor_);
 
 gk::Entity::Entity(const std::string&& type) noexcept
-	: gk::Node{gk::NodeClass::Entity, std::move(type)} {}
+	: gk::Node{gk::NodeClass::Entity, std::move(type)},
+	  bonds_{nullptr} {}
 
-gk::Entity::~Entity() {}
+gk::Entity::~Entity() {
+	if (nullptr != bonds_) {
+		bonds_->cleanUp();
+		bonds_->Unref();
+	}
+}
+
+gk::Set<gk::Bond<gk::Entity>>* gk::Entity::bonds(v8::Isolate* isolate) noexcept {
+	if (nullptr == bonds_) {
+		bonds_ = gk::Set<gk::Bond<gk::Entity>>::Instance(isolate);
+		bonds_->Ref();
+	}
+	return bonds_;
+}
 
 gk::Entity* gk::Entity::Instance(v8::Isolate* isolate, const char* type) noexcept {
 	const int argc = 1;
@@ -34,7 +50,7 @@ gk::Entity* gk::Entity::Instance(v8::Isolate* isolate, const char* type) noexcep
 }
 
 GK_INIT(gk::Entity::Init) {
-GK_SCOPE();
+	GK_SCOPE();
 
 	auto t = GK_TEMPLATE(New);
 	t->SetClassName(GK_STRING(symbol));
@@ -89,6 +105,9 @@ GK_PROPERTY_GETTER(gk::Entity::PropertyGetter) {
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_INDEXED)) {
 		GK_RETURN(GK_BOOLEAN(n->indexed()));
 	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_BONDS)) {
+		GK_RETURN(n->bonds(isolate)->handle());
+	}
 	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_HAS_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
@@ -114,6 +133,9 @@ GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
 	v8::String::Utf8Value p(property);
 	v8::String::Utf8Value v(value);
 	auto prop = std::string{*p};
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_BONDS)) {
+		GK_EXCEPTION("[GraphKit Error: Cannot set bonds property.]");
+	}
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
 	e->properties()->remove(prop, [&](std::string* v) {
 		delete v;

@@ -16,7 +16,6 @@
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstring>
 #include <utility>
 #include "Node.h"
 
