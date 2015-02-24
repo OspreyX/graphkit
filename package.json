@@ -1,49 +1,49 @@
 {
-	'name': 'graphkit',
-	'homepage': 'http://graphkit.io',
-	'author': {
-		'name': 'Daniel Dahan',
-		'email': 'daniel@graphkit.io'
+	"name": "graphkit",
+	"homepage": "http://graphkit.io",
+	"author": {
+		"name": "Daniel Dahan",
+		"email": "daniel@graphkit.io"
 	},
-	'version': '0.1.0',
-	'license': [{
-		'type': 'AGPLv3',
-		'url': 'http://choosealicense.com/licenses/agpl-3.0/'
+	"version": "0.1.0",
+	"license": [{
+		"type": "AGPLv3",
+		"url": "http://choosealicense.com/licenses/agpl-3.0/"
 	}],
-	'engines': {
-		'node': '>=0.12.0'
+	"engines": {
+		"node": ">=0.12.0"
 	},
-	'repository': {
-		'type': 'git',
-		'url': 'https://github.com/GraphKit/graphkit-js.git',
-		'tag': '0.1.0'
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/GraphKit/graphkit-js.git",
+		"tag": "0.1.0"
 	},
-	'description': 'next generation graph framework for node.js',
-	'keywords': [
-		'graph',
-		'machine learning',
-		'predictive analytics',
-		'c',
-		'c++',
-		'data store',
-		'modelling',
-		'data model',
-		'data',
-		'model',
-		'node',
-		'entity',
-		'action',
-		'bond',
-		'event',
-		'set theory',
-		'graph theory',
-		'set',
-		'multiset',
-		'theory',
-		'framework',
-		'native',
-		'kit'
+	"description": "next generation graph framework for node.js",
+	"keywords": [
+		"graph",
+		"machine learning",
+		"predictive analytics",
+		"c",
+		"c++",
+		"data store",
+		"modelling",
+		"data model",
+		"data",
+		"model",
+		"node",
+		"entity",
+		"action",
+		"bond",
+		"event",
+		"set theory",
+		"graph theory",
+		"set",
+		"multiset",
+		"theory",
+		"framework",
+		"native",
+		"kit"
 	],
-	'devDependencies': {},
-	'dependencies': {}
+	"devDependencies": {},
+	"dependencies": {}
 }
