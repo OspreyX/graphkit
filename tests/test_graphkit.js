@@ -367,6 +367,14 @@ let Multiset = gk.Multiset;
 		console.log('Bond relationship test failed');
 	}
 
+	if (!(delete b.subject) || 0 != e1.bonds.size()) {
+		console.log('Bond remove subject relationship test failed');
+	}
+
+	if (!(delete b.object) || 0 != e2.bonds.size()) {
+		console.log('Bond remove object relationship test failed');
+	}
+
 	console.log('Bond tests executed');
 })();
 
