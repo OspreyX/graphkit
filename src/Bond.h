@@ -195,6 +195,9 @@ namespace gk {
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ID)) {
 			GK_RETURN(GK_INTEGER(n->id()));
 		}
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_HASH)) {
+			GK_RETURN(GK_STRING(n->hash().c_str()));
+		}
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_INDEXED)) {
 			GK_RETURN(GK_BOOLEAN(n->indexed()));
 		}
@@ -235,6 +238,22 @@ namespace gk {
 		GK_SCOPE();
 
 		v8::String::Utf8Value p(property);
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS)) {
+			GK_EXCEPTION("[GraphKit Error: Cannot set nodeClass property.]");
+		}
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_TYPE)) {
+			GK_EXCEPTION("[GraphKit Error: Cannot set type property.]");
+		}
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ID)) {
+			GK_EXCEPTION("[GraphKit Error: Cannot set id property.]");
+		}
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_HASH)) {
+			GK_EXCEPTION("[GraphKit Error: Cannot set hash property.]");
+		}
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_INDEXED)) {
+			GK_EXCEPTION("[GraphKit Error: Cannot set indexed property.]");
+		}
+
 		auto b = node::ObjectWrap::Unwrap<gk::Bond<T>>(args.Holder());
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_SUBJECT)) {
 			if (value->IsObject()) {

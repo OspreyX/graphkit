@@ -57,6 +57,7 @@ long long gk::Node::id() const noexcept {
 }
 
 void gk::Node::id(long long&& id) noexcept {
+	hash_.clear();
 	id_ = std::move(id);
 }
 
@@ -87,7 +88,7 @@ gk::RedBlackTree<std::string, true, std::string>* gk::Node::properties() noexcep
 }
 
 const std::string& gk::Node::hash() noexcept {
-	if (0 < id_ && hash_.empty()) {
+	if (hash_.empty()) {
 		hash_ = std::string{std::string(gk::NodeClassToString(nodeClass_)) + ":" + type_ + ":" + std::to_string(id_)};
 	}
 	return hash_;
