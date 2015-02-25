@@ -41,102 +41,109 @@ let Multiset = gk.Multiset;
 	let e;
 	try {
 		e = new Entity();
-		console.log('Entity empty initialization test failed');
+		console.log('Entity empty initialization test failed.');
 	} catch (error) {}
 
 	try {
 		e = new Entity(1);
-		console.log('Entity numeric initialization test failed');
+		console.log('Entity numeric initialization test failed.');
 	} catch (error) {}
 
 	e = new Entity('User');
 
 	if (!(e instanceof Entity)) {
-		console.log('Entity instanceof test failed');
+		console.log('Entity instanceof test failed.');
 	}
 
 	if (ENTITY != e.nodeClass) {
-		console.log('Entity nodeClass test failed');
+		console.log('Entity nodeClass test failed.');
 	}
 
 	if ('Entity' != e.nodeClassToString()) {
-		console.log('Entity nodeClassToString() test failed');
+		console.log('Entity nodeClassToString() test failed.');
 	}
 
 	if ('User' != e.type) {
-		console.log('Entity type test failed');
+		console.log('Entity type test failed.');
 	}
 
-	if (0 != e.id) {
-		console.log('Entity id test failed');
+	if (0 != e.id || 'Entity:User:0' != e.hash) {
+		console.log('Entity id test failed.');
 	}
 
 	if (!e.addGroup('admin')) {
-		console.log('Entity addGroup("admin") test failed');
+		console.log('Entity addGroup("admin") test failed.');
 	}
 
 	if (!e.addGroup('female')) {
-		console.log('Entity addGroup("female") test failed');
+		console.log('Entity addGroup("female") test failed.');
 	}
 
 	if (2 != e.groupSize()) {
-		console.log('Entity groupSize() test failed');
+		console.log('Entity groupSize() test failed.');
 	}
 
 	if (!e.hasGroup('admin')) {
-		console.log('Entity hasGroup("admin") test failed');
+		console.log('Entity hasGroup("admin") test failed.');
 	}
 
 	if (!e.hasGroup('female')) {
-		console.log('Entity hasGroup("female") test failed');
+		console.log('Entity hasGroup("female") test failed.');
 	}
 
 	if (!e.removeGroup('admin')) {
-		console.log('Entity removeGroup("admin") test failed');
+		console.log('Entity removeGroup("admin") test failed.');
 	}
 
 	if (!e.removeGroup('female')) {
-		console.log('Entity removeGroup("female") test failed');
+		console.log('Entity removeGroup("female") test failed.');
 	}
 
 	if (0 != e.groupSize()) {
-		console.log('Entity groupSize() test failed');
+		console.log('Entity groupSize() test failed.');
 	}
 
 	e['name'] = 'Eve';
 	e['age'] = 26;
 
 	if ('Eve' != e['name']) {
-		console.log('Entity insert e["name"] test failed');
+		console.log('Entity insert e["name"] test failed.');
 	}
 
 	if (26 != e['age']) {
-		console.log('Entity insert e["age"] test failed');
+		console.log('Entity insert e["age"] test failed.');
 	}
 
 	e['name'] = 'Daniel';
 	e['age'] = 31;
 
 	if ('Daniel' != e['name']) {
-		console.log('Entity update e["name"] test failed');
+		console.log('Entity update e["name"] test failed.');
 	}
 
 	if (31 != e['age']) {
-		console.log('Entity update e["age"] test failed');
+		console.log('Entity update e["age"] test failed.');
 	}
 
 	delete e['name'];
 	delete e['age'];
 
 	if ('Eve' == e['name']) {
-		console.log('Entity remove e["name"] test failed');
+		console.log('Entity remove e["name"] test failed.');
 	}
 
 	if (26 == e['age']) {
-		console.log('Entity remove e["age"] test failed');
+		console.log('Entity remove e["age"] test failed.');
 	}
 
-	console.log('Entity tests executed');
+	let g = new gk.Graph();
+	g.insert(e);
+
+	if (1 != e.id || 'Entity:User:1' != e.hash) {
+		console.log('Entity hash test failed.');
+	}
+
+	console.log('Entity tests executed.');
 })();
 
 (function() {
@@ -145,99 +152,99 @@ let Multiset = gk.Multiset;
 	let a;
 	try {
 		a = new Action();
-		console.log('Action empty initialization test failed');
+		console.log('Action empty initialization test failed.');
 	} catch (error) {}
 
 	try {
 		a = new Action(1);
-		console.log('Action numeric initialization test failed');
+		console.log('Action numeric initialization test failed.');
 	} catch (error) {}
 
 	a = new Action('Clicked');
 
 	if (!(a instanceof Action)) {
-		console.log('Action instanceof test failed');
+		console.log('Action instanceof test failed.');
 	}
 
 	if (ACTION != a.nodeClass) {
-		console.log('Action nodeClass test failed');
+		console.log('Action nodeClass test failed.');
 	}
 
 	if ('Action' != a.nodeClassToString()) {
-		console.log('Action nodeClassToString() test failed');
+		console.log('Action nodeClassToString() test failed.');
 	}
 
 	if ('Clicked' != a.type) {
-		console.log('Action type test failed');
+		console.log('Action type test failed.');
 	}
 
 	if (0 != a.id) {
-		console.log('Action id test failed');
+		console.log('Action id test failed.');
 	}
 
 	if (!a.addGroup('ios')) {
-		console.log('Action addGroup("ios") test failed');
+		console.log('Action addGroup("ios") test failed.');
 	}
 
 	if (!a.addGroup('mobile')) {
-		console.log('Action addGroup("mobile") test failed');
+		console.log('Action addGroup("mobile") test failed.');
 	}
 
 	if (2 != a.groupSize()) {
-		console.log('Action groupSize() test failed');
+		console.log('Action groupSize() test failed.');
 	}
 
 	if (!a.hasGroup('ios')) {
-		console.log('Action hasGroup("ios") test failed');
+		console.log('Action hasGroup("ios") test failed.');
 	}
 
 	if (!a.hasGroup('mobile')) {
-		console.log('Action hasGroup("mobile") test failed');
+		console.log('Action hasGroup("mobile") test failed.');
 	}
 
 	if (!a.removeGroup('ios')) {
-		console.log('Action removeGroup("ios") test failed');
+		console.log('Action removeGroup("ios") test failed.');
 	}
 
 	if (!a.removeGroup('mobile')) {
-		console.log('Action removeGroup("mobile") test failed');
+		console.log('Action removeGroup("mobile") test failed.');
 	}
 
 	if (0 != a.groupSize()) {
-		console.log('Action groupSize() test failed');
+		console.log('Action groupSize() test failed.');
 	}
 
 	a['campaign'] = 'holidays';
 	a['session'] = 123;
 
 	if ('holidays' != a['campaign']) {
-		console.log('Action insert a["campaign"] test failed');
+		console.log('Action insert a["campaign"] test failed.');
 	}
 
 	if (123 != a['session']) {
-		console.log('Action insert a["session"] test failed');
+		console.log('Action insert a["session"] test failed.');
 	}
 
 	a['campaign'] = 'X-MASS';
 	a['session'] = 456;
 
 	if ('X-MASS' != a['campaign']) {
-		console.log('Action update a["campaign"] test failed');
+		console.log('Action update a["campaign"] test failed.');
 	}
 
 	if (456 != a['session']) {
-		console.log('Action update a["session"] test failed');
+		console.log('Action update a["session"] test failed.');
 	}
 
 	delete a['campaign'];
 	delete a['session'];
 
 	if ('holidays' == a['campaign']) {
-		console.log('Action remove a["campaign"] test failed');
+		console.log('Action remove a["campaign"] test failed.');
 	}
 
 	if (123 == a['session']) {
-		console.log('Action remove a["session"] test failed');
+		console.log('Action remove a["session"] test failed.');
 	}
 
 	let g1 = new Graph();
@@ -249,10 +256,15 @@ let Multiset = gk.Multiset;
 	a1.objects.insert(g1.createEntity('Book'));
 
 	if (1 != a1.subjects.size() || 2 != a1.objects.size()) {
-		console.log('Action relationship test failed');
+		console.log('Action relationship test failed.');
 	}
 
-	console.log('Action tests executed');
+	g1.insert(a);
+	if (1 != a.id || 'Action:Clicked:1' != a.hash) {
+		console.log('Action hash test failed.');
+	}
+
+	console.log('Action tests executed.');
 })();
 
 (function() {
@@ -261,99 +273,99 @@ let Multiset = gk.Multiset;
 	let b;
 	try {
 		b = new Bond();
-		console.log('Bond empty initialization test failed');
+		console.log('Bond empty initialization test failed.');
 	} catch (error) {}
 
 	try {
 		b = new Bond(1);
-		console.log('Bond numeric initialization test failed');
+		console.log('Bond numeric initialization test failed.');
 	} catch (error) {}
 
 	b = new Bond('Relationship');
 
 	if (!(b instanceof Bond)) {
-		console.log('Bond instanceof test failed');
+		console.log('Bond instanceof test failed.');
 	}
 
 	if (BOND != b.nodeClass) {
-		console.log('Bond nodeClass test failed');
+		console.log('Bond nodeClass test failed.');
 	}
 
 	if ('Bond' != b.nodeClassToString()) {
-		console.log('Bond nodeClassToString() test failed');
+		console.log('Bond nodeClassToString() test failed.');
 	}
 
 	if ('Relationship' != b.type) {
-		console.log('Bond type test failed');
+		console.log('Bond type test failed.');
 	}
 
 	if (0 != b.id) {
-		console.log('Bond id test failed');
+		console.log('Bond id test failed.');
 	}
 
 	if (!b.addGroup('family')) {
-		console.log('Bond addGroup("family") test failed');
+		console.log('Bond addGroup("family") test failed.');
 	}
 
 	if (!b.addGroup('cousin')) {
-		console.log('Bond addGroup("cousin") test failed');
+		console.log('Bond addGroup("cousin") test failed.');
 	}
 
 	if (2 != b.groupSize()) {
-		console.log('Bond groupSize() test failed');
+		console.log('Bond groupSize() test failed.');
 	}
 
 	if (!b.hasGroup('family')) {
-		console.log('Bond hasGroup("family") test failed');
+		console.log('Bond hasGroup("family") test failed.');
 	}
 
 	if (!b.hasGroup('cousin')) {
-		console.log('Bond hasGroup("cousin") test failed');
+		console.log('Bond hasGroup("cousin") test failed.');
 	}
 
 	if (!b.removeGroup('family')) {
-		console.log('Bond removeGroup("family") test failed');
+		console.log('Bond removeGroup("family") test failed.');
 	}
 
 	if (!b.removeGroup('cousin')) {
-		console.log('Bond removeGroup("cousin") test failed');
+		console.log('Bond removeGroup("cousin") test failed.');
 	}
 
 	if (0 != b.groupSize()) {
-		console.log('Bond groupSize() test failed');
+		console.log('Bond groupSize() test failed.');
 	}
 
 	b['confirmed'] = true;
 	b['session'] = 123;
 
 	if (true != b['confirmed']) {
-		console.log('Bond insert b["confirmed"] test failed');
+		console.log('Bond insert b["confirmed"] test failed.');
 	}
 
 	if (123 != b['session']) {
-		console.log('Bond insert b["session"] test failed');
+		console.log('Bond insert b["session"] test failed.');
 	}
 
 	b['confirmed'] = false;
 	b['session'] = 456;
 
 	if (false != b['confirmed']) {
-		console.log('Bond update b["confirmed"] test failed');
+		console.log('Bond update b["confirmed"] test failed.');
 	}
 
 	if (456 != b['session']) {
-		console.log('Bond update b["session"] test failed');
+		console.log('Bond update b["session"] test failed.');
 	}
 
 	delete b['confirmed'];
 	delete b['session'];
 
 	if (true == b['confirmed']) {
-		console.log('Bond remove b["confirmed"] test failed');
+		console.log('Bond remove b["confirmed"] test failed.');
 	}
 
 	if (123 == b['session']) {
-		console.log('Bond remove b["session"] test failed');
+		console.log('Bond remove b["session"] test failed.');
 	}
 
 	let g1 = new Graph();
@@ -364,18 +376,23 @@ let Multiset = gk.Multiset;
 	b.object = e2;
 
 	if ('User' != b.subject.type || b != e1.bonds[0] || 'Book' != b.object.type || b != e2.bonds[0]) {
-		console.log('Bond relationship test failed');
+		console.log('Bond relationship test failed.');
 	}
 
 	if (!(delete b.subject) || 0 != e1.bonds.size()) {
-		console.log('Bond remove subject relationship test failed');
+		console.log('Bond remove subject relationship test failed.');
 	}
 
 	if (!(delete b.object) || 0 != e2.bonds.size()) {
-		console.log('Bond remove object relationship test failed');
+		console.log('Bond remove object relationship test failed.');
 	}
 
-	console.log('Bond tests executed');
+	g1.insert(b);
+	if (1 != b.id || 'Bond:Relationship:1' != b.hash) {
+		console.log('Bond hash test failed.');
+	}
+
+	console.log('Bond tests executed.');
 })();
 
 (function() {
@@ -391,28 +408,28 @@ let Multiset = gk.Multiset;
 	}
 
 	if ('User' != i1.type) {
-		console.log('Index type test failed');
+		console.log('Index type test failed.');
 	}
 
 	if (!i1.insert(e1) || 1 != e1.id || !e1.indexed) {
-		console.log('Index insert(e1) test failed');
+		console.log('Index insert(e1) test failed.');
 	}
 
 	try {
 		i1.insert(e2);
-		console.log('Index insert(e2) test failed');
+		console.log('Index insert(e2) test failed.');
 	} catch (error) {}
 
 	try {
 		i1.insert(a1);
-		console.log('Index insert(a1) test failed');
+		console.log('Index insert(a1) test failed.');
 	} catch (error) {}
 
 	let count = 1000000;
 	let start = Date.now();
 	for (let i = count; 0 < i; --i) {
 		if (!i1.insert(new Entity('User'))) {
-			console.log('Index insert(new Entity("User")) test failed');
+			console.log('Index insert(new Entity("User")) test failed.');
 			break;
 		}
 	}
@@ -422,21 +439,21 @@ let Multiset = gk.Multiset;
 	console.log('Index insert() stress tests passed', 'Operation Count', count, 'Time', Date.now() - start);
 
 	if (!i1.remove(2) || !i1.remove(e1) || count - 1 != i1.size()) {
-		console.log('Index remove() test failed');
+		console.log('Index remove() test failed.');
 	}
 
 	for (let i = i1.size() - 1; 0 <= i; --i) {
 		if (!i1[i].id) {
-			onsole.log('Index iterator[] test failed');
+			onsole.log('Index iterator[] test failed.');
 			break;
 		}
 		if (i == 0) {
-			console.log('Index iterator[] test passed');
+			console.log('Index iterator[] test passed.');
 		}
 	}
 
 	if (3 != i1.find(3).id) {
-		onsole.log('Index find(3) test failed');
+		onsole.log('Index find(3) test failed.');
 	}
 
 	i1.clear();
@@ -444,7 +461,7 @@ let Multiset = gk.Multiset;
 		console.log('Index clear() test failed, Count', 0, 'Size', i1.size());
 	}
 
-	console.log('Index tests executed');
+	console.log('Index tests executed.');
 })();
 
 (function() {
@@ -463,23 +480,23 @@ let Multiset = gk.Multiset;
 	}
 
 	if (!c1.insert(e1) || 1 != e1.id) {
-		console.log('Cluster insert(e1) test failed');
+		console.log('Cluster insert(e1) test failed.');
 	}
 
 	if (!c1.insert(e2) || 1 != e2.id) {
-		console.log('Cluster insert(e2) test failed');
+		console.log('Cluster insert(e2) test failed.');
 	}
 
 	if (1 != c1.User.find(1).id) {
-		onsole.log('Cluster find("User", 1) test failed');
+		onsole.log('Cluster find("User", 1) test failed.');
 	}
 
 	if (1 != c1.find('Book', 1).id) {
-		onsole.log('Cluster find("Book", 1) test failed');
+		onsole.log('Cluster find("Book", 1) test failed.');
 	}
 
 	if (!c1.remove(e1.type, e1.id) || !c1.remove(e2)) {
-		console.log('Cluster remove() test failed');
+		console.log('Cluster remove() test failed.');
 	}
 
 	let count = 1000000;
@@ -491,11 +508,11 @@ let Multiset = gk.Multiset;
 
 	for (let i = c1.size() - 1; 0 <= i; --i) {
 		if (500000 != c1[i].size()) {
-			console.log('Cluster iterator[] test failed');
+			console.log('Cluster iterator[] test failed.');
 			break;
 		}
 		if (i == 0) {
-			console.log('Cluster iterator[] test passed');
+			console.log('Cluster iterator[] test passed.');
 		}
 	}
 
@@ -504,7 +521,7 @@ let Multiset = gk.Multiset;
 		console.log('Cluster clear() test failed, Count', 0, 'Size', c1.size());
 	}
 
-	console.log('Cluster tests executed');
+	console.log('Cluster tests executed.');
 })();
 
 (function() {
@@ -520,19 +537,19 @@ let Multiset = gk.Multiset;
 
 	e1.addGroup('admin');
 	if (!g1.insert(e1) || 1 != e1.id) {
-		console.log('Graph insert(e1) test failed');
+		console.log('Graph insert(e1) test failed.');
 	}
 
 	if (!g1.insert(e2) || 1 != e2.id) {
-		console.log('Graph insert(e2) test failed');
+		console.log('Graph insert(e2) test failed.');
 	}
 
 	if (1 != g1.find(ENTITY, 'User', 1).id) {
-		onsole.log('Graph find(ENTITY, "User", 1) test failed');
+		onsole.log('Graph find(ENTITY, "User", 1) test failed.');
 	}
 
 	if (1 != g1.find(ENTITY, 'Book', 1).id) {
-		onsole.log('Graph find(ENTITY, "Book", 1) test failed');
+		onsole.log('Graph find(ENTITY, "Book", 1) test failed.');
 	}
 
 	//if (e1.addGroup('admin') || e1.id != g1.Group['admin'].find(e1).id) {
@@ -540,7 +557,7 @@ let Multiset = gk.Multiset;
 	//}
 
 	if (!g1.remove(e1.nodeClass, e1.type, e1.id) || !g1.remove(e2)) {
-		console.log('Graph remove() test failed');
+		console.log('Graph remove() test failed.');
 	}
 
 	let count = 1000000;
@@ -554,12 +571,12 @@ let Multiset = gk.Multiset;
 	for (let i = g1.size() - 1; 0 <= i; --i) {
 		for (let j = g1[i].size() - 1; 0 <= j; --j) {
 			if (500000 != g1[i][j].size()) {
-				console.log('Graph iterator[] test failed');
+				console.log('Graph iterator[] test failed.');
 				break;
 			}
 		}
 		if (i == 0) {
-			console.log('Graph iterator[] test passed');
+			console.log('Graph iterator[] test passed.');
 		}
 	}
 
@@ -568,7 +585,7 @@ let Multiset = gk.Multiset;
 		console.log('Graph clear() test failed, Count', 0, 'Size', g1.size());
 	}
 
-	console.log('Graph tests executed');
+	console.log('Graph tests executed.');
 })();
 
 (function() {
@@ -581,7 +598,7 @@ let Multiset = gk.Multiset;
 	let e2 = new Entity('User');
 
 	if (!s1.insert(e1) || s1.insert(e1) || 1 != s1.size() || g1.Entity.User[0] != e1) {
-		console.log('GraphSet insert(e1) test failed');
+		console.log('GraphSet insert(e1) test failed.');
 	}
 
 	if (e1 != s1.find(ENTITY, 'User', 1)) {
@@ -589,7 +606,7 @@ let Multiset = gk.Multiset;
 	}
 
 	if (!s1.insert(e2) || 2 != s1.size() || !s1.remove(e2) || 1 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
-		console.log('GraphSet remove() test failed');
+		console.log('GraphSet remove() test failed.');
 	}
 
 	let count = 1000000;
@@ -598,7 +615,7 @@ let Multiset = gk.Multiset;
 		s2.insert(new Entity('Book'));
 	}
 	if (g1.Entity.Book.size() != s2.size()) {
-		console.log('GraphSet insert stress test failed');
+		console.log('GraphSet insert stress test failed.');
 	} else {
 		console.log('GraphSet insert() stress tests passed', 'Operation Count', g1.Entity.Book.size(), 'Time', Date.now() - start);
 	}
@@ -609,7 +626,7 @@ let Multiset = gk.Multiset;
 		console.log('GraphSet clear() test failed, Count', 0, 'Size', s1.size(), s2.size());
 	}
 
-	console.log('GraphSet tests executed');
+	console.log('GraphSet tests executed.');
 })();
 
 (function() {
@@ -622,7 +639,7 @@ let Multiset = gk.Multiset;
 	let e2 = new Entity('User');
 
 	if (!s1.insert(e1) || !s1.insert(e1) || 2 != s1.size() || g1.Entity.User[0] != e1) {
-		console.log('GraphMultiset insert(e1) test failed');
+		console.log('GraphMultiset insert(e1) test failed.');
 	}
 
 	if (e1 != s1.find(ENTITY, 'User', 1)) {
@@ -630,7 +647,7 @@ let Multiset = gk.Multiset;
 	}
 
 	if (!s1.insert(e2) || 3 != s1.size() || !s1.remove(e2) || 2 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
-		console.log('GraphMultiset remove() test failed');
+		console.log('GraphMultiset remove() test failed.');
 	}
 
 	let count = 1000000;
@@ -639,7 +656,7 @@ let Multiset = gk.Multiset;
 		s2.insert(new Entity('Book'));
 	}
 	if (g1.Entity.Book.size() != s2.size()) {
-		console.log('GraphMultiset insert stress test failed');
+		console.log('GraphMultiset insert stress test failed.');
 	} else {
 		console.log('GraphMultiset insert() stress tests passed', 'Operation Count', g1.Entity.Book.size(), 'Time', Date.now() - start);
 	}
@@ -650,7 +667,7 @@ let Multiset = gk.Multiset;
 		console.log('GraphMultiset clear() test failed, Count', 0, 'Size', s1.size(), s2.size());
 	}
 
-	console.log('GraphMultiset tests executed');
+	console.log('GraphMultiset tests executed.');
 })();
 
 (function() {
@@ -662,7 +679,7 @@ let Multiset = gk.Multiset;
 	let e2 = g1.createEntity('User');
 
 	if (!s1.insert(e1) || s1.insert(e1) || 1 != s1.size() || g1.Entity.User[0] != e1) {
-		console.log('Set insert(e1) test failed');
+		console.log('Set insert(e1) test failed.');
 	}
 
 	if (e1 != s1.find(ENTITY, 'User', 1)) {
@@ -670,7 +687,7 @@ let Multiset = gk.Multiset;
 	}
 
 	if (!s1.insert(e2) || 2 != s1.size() || !s1.remove(e2) || 1 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
-		console.log('Set remove() test failed');
+		console.log('Set remove() test failed.');
 	}
 
 	s1.clear();
@@ -699,7 +716,7 @@ let Multiset = gk.Multiset;
 		console.log('Set clear() test failed, Count', 0, 'Size', s1.size());
 	}
 
-	console.log('Set tests executed');
+	console.log('Set tests executed.');
 })();
 
 (function() {
@@ -719,7 +736,7 @@ let Multiset = gk.Multiset;
 	}
 
 	if (!s1.insert(e2) || 3 != s1.size() || !s1.remove(e2) || 2 != s1.size() || !s1.remove(e1.nodeClass, e1.type, e1.id) || 0 != s1.size()) {
-		console.log('Multiset remove() test failed');
+		console.log('Multiset remove() test failed.');
 	}
 
 	s1.clear();
@@ -748,5 +765,5 @@ let Multiset = gk.Multiset;
 		console.log('Multiset clear() test failed, Count', 0, 'Size', s1.size());
 	}
 
-	console.log('Multiset tests executed');
+	console.log('Multiset tests executed.');
 })();

@@ -68,5 +68,6 @@
 #define GK_SYMBOL_OPERATION_OBJECT					"object"
 #define GK_SYMBOL_OPERATION_ACTIONS					"actions"
 #define GK_SYMBOL_OPERATION_BONDS					"bonds"
+#define GK_SYMBOL_OPERATION_HASH					"hash"
 
 #endif
