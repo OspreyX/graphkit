@@ -37,8 +37,11 @@ namespace gk {
 
 		T* subject() const noexcept;
 		bool subject(v8::Isolate* isolate, T* node) noexcept;
+		bool removeSubject() noexcept;
+
 		T* object() const noexcept;
 		bool object(v8::Isolate* isolate, T* node) noexcept;
+		bool removeObject() noexcept;
 
 		static Bond<T>* Instance(v8::Isolate* isolate, const char* type) noexcept;
 		static GK_INIT(Init);
@@ -84,13 +87,22 @@ namespace gk {
 	template <typename T>
 	bool gk::Bond<T>::subject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
-		if (nullptr != subject_) {
-			subject_->bonds(isolate)->remove(this->hash());
-			subject_->Unref();
-		}
+		removeSubject();
 		subject_ = node;
 		subject_->Ref();
 		return subject_->bonds(isolate)->insert(isolate, this);
+	}
+
+	template <typename T>
+	bool gk::Bond<T>::removeSubject() noexcept {
+		if (nullptr != subject_) {
+			if (subject_->bonds(nullptr)->remove(this->hash())) {
+				subject_->Unref();
+				subject_ = nullptr;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	template <typename T>
@@ -101,13 +113,22 @@ namespace gk {
 	template <typename T>
 	bool gk::Bond<T>::object(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
-		if (nullptr != object_) {
-			object_->bonds(isolate)->remove(this->hash());
-			object_->Unref();
-		}
+		removeObject();
 		object_ = node;
 		object_->Ref();
 		return object_->bonds(isolate)->insert(isolate, this);
+	}
+
+	template <typename T>
+	bool gk::Bond<T>::removeObject() noexcept {
+		if (nullptr != object_) {
+			if (object_->bonds(nullptr)->remove(this->hash())) {
+				object_->Unref();
+				object_ = nullptr;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	template <typename T>
@@ -212,6 +233,7 @@ namespace gk {
 	template <typename T>
 	GK_PROPERTY_SETTER(gk::Bond<T>::PropertySetter) {
 		GK_SCOPE();
+
 		v8::String::Utf8Value p(property);
 		auto b = node::ObjectWrap::Unwrap<gk::Bond<T>>(args.Holder());
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_SUBJECT)) {
@@ -250,9 +272,17 @@ namespace gk {
 	template <typename T>
 	GK_PROPERTY_DELETER(gk::Bond<T>::PropertyDeleter) {
 		GK_SCOPE();
-		v8::String::Utf8Value prop(property);
+
+		v8::String::Utf8Value p(property);
 		auto b = node::ObjectWrap::Unwrap<gk::Bond<T>>(args.Holder());
-		GK_RETURN(GK_BOOLEAN(b->properties()->remove(*prop, [&](std::string* v) {
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_SUBJECT)) {
+			GK_RETURN(GK_BOOLEAN(b->removeSubject()));
+		}
+		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_OBJECT)) {
+			GK_RETURN(GK_BOOLEAN(b->removeObject()));
+		}
+
+		GK_RETURN(GK_BOOLEAN(b->properties()->remove(*p, [&](std::string* v) {
 			delete v;
 		})));
 	}
