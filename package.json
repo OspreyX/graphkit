@@ -5,7 +5,7 @@
 		"name": "Daniel Dahan",
 		"email": "daniel@graphkit.io"
 	},
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"license": [{
 		"type": "AGPLv3",
 		"url": "http://choosealicense.com/licenses/agpl-3.0/"
@@ -15,7 +15,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/GraphKit/graphkit-js.git"
+		"url": "https://github.com/GraphKit/graphkit.git"
 	},
 	"description": "next generation graph framework for node.js",
 	"keywords": [
