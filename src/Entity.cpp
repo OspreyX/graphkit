@@ -17,9 +17,9 @@
 */
 
 
+#include <utility>
 #include "Entity.h"
 #include "symbols.h"
-
 
 GK_CONSTRUCTOR(gk::Entity::constructor_);
 
@@ -141,6 +141,16 @@ GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
 		GK_EXCEPTION("[GraphKit Error: Cannot set type property.]");
 	}
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ID)) {
+		v8::String::Utf8Value v(value);
+		long long id = std::stoi(*v);
+		if (0 <= id) {
+			auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
+			if (id != e->id()) {
+				e->id(std::move(id));
+				GK_RETURN(GK_BOOLEAN(true));
+			}
+			GK_RETURN(GK_BOOLEAN(false));
+		}
 		GK_EXCEPTION("[GraphKit Error: Cannot set id property.]");
 	}
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_HASH)) {

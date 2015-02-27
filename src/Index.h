@@ -119,7 +119,9 @@ O gk::Index<T, K, O>::decrementId() noexcept {
 
 template  <typename T, typename K, typename O>
 bool gk::Index<T, K, O>::insert(T* node) noexcept {
-	node->id(incrementId());
+	if (0 == node->id()) {
+		node->id(incrementId());
+	}
 	return gk::RedBlackTree<T, true, K, O>::insert(node->id(), node, [&](T* n) {
 		n->indexed(true);
 		n->Ref();

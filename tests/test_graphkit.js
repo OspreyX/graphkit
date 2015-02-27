@@ -136,12 +136,21 @@ let Multiset = gk.Multiset;
 		console.log('Entity remove e["age"] test failed.');
 	}
 
-	let g = new gk.Graph();
-	g.insert(e);
+	let g1 = new gk.Graph();
+	g1.insert(e);
+	console.log(g1.size(), g1.Entity.User.size(), g1.Entity.User[0]);
+	g1.remove(e);
+	e.id = 10;
+	g1.insert(e);
+	console.log(g1.size(), g1.Entity.User.size(), g1.Entity.User.find(10));
 
 	if (1 != e.id || 'Entity:User:1' != e.hash) {
 		console.log('Entity hash test failed.');
 	}
+
+	//if (10 != e.id || 'Entity:User:1' != e.hash) {
+	//	console.log('Entity hash test failed.');
+	//}
 
 	console.log('Entity tests executed.');
 })();
@@ -263,6 +272,12 @@ let Multiset = gk.Multiset;
 	if (1 != a.id || 'Action:Clicked:1' != a.hash) {
 		console.log('Action hash test failed.');
 	}
+	console.log(a);
+	g1.remove(a);
+	console.log(a);
+	g1.insert(a);
+	console.log(a);
+
 
 	console.log('Action tests executed.');
 })();
