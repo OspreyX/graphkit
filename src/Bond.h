@@ -325,13 +325,24 @@ namespace gk {
 		auto ps = b->properties()->size();
 		auto gs = b->groups()->size();
 		v8::Handle<v8::Array> array = v8::Array::New(isolate, ps + gs);
-		for (auto i = ps - 1; 0 <= i; --i) {
+
+		// iterate through the properties
+		auto i = ps - 1;
+		for (; 0 <= i; --i) {
 			auto node = b->properties()->node(i + 1);
 			array->Set(i, GK_STRING(node->key().c_str()));
 		}
-		for (auto i = gs - 1; 0 <= i; --i) {
+
+		// then add the subject and object
+		array->Set(ps, GK_STRING(GK_SYMBOL_OPERATION_SUBJECT));
+		array->Set(ps + 1, GK_STRING(GK_SYMBOL_OPERATION_OBJECT));
+
+		// then groups
+		i = gs - 1;
+		for (; 0 <= i; --i) {
 			array->Set(ps++, GK_INTEGER(i));
 		}
+
 		GK_RETURN(array);
 	}
 }

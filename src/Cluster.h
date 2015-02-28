@@ -140,7 +140,7 @@ GK_INIT(gk::Cluster<T, K, O>::Init) {
 	t->SetClassName(GK_STRING(symbol));
 	t->InstanceTemplate()->SetInternalFieldCount(1);
 	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter);
-	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter);
+	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
@@ -331,11 +331,11 @@ template <typename T, typename K, typename O>
 GK_PROPERTY_ENUMERATOR(gk::Cluster<T, K, O>::PropertyEnumerator) {
 	GK_SCOPE();
 	auto c = node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(args.Holder());
-	auto cs = c->size();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, cs);
-	for (auto i = cs - 1; 0 <= i; --i) {
-		auto node = c->node(i + 1);
-		array->Set(i, GK_STRING(node->key().c_str()));
+	auto is = c->size();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
+	for (auto j = is - 1; 0 <= j; --j) {
+		auto node = c->node(j + 1);
+		array->Set(j, GK_INTEGER(node->order() - 1));
 	}
 	GK_RETURN(array);
 }

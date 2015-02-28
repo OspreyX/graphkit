@@ -129,7 +129,7 @@ GK_INIT(gk::GraphMultiset<G, T, O>::Init) {
 	t->SetClassName(GK_STRING(symbol));
 	t->InstanceTemplate()->SetInternalFieldCount(1);
 	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter);
-	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter);
+	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
@@ -294,7 +294,7 @@ GK_PROPERTY_ENUMERATOR(gk::GraphMultiset<G, T, O>::PropertyEnumerator) {
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {
 		auto node = i->node(j + 1);
-		array->Set(j, GK_INTEGER(node->order()));
+		array->Set(j, GK_INTEGER(node->order() - 1));
 	}
 	GK_RETURN(array);
 }

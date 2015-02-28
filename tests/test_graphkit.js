@@ -268,16 +268,9 @@ let Multiset = gk.Multiset;
 		console.log('Action relationship test failed.');
 	}
 
-	g1.insert(a);
 	if (1 != a.id || 'Action:Clicked:1' != a.hash) {
 		console.log('Action hash test failed.');
 	}
-	console.log(a);
-	g1.remove(a);
-	console.log(a);
-	g1.insert(a);
-	console.log(a);
-
 
 	console.log('Action tests executed.');
 })();
@@ -389,7 +382,7 @@ let Multiset = gk.Multiset;
 	let e2 = g1.createEntity('Book');
 	b.subject = e1;
 	b.object = e2;
-
+	console.log(b);
 	if ('User' != b.subject.type || b != e1.bonds[0] || 'Book' != b.object.type || b != e2.bonds[0]) {
 		console.log('Bond relationship test failed.');
 	}
