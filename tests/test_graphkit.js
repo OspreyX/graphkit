@@ -37,12 +37,17 @@ let Multiset = gk.Multiset;
 
 let g1 = new Graph();
 let start = Date.now();
-for (let i = 1000; 0 < i; --i) {
+for (let i = 1; 0 < i; --i) {
 	let e1 = new Entity('User');
 	e1['age'] = 26;
 	e1['test property'] = 'success value';
 	e1.addGroup('female');
 	g1.insert(e1);
+	let a1 = new Action('Click');
+	a1.subjects.insert(e1);
+	a1.objects.insert(e1);
+	g1.insert(a1);
+	console.log(a1);
 }
 console.log('Basic Time %d', Date.now() - start);
 //e1['name'] = 'Eve';

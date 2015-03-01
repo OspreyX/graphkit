@@ -40,6 +40,7 @@
 #define GK_INDEX_SETTER(Args...) void Args(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& args) noexcept
 #define GK_INDEX_QUERY(Args...) void Args(uint32_t index, const v8::PropertyCallbackInfo<v8::Integer>& args) noexcept
 #define GK_INDEX_DELETER(Args...) void Args(uint32_t index, const v8::PropertyCallbackInfo<v8::Boolean>& args) noexcept
+#define GK_INDEX_ENUMERATOR(Args...) void Args(const v8::PropertyCallbackInfo<v8::Array>& args) noexcept
 
 // property operations
 #define GK_PROPERTY_GETTER(Args...) void Args(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& args) noexcept

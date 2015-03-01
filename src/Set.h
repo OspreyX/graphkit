@@ -60,6 +60,7 @@ namespace gk {
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
 		static GK_INDEX_DELETER(IndexDeleter);
+		static GK_INDEX_ENUMERATOR(IndexEnumerator);
 		static GK_PROPERTY_GETTER(PropertyGetter);
 		static GK_PROPERTY_SETTER(PropertySetter);
 		static GK_PROPERTY_DELETER(PropertyDeleter);
@@ -119,7 +120,7 @@ GK_INIT(gk::Set<T, O>::Init) {
 	auto t = GK_TEMPLATE(New);
 	t->SetClassName(GK_STRING(symbol));
 	t->InstanceTemplate()->SetInternalFieldCount(1);
-	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter);
+	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
@@ -252,6 +253,19 @@ GK_INDEX_DELETER(gk::Set<T, O>::IndexDeleter) {
 }
 
 template <typename T, typename O>
+GK_INDEX_ENUMERATOR(gk::Set<T, O>::IndexEnumerator) {
+	GK_SCOPE();
+	auto i = node::ObjectWrap::Unwrap<gk::Set<T, O>>(args.Holder());
+	auto is = i->size();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
+	for (auto j = is - 1; 0 <= j; --j) {
+		auto node = i->node(j + 1);
+		array->Set(j, GK_INTEGER(node->order() - 1));
+	}
+	GK_RETURN(array);
+}
+
+template <typename T, typename O>
 GK_PROPERTY_GETTER(gk::Set<T, O>::PropertyGetter) {
 	GK_SCOPE();
 }
@@ -271,13 +285,7 @@ GK_PROPERTY_DELETER(gk::Set<T, O>::PropertyDeleter) {
 template <typename T, typename O>
 GK_PROPERTY_ENUMERATOR(gk::Set<T, O>::PropertyEnumerator) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Set<T, O>>(args.Holder());
-	auto is = i->size();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
-	for (auto j = is - 1; 0 <= j; --j) {
-		auto node = i->node(j + 1);
-		array->Set(j, GK_INTEGER(node->order() - 1));
-	}
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, 0);
 	GK_RETURN(array);
 }
 

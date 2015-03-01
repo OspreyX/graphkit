@@ -146,7 +146,7 @@ namespace gk {
 		auto t = GK_TEMPLATE(New);
 		t->SetClassName(GK_STRING(symbol));
 		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter);
+		t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 		t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_ADD_GROUP, AddGroup);
@@ -311,8 +311,7 @@ namespace gk {
 		GK_SCOPE();
 		auto b = node::ObjectWrap::Unwrap<gk::Bond<T>>(args.Holder());
 		auto ps = b->properties()->size();
-		auto gs = b->groups()->size();
-		v8::Handle<v8::Array> array = v8::Array::New(isolate, 6 + ps + gs);
+		v8::Handle<v8::Array> array = v8::Array::New(isolate, 6 + ps);
 
 		// iterate through the properties
 		auto i = ps - 1;
@@ -328,12 +327,6 @@ namespace gk {
 		array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_INDEXED));
 		array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_SUBJECT));
 		array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_OBJECT));
-
-		// then groups
-		i = gs - 1;
-		for (; 0 <= i; --i) {
-			array->Set(ps++, GK_INTEGER(i));
-		}
 
 		GK_RETURN(array);
 	}

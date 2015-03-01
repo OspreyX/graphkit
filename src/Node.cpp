@@ -85,7 +85,7 @@ gk::RedBlackTree<std::string, true, std::string>* gk::Node::properties() noexcep
 
 const std::string& gk::Node::hash() noexcept {
 	if (hash_.empty()) {
-		hash_ = std::string{std::string(gk::NodeClassToString(nodeClass_)) + ":" + type_ + ":" + std::to_string(id_)};
+		hash_ = std::string{std::to_string(gk::NodeClassToInt(nodeClass_)) + ":" + type_ + ":" + std::to_string(id_)};
 	}
 	return hash_;
 }
@@ -152,6 +152,17 @@ GK_INDEX_SETTER(gk::Node::IndexSetter) {
 GK_INDEX_DELETER(gk::Node::IndexDeleter) {
 	GK_SCOPE();
 	GK_EXCEPTION("[GraphKit Error: Index values may not be deleted.]");
+}
+
+GK_INDEX_ENUMERATOR(gk::Node::IndexEnumerator) {
+	GK_SCOPE();
+	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
+	auto gs = n->groups()->size();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, gs);
+	for (auto i = gs - 1; 0 <= i; --i) {
+		array->Set(i, GK_INTEGER(i));
+	}
+	GK_RETURN(array);
 }
 
 GK_METHOD(gk::Node::propertySize) {

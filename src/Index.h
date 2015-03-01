@@ -134,12 +134,22 @@ bool gk::Index<T, K, O>::insert(T* node) noexcept {
 		node->id(incrementId());
 	}
 
+	// the string object to publish.
+	std::string publish = "{\"nodeClass\":" + std::to_string(gk::NodeClassToInt(node->nodeClass())) + ",\"type\":\"" + node->type() + "\",\"id\":" + std::to_string(node->id());
+
 	// store properties
 	auto ps = node->properties()->size();
+	publish += ",\"properties\":{";
 	if (ps) {
 		for (auto i = ps; 0 < i; --i) {
 			auto q = node->properties()->node(i);
-			redis_->command("HSET %s:p %s %s", node->hash().c_str(), q->key().c_str(), q->data()->c_str());
+			auto key = q->key();
+			auto data = q->data();
+			publish += "\"" + key + "\":\"" + *data + "\"";
+			redis_->command("HSET %s:p %s %s", node->hash().c_str(), key.c_str(), data->c_str());
+			if (1 != i) {
+				publish += ",";
+			}
 		}
 		for (auto i = ps; 0 < i; --i) {
 			auto reply = redis_->execute();
@@ -147,12 +157,19 @@ bool gk::Index<T, K, O>::insert(T* node) noexcept {
 			redis_->freeReply(reply);
 		}
 	}
+	publish += "}";
 
 	// store groups
 	auto gs = node->groups()->size();
+	publish += ",\"groups\":[";
 	if (gs) {
 		for (auto i = gs; 0 < i; --i) {
-			redis_->command("SADD %s:g %s", node->hash().c_str(), node->groups()->select(i)->c_str());
+			auto data = node->groups()->select(i);
+			publish += "\"" + *data + "\"";
+			redis_->command("SADD %s:g %s", node->hash().c_str(), data->c_str());
+			if (1 != i) {
+				publish += ",";
+			}
 		}
 		for (auto i = gs; 0 < i; --i) {
 			auto reply = redis_->execute();
@@ -160,8 +177,10 @@ bool gk::Index<T, K, O>::insert(T* node) noexcept {
 			redis_->freeReply(reply);
 		}
 	}
+	publish += "]";
 
-	redis_->command("PUBLISH graph %s", );
+	publish += "}";
+	redis_->command("PUBLISH graph %s", publish.c_str());
 	auto reply = redis_->execute();
 	assert(REDIS_REPLY_ERROR != reply->type);
 	redis_->freeReply(reply);

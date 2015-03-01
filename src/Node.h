@@ -69,6 +69,7 @@ namespace gk {
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
 		static GK_INDEX_DELETER(IndexDeleter);
+		static GK_INDEX_ENUMERATOR(IndexEnumerator);
 	};
 }
 

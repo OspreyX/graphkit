@@ -62,6 +62,7 @@ namespace gk {
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
 		static GK_INDEX_DELETER(IndexDeleter);
+		static GK_INDEX_ENUMERATOR(IndexEnumerator);
 		static GK_PROPERTY_GETTER(PropertyGetter);
 		static GK_PROPERTY_SETTER(PropertySetter);
 		static GK_PROPERTY_DELETER(PropertyDeleter);
@@ -128,7 +129,7 @@ GK_INIT(gk::GraphSet<G, T, O>::Init) {
 	auto t = GK_TEMPLATE(New);
 	t->SetClassName(GK_STRING(symbol));
 	t->InstanceTemplate()->SetInternalFieldCount(1);
-	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter);
+	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
@@ -262,24 +263,7 @@ GK_INDEX_DELETER(gk::GraphSet<G, T, O>::IndexDeleter) {
 }
 
 template <typename G, typename T, typename O>
-GK_PROPERTY_GETTER(gk::GraphSet<G, T, O>::PropertyGetter) {
-	GK_SCOPE();
-}
-
-template <typename G, typename T, typename O>
-GK_PROPERTY_SETTER(gk::GraphSet<G, T, O>::PropertySetter) {
-	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Set values may not be set.]");
-}
-
-template <typename G, typename T, typename O>
-GK_PROPERTY_DELETER(gk::GraphSet<G, T, O>::PropertyDeleter) {
-	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Set values may not be deleted.]");
-}
-
-template <typename G, typename T, typename O>
-GK_PROPERTY_ENUMERATOR(gk::GraphSet<G, T, O>::PropertyEnumerator) {
+GK_INDEX_ENUMERATOR(gk::GraphSet<G, T, O>::IndexEnumerator) {
 	GK_SCOPE();
 	auto i = node::ObjectWrap::Unwrap<gk::GraphSet<G, T, O>>(args.Holder());
 	auto is = i->size();
@@ -288,6 +272,30 @@ GK_PROPERTY_ENUMERATOR(gk::GraphSet<G, T, O>::PropertyEnumerator) {
 		auto node = i->node(j + 1);
 		array->Set(j, GK_INTEGER(node->order() - 1));
 	}
+	GK_RETURN(array);
+}
+
+template <typename G, typename T, typename O>
+GK_PROPERTY_GETTER(gk::GraphSet<G, T, O>::PropertyGetter) {
+	GK_SCOPE();
+}
+
+template <typename G, typename T, typename O>
+GK_PROPERTY_SETTER(gk::GraphSet<G, T, O>::PropertySetter) {
+	GK_SCOPE();
+	GK_EXCEPTION("[GraphKit Error: GraphSet values may not be set.]");
+}
+
+template <typename G, typename T, typename O>
+GK_PROPERTY_DELETER(gk::GraphSet<G, T, O>::PropertyDeleter) {
+	GK_SCOPE();
+	GK_EXCEPTION("[GraphKit Error: GraphSet values may not be deleted.]");
+}
+
+template <typename G, typename T, typename O>
+GK_PROPERTY_ENUMERATOR(gk::GraphSet<G, T, O>::PropertyEnumerator) {
+	GK_SCOPE();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, 0);
 	GK_RETURN(array);
 }
 
