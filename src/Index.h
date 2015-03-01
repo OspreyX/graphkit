@@ -19,14 +19,15 @@
 #ifndef GRAPHKIT_SRC_INDEX_H
 #define GRAPHKIT_SRC_INDEX_H
 
-#include <cstring>
 #include <utility>
 #include <string>
+#include <cassert>
 #include "exports.h"
 #include "symbols.h"
 #include "Export.h"
 #include "RedBlackTree.h"
 #include "NodeClass.h"
+#include "Redis.h"
 
 namespace gk {
 	template <
@@ -62,6 +63,7 @@ namespace gk {
 		const gk::NodeClass nodeClass_;
 		const std::string type_;
 		O ids_;
+		gk::Redis* redis_;
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
@@ -90,11 +92,13 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 	  gk::RedBlackTree<T, true, K, O>{},
 	  nodeClass_{std::move(nodeClass)},
 	  type_{std::move(type)},
-	  ids_{} {}
+	  ids_{},
+	  redis_{new Redis{"127.0.0.1", 6379}} {}
 
 template <typename T, typename K, typename O>
 gk::Index<T, K, O>::~Index() {
 	cleanUp();
+	delete redis_;
 }
 
 template <typename T, typename K, typename O>
@@ -109,6 +113,13 @@ const std::string& gk::Index<T, K, O>::type() const noexcept {
 
 template <typename T, typename K, typename O>
 O gk::Index<T, K, O>::incrementId() noexcept {
+	redis_->command("HINCRBY graph %s:%s 1", gk::NodeClassToString(nodeClass_), type_.c_str());
+	auto reply = redis_->execute();
+	if (REDIS_REPLY_INTEGER == reply->type) {
+		auto id = reply->integer;
+		redis_->freeReply(reply);
+		return id;
+	}
 	return ++ids_;
 }
 
@@ -122,6 +133,39 @@ bool gk::Index<T, K, O>::insert(T* node) noexcept {
 	if (0 == node->id()) {
 		node->id(incrementId());
 	}
+
+	// store properties
+	auto ps = node->properties()->size();
+	if (ps) {
+		for (auto i = ps; 0 < i; --i) {
+			auto q = node->properties()->node(i);
+			redis_->command("HSET %s:p %s %s", node->hash().c_str(), q->key().c_str(), q->data()->c_str());
+		}
+		for (auto i = ps; 0 < i; --i) {
+			auto reply = redis_->execute();
+			assert(REDIS_REPLY_ERROR != reply->type);
+			redis_->freeReply(reply);
+		}
+	}
+
+	// store groups
+	auto gs = node->groups()->size();
+	if (gs) {
+		for (auto i = gs; 0 < i; --i) {
+			redis_->command("SADD %s:g %s", node->hash().c_str(), node->groups()->select(i)->c_str());
+		}
+		for (auto i = gs; 0 < i; --i) {
+			auto reply = redis_->execute();
+			assert(REDIS_REPLY_ERROR != reply->type);
+			redis_->freeReply(reply);
+		}
+	}
+
+	redis_->command("PUBLISH graph %s", );
+	auto reply = redis_->execute();
+	assert(REDIS_REPLY_ERROR != reply->type);
+	redis_->freeReply(reply);
+
 	return gk::RedBlackTree<T, true, K, O>::insert(node->id(), node, [&](T* n) {
 		n->indexed(true);
 		n->Ref();

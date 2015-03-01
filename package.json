@@ -1,48 +1,52 @@
 {
-	"name": "graphkit",
-	"homepage": "http://graphkit.io",
-	"author": {
-		"name": "Daniel Dahan",
-		"email": "daniel@graphkit.io"
-	},
-	"version": "0.1.6-rc20150228-1",
-	"license": [{
-		"type": "AGPLv3",
-		"url": "http://choosealicense.com/licenses/agpl-3.0/"
-	}],
-	"engines": {
-		"node": ">=0.12.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/GraphKit/graphkit.git"
-	},
-	"description": "next generation graph framework for node.js",
-	"keywords": [
-		"graph",
-		"machine learning",
-		"predictive analytics",
-		"c",
-		"c++",
-		"data store",
-		"modelling",
-		"data model",
-		"data",
-		"model",
-		"node",
-		"entity",
-		"action",
-		"bond",
-		"event",
-		"set theory",
-		"graph theory",
-		"set",
-		"multiset",
-		"theory",
-		"framework",
-		"native",
-		"kit"
-	],
-	"devDependencies": {},
-	"dependencies": {}
+  "name": "graphkit",
+  "homepage": "http://graphkit.io",
+  "author": {
+    "name": "Daniel Dahan",
+    "email": "daniel@graphkit.io"
+  },
+  "version": "0.1.6-rc20150301-1",
+  "license": [
+    {
+      "type": "AGPLv3",
+      "url": "http://choosealicense.com/licenses/agpl-3.0/"
+    }
+  ],
+  "engines": {
+    "node": ">=0.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GraphKit/graphkit.git"
+  },
+  "description": "next generation graph framework for node.js",
+  "keywords": [
+    "graph",
+    "machine learning",
+    "predictive analytics",
+    "c",
+    "c++",
+    "data store",
+    "modelling",
+    "data model",
+    "data",
+    "model",
+    "node",
+    "entity",
+    "action",
+    "bond",
+    "event",
+    "set theory",
+    "graph theory",
+    "set",
+    "multiset",
+    "theory",
+    "framework",
+    "native",
+    "kit"
+  ],
+  "devDependencies": {},
+  "dependencies": {
+    "hiredis": "^0.2.0"
+  }
 }

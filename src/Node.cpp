@@ -79,10 +79,6 @@ gk::RedBlackTree<std::string, true, std::string>* gk::Node::groups() noexcept {
 gk::RedBlackTree<std::string, true, std::string>* gk::Node::properties() noexcept {
 	if (nullptr == properties_) {
 		properties_ = new gk::RedBlackTree<std::string, true, std::string>{};
-		properties_->insert(std::string{GK_SYMBOL_OPERATION_NODE_CLASS}, new std::string{GK_SYMBOL_OPERATION_NODE_CLASS});
-		properties_->insert(std::string{GK_SYMBOL_OPERATION_ID}, new std::string{GK_SYMBOL_OPERATION_ID});
-		properties_->insert(std::string{GK_SYMBOL_OPERATION_TYPE}, new std::string{GK_SYMBOL_OPERATION_TYPE});
-		properties_->insert(std::string{GK_SYMBOL_OPERATION_INDEXED}, new std::string{GK_SYMBOL_OPERATION_INDEXED});
 	}
 	return properties_;
 }

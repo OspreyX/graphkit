@@ -245,19 +245,7 @@ namespace gk {
 			GK_EXCEPTION("[GraphKit Error: Cannot set type property.]");
 		}
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ID)) {
-			if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ID)) {
-				v8::String::Utf8Value v(value);
-				long long id = std::stoi(*v);
-				if (0 <= id) {
-					auto b = node::ObjectWrap::Unwrap<gk::Bond<T>>(args.Holder());
-					if (id != b->id()) {
-						b->id(std::move(id));
-						GK_RETURN(GK_BOOLEAN(true));
-					}
-					GK_RETURN(GK_BOOLEAN(false));
-				}
-				GK_EXCEPTION("[GraphKit Error: Cannot set id property.]");
-			}
+			GK_EXCEPTION("[GraphKit Error: Cannot set id property.]");
 		}
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_HASH)) {
 			GK_EXCEPTION("[GraphKit Error: Cannot set hash property.]");
@@ -324,7 +312,7 @@ namespace gk {
 		auto b = node::ObjectWrap::Unwrap<gk::Bond<T>>(args.Holder());
 		auto ps = b->properties()->size();
 		auto gs = b->groups()->size();
-		v8::Handle<v8::Array> array = v8::Array::New(isolate, ps + gs);
+		v8::Handle<v8::Array> array = v8::Array::New(isolate, 6 + ps + gs);
 
 		// iterate through the properties
 		auto i = ps - 1;
@@ -334,8 +322,12 @@ namespace gk {
 		}
 
 		// then add the subject and object
-		array->Set(ps, GK_STRING(GK_SYMBOL_OPERATION_SUBJECT));
-		array->Set(ps + 1, GK_STRING(GK_SYMBOL_OPERATION_OBJECT));
+		array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_NODE_CLASS));
+		array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_ID));
+		array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_TYPE));
+		array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_INDEXED));
+		array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_SUBJECT));
+		array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_OBJECT));
 
 		// then groups
 		i = gs - 1;

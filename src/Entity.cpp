@@ -141,16 +141,6 @@ GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
 		GK_EXCEPTION("[GraphKit Error: Cannot set type property.]");
 	}
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ID)) {
-		v8::String::Utf8Value v(value);
-		long long id = std::stoi(*v);
-		if (0 <= id) {
-			auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
-			if (id != e->id()) {
-				e->id(std::move(id));
-				GK_RETURN(GK_BOOLEAN(true));
-			}
-			GK_RETURN(GK_BOOLEAN(false));
-		}
 		GK_EXCEPTION("[GraphKit Error: Cannot set id property.]");
 	}
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_HASH)) {
@@ -186,11 +176,17 @@ GK_PROPERTY_ENUMERATOR(gk::Entity::PropertyEnumerator) {
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
 	auto ps = e->properties()->size();
 	auto gs = e->groups()->size();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, ps + gs);
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, 4 + ps + gs);
 	for (auto i = ps - 1; 0 <= i; --i) {
 		auto node = e->properties()->node(i + 1);
 		array->Set(i, GK_STRING(node->key().c_str()));
 	}
+
+	array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_NODE_CLASS));
+	array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_ID));
+	array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_TYPE));
+	array->Set(ps++, GK_STRING(GK_SYMBOL_OPERATION_INDEXED));
+
 	for (auto i = gs - 1; 0 <= i; --i) {
 		array->Set(ps++, GK_INTEGER(i));
 	}

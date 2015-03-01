@@ -47,7 +47,7 @@ namespace gk {
 			return order_;
 		}
 
-		inline const T data() const noexcept {
+		inline T* data() const noexcept {
 			return data_;
 		}
 
