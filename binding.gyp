@@ -14,8 +14,7 @@
 				"./src/GraphKit.cpp",
 				"./src/Export.cpp",
 				"./src/Node.cpp",
-				"./src/Entity.cpp",
-				"./src/Redis.cpp"
+				"./src/Entity.cpp"
 			],
 			"conditions": [
 				["OS=='mac'", {

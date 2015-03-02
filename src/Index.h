@@ -19,6 +19,7 @@
 #ifndef GRAPHKIT_SRC_INDEX_H
 #define GRAPHKIT_SRC_INDEX_H
 
+#include <fstream>
 #include <utility>
 #include <string>
 #include <cassert>
@@ -27,7 +28,10 @@
 #include "Export.h"
 #include "RedBlackTree.h"
 #include "NodeClass.h"
-#include "Redis.h"
+#include "Reader.h"
+
+#define GK_FS_END_LINE "\r\n"
+#define GK_FS_DATA_DIR "./data"
 
 namespace gk {
 	template <
@@ -63,7 +67,8 @@ namespace gk {
 		const gk::NodeClass nodeClass_;
 		const std::string type_;
 		O ids_;
-		gk::Redis* redis_;
+		std::string idxfname_;
+		std::fstream file_;
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
@@ -93,12 +98,20 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 	  nodeClass_{std::move(nodeClass)},
 	  type_{std::move(type)},
 	  ids_{},
-	  redis_{new Redis{"127.0.0.1", 6379}} {}
+	  idxfname_{std::string(GK_FS_DATA_DIR) + "/" + gk::NodeClassToString(nodeClass_) + type_},
+	  file_() {
+		file_.open(idxfname_, std::fstream::app);
+		assert(file_.is_open());
+		file_.close();
+		file_.open(idxfname_, std::fstream::out | std::fstream::in);
+		assert(file_.is_open());
+		file_ >> ids_;
+		file_.clear();
+};
 
 template <typename T, typename K, typename O>
 gk::Index<T, K, O>::~Index() {
 	cleanUp();
-	delete redis_;
 }
 
 template <typename T, typename K, typename O>
@@ -113,14 +126,10 @@ const std::string& gk::Index<T, K, O>::type() const noexcept {
 
 template <typename T, typename K, typename O>
 O gk::Index<T, K, O>::incrementId() noexcept {
-	redis_->command("HINCRBY graph %s:%s 1", gk::NodeClassToString(nodeClass_), type_.c_str());
-	auto reply = redis_->execute();
-	if (REDIS_REPLY_INTEGER == reply->type) {
-		auto id = reply->integer;
-		redis_->freeReply(reply);
-		return id;
-	}
-	return ++ids_;
+	assert(file_.is_open());
+	file_.seekg(0, std::ios::beg);
+	file_ << ++ids_;
+	return ids_;
 }
 
 template <typename T, typename K, typename O>
@@ -133,58 +142,6 @@ bool gk::Index<T, K, O>::insert(T* node) noexcept {
 	if (0 == node->id()) {
 		node->id(incrementId());
 	}
-
-	// the string object to publish.
-	std::string publish = "{\"nodeClass\":" + std::to_string(gk::NodeClassToInt(node->nodeClass())) + ",\"type\":\"" + node->type() + "\",\"id\":" + std::to_string(node->id());
-
-	// store properties
-	auto ps = node->properties()->size();
-	publish += ",\"properties\":{";
-	if (ps) {
-		for (auto i = ps; 0 < i; --i) {
-			auto q = node->properties()->node(i);
-			auto key = q->key();
-			auto data = q->data();
-			publish += "\"" + key + "\":\"" + *data + "\"";
-			redis_->command("HSET %s:p %s %s", node->hash().c_str(), key.c_str(), data->c_str());
-			if (1 != i) {
-				publish += ",";
-			}
-		}
-		for (auto i = ps; 0 < i; --i) {
-			auto reply = redis_->execute();
-			assert(REDIS_REPLY_ERROR != reply->type);
-			redis_->freeReply(reply);
-		}
-	}
-	publish += "}";
-
-	// store groups
-	auto gs = node->groups()->size();
-	publish += ",\"groups\":[";
-	if (gs) {
-		for (auto i = gs; 0 < i; --i) {
-			auto data = node->groups()->select(i);
-			publish += "\"" + *data + "\"";
-			redis_->command("SADD %s:g %s", node->hash().c_str(), data->c_str());
-			if (1 != i) {
-				publish += ",";
-			}
-		}
-		for (auto i = gs; 0 < i; --i) {
-			auto reply = redis_->execute();
-			assert(REDIS_REPLY_ERROR != reply->type);
-			redis_->freeReply(reply);
-		}
-	}
-	publish += "]";
-
-	publish += "}";
-	redis_->command("PUBLISH graph %s", publish.c_str());
-	auto reply = redis_->execute();
-	assert(REDIS_REPLY_ERROR != reply->type);
-	redis_->freeReply(reply);
-
 	return gk::RedBlackTree<T, true, K, O>::insert(node->id(), node, [&](T* n) {
 		n->indexed(true);
 		n->Ref();
@@ -216,6 +173,9 @@ void gk::Index<T, K, O>::cleanUp() noexcept {
 		n->indexed(false);
 		n->Unref();
 	});
+	if (file_.is_open()) {
+		file_.close();
+	}
 }
 
 template  <typename T, typename K, typename O>
