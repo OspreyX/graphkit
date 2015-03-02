@@ -105,8 +105,6 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 		file_.close();
 		file_.open(idxfname_, std::fstream::out | std::fstream::in);
 		assert(file_.is_open());
-		file_ >> ids_;
-		file_.clear();
 };
 
 template <typename T, typename K, typename O>
@@ -127,6 +125,8 @@ const std::string& gk::Index<T, K, O>::type() const noexcept {
 template <typename T, typename K, typename O>
 O gk::Index<T, K, O>::incrementId() noexcept {
 	assert(file_.is_open());
+	file_ >> ids_;
+	file_.clear();
 	file_.seekg(0, std::ios::beg);
 	file_ << ++ids_;
 	return ids_;

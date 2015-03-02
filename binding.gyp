@@ -7,9 +7,7 @@
 			"include_dirs" : [
 				"./src"
 			],
-			'dependencies': [
-				"node_modules/hiredis/deps/hiredis.gyp:hiredis"
-			],
+			'dependencies': [],
 			"sources": [
 				"./src/GraphKit.cpp",
 				"./src/Export.cpp",

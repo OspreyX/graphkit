@@ -5,7 +5,7 @@
     "name": "Daniel Dahan",
     "email": "daniel@graphkit.io"
   },
-  "version": "0.1.6-rc20150301-1",
+  "version": "0.1.6-rc20150302-1",
   "license": [
     {
       "type": "AGPLv3",
@@ -46,7 +46,5 @@
     "kit"
   ],
   "devDependencies": {},
-  "dependencies": {
-    "hiredis": "^0.2.0"
-  }
+  "dependencies": {}
 }

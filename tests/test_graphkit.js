@@ -44,11 +44,10 @@ for (let i = process.argv[2] || 1; 0 < i; --i) {
 	//e1.addGroup('female');
 	//g1.insert(e1);
 	//console.log(e1);
-	let a1 = new Action('Click');
-	a1.subjects.insert(e1);
-	a1.objects.insert(e1);
-	g1.insert(a1);
-	console.log(a1);
+	//let a1 = new Action('Click');
+	//a1.subjects.insert(e1);
+	//a1.objects.insert(e1);
+	//g1.insert(a1);
 }
 let e1 = new Entity('User');
 e1['age'] = 26;
