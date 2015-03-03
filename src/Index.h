@@ -19,7 +19,6 @@
 #ifndef GRAPHKIT_SRC_INDEX_H
 #define GRAPHKIT_SRC_INDEX_H
 
-#include <fstream>
 #include <utility>
 #include <string>
 #include <cassert>
@@ -28,10 +27,6 @@
 #include "Export.h"
 #include "RedBlackTree.h"
 #include "NodeClass.h"
-#include "Reader.h"
-
-#define GK_FS_END_LINE "\r\n"
-#define GK_FS_DATA_DIR "./data"
 
 namespace gk {
 	template <
@@ -67,8 +62,6 @@ namespace gk {
 		const gk::NodeClass nodeClass_;
 		const std::string type_;
 		O ids_;
-		std::string idxfname_;
-		std::fstream file_;
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
@@ -81,6 +74,7 @@ namespace gk {
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
 		static GK_INDEX_DELETER(IndexDeleter);
+		static GK_INDEX_ENUMERATOR(IndexEnumerator);
 		static GK_PROPERTY_GETTER(PropertyGetter);
 		static GK_PROPERTY_SETTER(PropertySetter);
 		static GK_PROPERTY_DELETER(PropertyDeleter);
@@ -97,15 +91,7 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 	  gk::RedBlackTree<T, true, K, O>{},
 	  nodeClass_{std::move(nodeClass)},
 	  type_{std::move(type)},
-	  ids_{},
-	  idxfname_{std::string(GK_FS_DATA_DIR) + "/" + gk::NodeClassToString(nodeClass_) + type_},
-	  file_() {
-		file_.open(idxfname_, std::fstream::app);
-		assert(file_.is_open());
-		file_.close();
-		file_.open(idxfname_, std::fstream::out | std::fstream::in);
-		assert(file_.is_open());
-};
+	  ids_{} {};
 
 template <typename T, typename K, typename O>
 gk::Index<T, K, O>::~Index() {
@@ -124,12 +110,7 @@ const std::string& gk::Index<T, K, O>::type() const noexcept {
 
 template <typename T, typename K, typename O>
 O gk::Index<T, K, O>::incrementId() noexcept {
-	assert(file_.is_open());
-	file_ >> ids_;
-	file_.clear();
-	file_.seekg(0, std::ios::beg);
-	file_ << ++ids_;
-	return ids_;
+	return ++ids_;
 }
 
 template <typename T, typename K, typename O>
@@ -173,9 +154,6 @@ void gk::Index<T, K, O>::cleanUp() noexcept {
 		n->indexed(false);
 		n->Unref();
 	});
-	if (file_.is_open()) {
-		file_.close();
-	}
 }
 
 template  <typename T, typename K, typename O>
@@ -189,8 +167,8 @@ template <typename T, typename K, typename O>
 gk::Index<T, K, O>* gk::Index<T, K, O>::Instance(v8::Isolate* isolate, gk::NodeClass& nodeClass, std::string& type) noexcept {
 	const int argc = 2;
 	v8::Local<v8::Value> argv[argc] = {GK_INTEGER(gk::NodeClassToInt(nodeClass)), GK_STRING(type.c_str())};
-	auto cons = GK_FUNCTION(constructor_);
-	return node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(cons->NewInstance(argc, argv));
+	auto ctor = GK_FUNCTION(constructor_);
+	return node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(ctor->NewInstance(argc, argv));
 }
 
 template <typename T, typename K, typename O>
@@ -200,7 +178,7 @@ GK_INIT(gk::Index<T, K, O>::Init) {
 	auto t = GK_TEMPLATE(New);
 	t->SetClassName(GK_STRING(symbol));
 	t->InstanceTemplate()->SetInternalFieldCount(1);
-	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter);
+	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
@@ -235,8 +213,8 @@ GK_METHOD(gk::Index<T, K, O>::New) {
 	} else {
 		const int argc = 2;
 		v8::Local<v8::Value> argv[argc] = {args[0], args[1]};
-		auto cons = GK_FUNCTION(constructor_);
-		GK_RETURN(cons->NewInstance(argc, argv));
+		auto ctor = GK_FUNCTION(constructor_);
+		GK_RETURN(ctor->NewInstance(argc, argv));
 	}
 }
 
@@ -348,6 +326,18 @@ template <typename T, typename K, typename O>
 GK_INDEX_DELETER(gk::Index<T, K, O>::IndexDeleter) {
 	GK_SCOPE();
 	GK_EXCEPTION("[GraphKit Error: Index values may not be deleted.]");
+}
+
+template <typename T, typename K, typename O>
+GK_INDEX_ENUMERATOR(gk::Index<T, K, O>::IndexEnumerator) {
+	GK_SCOPE();
+	auto i = node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(args.Holder());
+	auto is = i->size();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
+	for (auto j = is - 1; 0 <= j; --j) {
+		array->Set(j, GK_INTEGER(j));
+	}
+	GK_RETURN(array);
 }
 
 template <typename T, typename K, typename O>

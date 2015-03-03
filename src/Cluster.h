@@ -129,8 +129,8 @@ template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>* gk::Cluster<T, K, O>::Instance(v8::Isolate* isolate, gk::NodeClass& nodeClass) noexcept {
 	const int argc = 1;
 	v8::Local<v8::Value> argv[argc] = {GK_INTEGER(gk::NodeClassToInt(nodeClass))};
-	auto cons = GK_FUNCTION(constructor_);
-	return node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(cons->NewInstance(argc, argv));
+	auto ctor = GK_FUNCTION(constructor_);
+	return node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(ctor->NewInstance(argc, argv));
 }
 
 template <typename T, typename K, typename O>
@@ -170,8 +170,8 @@ GK_METHOD(gk::Cluster<T, K, O>::New) {
 	} else {
 		const int argc = 1;
 		v8::Local<v8::Value> argv[argc] = {args[0]};
-		auto cons = GK_FUNCTION(constructor_);
-		GK_RETURN(cons->NewInstance(argc, argv));
+		auto ctor = GK_FUNCTION(constructor_);
+		GK_RETURN(ctor->NewInstance(argc, argv));
 	}
 }
 
@@ -302,8 +302,7 @@ GK_INDEX_ENUMERATOR(gk::Cluster<T, K, O>::IndexEnumerator) {
 	auto is = c->size();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {
-		auto node = c->node(j + 1);
-		array->Set(j, GK_INTEGER(node->order() - 1));
+		array->Set(j, GK_INTEGER(j));
 	}
 	GK_RETURN(array);
 }

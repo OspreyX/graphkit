@@ -3,7 +3,7 @@
 		{
 			"target_name": "graphkit",
 			"cflags_cc": [],
-			"cflags": ["-std=c++11", "-O3", "-Wall", "-fpermissive"],
+			"cflags": ["-std=c++11", "-O3", "-Wall"],
 			"include_dirs" : [
 				"./src"
 			],
@@ -17,7 +17,7 @@
 			"conditions": [
 				["OS=='mac'", {
 					"xcode_settings": {
-						"OTHER_CPLUSPLUSFLAGS" : ["-O3", "-Wall", "-std=c++11", "-stdlib=libc++", "-fpermissive"],
+						"OTHER_CPLUSPLUSFLAGS" : ["-O3", "-Wall", "-std=c++11", "-stdlib=libc++"],
 						"OTHER_LDFLAGS": ["-stdlib=libc++"],
 						"MACOSX_DEPLOYMENT_TARGET": "10.7",
 						"GCC_ENABLE_CPP_EXCEPTIONS": "YES"

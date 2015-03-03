@@ -30,30 +30,28 @@
 #include "Set.h"
 #include "Multiset.h"
 
-extern "C" {
-	GK_EXPORT(GraphKit) {
-		// classes
-		gk::Entity::Init(exports, GK_SYMBOL_ENTITY);
-		gk::Action < gk::Entity > ::Init(exports, GK_SYMBOL_ACTION);
-		gk::Bond < gk::Entity > ::Init(exports, GK_SYMBOL_BOND);
-		gk::Index<gk::Node>::Init(exports, GK_SYMBOL_INDEX);
-		gk::Cluster<gk::Index<gk::Node>>::Init(exports, GK_SYMBOL_CLUSTER);
-		gk::Graph<gk::Cluster<gk::Index<gk::Node>>>::Init(exports, GK_SYMBOL_GRAPH);
-		gk::GraphSet<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_GRAPH_SET);
-		gk::GraphMultiset<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_GRAPH_MULTISET);
-		gk::Set<gk::Node>::Init(exports, GK_SYMBOL_SET);
-		gk::Set<gk::Entity>::Init(exports, GK_SYMBOL_ENTITY_SET);
-		gk::Set<gk::Action<gk::Entity>>::Init(exports, GK_SYMBOL_ACTION_SET);
-		gk::Set<gk::Bond<gk::Entity>>::Init(exports, GK_SYMBOL_BOND_SET);
-		gk::Multiset<gk::Node>::Init(exports, GK_SYMBOL_MULTISET);
+GK_EXPORT(GraphKit) {
+	// classes
+	gk::Entity::Init(exports, GK_SYMBOL_ENTITY);
+	gk::Action < gk::Entity > ::Init(exports, GK_SYMBOL_ACTION);
+	gk::Bond < gk::Entity > ::Init(exports, GK_SYMBOL_BOND);
+	gk::Index<gk::Node>::Init(exports, GK_SYMBOL_INDEX);
+	gk::Cluster<gk::Index<gk::Node>>::Init(exports, GK_SYMBOL_CLUSTER);
+	gk::Graph<gk::Cluster<gk::Index<gk::Node>>>::Init(exports, GK_SYMBOL_GRAPH);
+	gk::GraphSet<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_GRAPH_SET);
+	gk::GraphMultiset<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_GRAPH_MULTISET);
+	gk::Set<gk::Node>::Init(exports, GK_SYMBOL_SET);
+	gk::Set<gk::Entity>::Init(exports, GK_SYMBOL_ENTITY_SET);
+	gk::Set<gk::Action<gk::Entity>>::Init(exports, GK_SYMBOL_ACTION_SET);
+	gk::Set<gk::Bond<gk::Entity>>::Init(exports, GK_SYMBOL_BOND_SET);
+	gk::Multiset<gk::Node>::Init(exports, GK_SYMBOL_MULTISET);
 
-		// constants
-		GK_SCOPE();
-		exports->Set(GK_STRING(GK_SYMBOL_NODE_CLASS_NODE), GK_INTEGER(GK_SYMBOL_NODE_CLASS_NODE_CONSTANT));
-		exports->Set(GK_STRING(GK_SYMBOL_NODE_CLASS_ENTITY), GK_INTEGER(GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT));
-		exports->Set(GK_STRING(GK_SYMBOL_NODE_CLASS_ACTION), GK_INTEGER(GK_SYMBOL_NODE_CLASS_ACTION_CONSTANT));
-		exports->Set(GK_STRING(GK_SYMBOL_NODE_CLASS_BOND), GK_INTEGER(GK_SYMBOL_NODE_CLASS_BOND_CONSTANT));
-	}
-
-	NODE_MODULE(graphkit, GraphKit )
+	// constants
+	GK_SCOPE();
+	exports->Set(GK_STRING(GK_SYMBOL_NODE_CLASS_NODE), GK_INTEGER(GK_SYMBOL_NODE_CLASS_NODE_CONSTANT));
+	exports->Set(GK_STRING(GK_SYMBOL_NODE_CLASS_ENTITY), GK_INTEGER(GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT));
+	exports->Set(GK_STRING(GK_SYMBOL_NODE_CLASS_ACTION), GK_INTEGER(GK_SYMBOL_NODE_CLASS_ACTION_CONSTANT));
+	exports->Set(GK_STRING(GK_SYMBOL_NODE_CLASS_BOND), GK_INTEGER(GK_SYMBOL_NODE_CLASS_BOND_CONSTANT));
 }
+
+NODE_MODULE(graphkit, GraphKit)

@@ -135,8 +135,8 @@ namespace gk {
 	gk::Bond<T>* gk::Bond<T>::Instance(v8::Isolate* isolate, const char* type) noexcept {
 		const int argc = 1;
 		v8::Local<v8::Value> argv[argc] = {GK_STRING(type)};
-		auto cons = GK_FUNCTION(constructor_);
-		return node::ObjectWrap::Unwrap<gk::Bond<T>>(cons->NewInstance(argc, argv));
+		auto ctor = GK_FUNCTION(constructor_);
+		return node::ObjectWrap::Unwrap<gk::Bond<T>>(ctor->NewInstance(argc, argv));
 	}
 	
 	template <typename T>
@@ -176,8 +176,8 @@ namespace gk {
 		} else {
 			const int argc = 1;
 			v8::Local<v8::Value> argv[argc] = {args[0]};
-			auto cons = GK_FUNCTION(constructor_);
-			GK_RETURN(cons->NewInstance(argc, argv));
+			auto ctor = GK_FUNCTION(constructor_);
+			GK_RETURN(ctor->NewInstance(argc, argv));
 		}
 	}
 

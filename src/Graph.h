@@ -121,8 +121,8 @@ template <typename T, typename K, typename O>
 gk::Graph<T, K, O>* gk::Graph<T, K, O>::Instance(v8::Isolate* isolate) noexcept {
 	const int argc = 0;
 	v8::Local<v8::Value> argv[argc] = {};
-	auto cons = GK_FUNCTION(constructor_);
-	return node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(cons->NewInstance(argc, argv));
+	auto ctor = GK_FUNCTION(constructor_);
+	return node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(ctor->NewInstance(argc, argv));
 }
 
 template <typename T, typename K, typename O>
@@ -161,8 +161,8 @@ GK_METHOD(gk::Graph<T, K, O>::New) {
 	} else {
 		const int argc = 0;
 		v8::Local<v8::Value> argv[argc] = {};
-		auto cons = GK_FUNCTION(constructor_);
-		GK_RETURN(cons->NewInstance(argc, argv));
+		auto ctor = GK_FUNCTION(constructor_);
+		GK_RETURN(ctor->NewInstance(argc, argv));
 	}
 }
 
@@ -298,8 +298,7 @@ GK_INDEX_ENUMERATOR(gk::Graph<T, K, O>::IndexEnumerator) {
 	auto is = g->size();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {
-		auto node = g->node(j + 1);
-		array->Set(j, GK_INTEGER(node->order() - 1));
+		array->Set(j, GK_INTEGER(j));
 	}
 	GK_RETURN(array);
 }

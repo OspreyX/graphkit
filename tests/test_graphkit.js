@@ -49,13 +49,13 @@ for (let i = process.argv[2] || 1; 0 < i; --i) {
 	//a1.objects.insert(e1);
 	//g1.insert(a1);
 }
-let e1 = new Entity('User');
-e1['age'] = 26;
-e1['test property'] = 'success value';
-e1.addGroup('female');
-g1.insert(e1);
-console.log(e1);
-
+//let e1 = new Entity('User');
+//e1['age'] = 26;
+//e1['test property'] = 'success value';
+//e1.addGroup('female');
+//g1.insert(e1);
+//console.log(e1);
+console.log(g1.Entity);
 console.log('Basic Time %d', Date.now() - start);
 //e1['name'] = 'Eve';
 //e1['age'] = 26;

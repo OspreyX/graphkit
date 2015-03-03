@@ -45,8 +45,8 @@ gk::Set<gk::Bond<gk::Entity>>* gk::Entity::bonds(v8::Isolate* isolate) noexcept 
 gk::Entity* gk::Entity::Instance(v8::Isolate* isolate, const char* type) noexcept {
 	const int argc = 1;
 	v8::Local<v8::Value> argv[argc] = {GK_STRING(type)};
-	auto cons = GK_FUNCTION(constructor_);
-	return node::ObjectWrap::Unwrap<gk::Entity>(cons->NewInstance(argc, argv));
+	auto ctor = GK_FUNCTION(constructor_);
+	return node::ObjectWrap::Unwrap<gk::Entity>(ctor->NewInstance(argc, argv));
 }
 
 GK_INIT(gk::Entity::Init) {
@@ -84,8 +84,8 @@ GK_METHOD(gk::Entity::New) {
 	} else {
 		const int argc = 1;
 		v8::Local<v8::Value> argv[argc] = {args[0]};
-		auto cons = GK_FUNCTION(constructor_);
-		GK_RETURN(cons->NewInstance(argc, argv));
+		auto ctor = GK_FUNCTION(constructor_);
+		GK_RETURN(ctor->NewInstance(argc, argv));
 	}
 }
 

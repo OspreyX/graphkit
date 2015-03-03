@@ -118,8 +118,8 @@ template <typename G, typename T, typename O>
 gk::GraphMultiset<G, T, O>* gk::GraphMultiset<G, T, O>::Instance(v8::Isolate* isolate, G* graph) noexcept {
 	const int argc = 1;
 	v8::Local<v8::Value> argv[argc] = {graph->handle()};
-	auto cons = GK_FUNCTION(constructor_);
-	return node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(cons->NewInstance(argc, argv));
+	auto ctor = GK_FUNCTION(constructor_);
+	return node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(ctor->NewInstance(argc, argv));
 }
 
 template <typename G, typename T, typename O>
@@ -158,8 +158,8 @@ GK_METHOD(gk::GraphMultiset<G, T, O>::New) {
 	} else {
 		const int argc = 1;
 		v8::Local<v8::Value> argv[argc] = {args[0]};
-		auto cons = GK_FUNCTION(constructor_);
-		GK_RETURN(cons->NewInstance(argc, argv));
+		auto ctor = GK_FUNCTION(constructor_);
+		GK_RETURN(ctor->NewInstance(argc, argv));
 	}
 }
 
@@ -277,8 +277,7 @@ GK_INDEX_ENUMERATOR(gk::GraphMultiset<G, T, O>::IndexEnumerator) {
 	auto is = i->size();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {
-		auto node = i->node(j + 1);
-		array->Set(j, GK_INTEGER(node->order() - 1));
+		array->Set(j, GK_INTEGER(j));
 	}
 	GK_RETURN(array);
 }
