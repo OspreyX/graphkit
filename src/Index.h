@@ -14,6 +14,10 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
+*
+* Index.h
+*
+* Is responsible for keeping the indexed Nodes managed, ID and file writing.
 */
 
 #ifndef GRAPHKIT_SRC_INDEX_H
@@ -27,10 +31,15 @@
 #include "RedBlackTree.h"
 #include "NodeClass.h"
 
-static const int INDEX_BUF_SIZE = 128;
+static const int INDEX_BUF_SIZE = 64;
+static char fs_buf_[INDEX_BUF_SIZE];
+static uv_buf_t fs_iov_;
+static uv_fs_t open_req_;
+static uv_fs_t read_req_;
+static uv_fs_t write_req_;
 
 void on_write(uv_fs_t* req) {
-	assert(0 > req->result);
+//	assert(0 > req->result);
 }
 
 namespace gk {
@@ -42,19 +51,50 @@ namespace gk {
 	class Index : public gk::Export,
 				  public gk::RedBlackTree<T, true, K, O> {
 	public:
+
+		/**
+		* Index
+		* Constructor.
+		* @param		const gk::NodeClass& nodeClass
+		* @param		cons std::string& type
+		*/
 		Index(const gk::NodeClass& nodeClass, const std::string& type) noexcept;
+
+		/**
+		* ~Index
+		* Destructor.
+		*/
 		virtual ~Index();
+
+		/**
+		* Default functions.
+		*/
 		Index(const Index&) = default;
 		Index& operator= (const Index&) = default;
 		Index(Index&&) = default;
 		Index& operator= (Index&&) = default;
 
+		/**
+		* Node
+		* IDentifies the type of Node the Index is managing. This can be used outside of the class
+		* when wanting to dynamically specify the Node being managed.
+		*/
 		using Node = T;
 
+		/**
+		* nodeClass
+		* Retrieves the NodeClass being managed.
+		* @return 		gk::NodeClass&
+		*/
 		const gk::NodeClass& nodeClass() const noexcept;
+
+		/**
+		* type
+		* Retrieves the type being managed.
+		* @return		std::string&
+		*/
 		const std::string& type() const noexcept;
-		O incrementId() noexcept;
-		O decrementId() noexcept;
+
 		bool insert(T* node) noexcept;
 		bool remove(T* node) noexcept;
 		bool remove(const int k) noexcept;
@@ -66,13 +106,17 @@ namespace gk {
 	private:
 		const gk::NodeClass nodeClass_;
 		const std::string type_;
-		O ids_;
-		char fs_buf_[INDEX_BUF_SIZE];
+		uv_loop_t* loop_;
+		uv_fs_cb on_write_;
 		std::string fs_idx_;
-		uv_buf_t fs_iov_;
-		uv_fs_t open_req_;
-		uv_fs_t read_req_;
-		uv_fs_t write_req_;
+		O ids_;
+
+		/**
+		* incrementID
+		* Increments the ID value of the next Node to be managed.
+		* @return 		A return of template type "O", which defaults to long long.
+		*/
+		O incrementID() noexcept;
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
@@ -102,10 +146,16 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 	  gk::RedBlackTree<T, true, K, O>{},
 	  nodeClass_{std::move(nodeClass)},
 	  type_{std::move(type)},
-	  fs_idx_{gk::NodeClassToString(nodeClass_) + type_} {
-		uv_fs_open(uv_default_loop(), &open_req_, fs_idx_.c_str(), O_CREAT | O_RDWR, 0644, NULL);
+	  on_write_(on_write),
+	  fs_idx_{"data/" + std::to_string(gk::NodeClassToInt(nodeClass_)) + type_ + ".idx"} {
+
+		loop_ = (uv_loop_t*)malloc(sizeof(uv_loop_t));
+		uv_loop_init(loop_);
+
+		// file writing
+		uv_fs_open(loop_, &open_req_, fs_idx_.c_str(), O_CREAT | O_RDWR, 0644, NULL);
 		fs_iov_ = uv_buf_init(fs_buf_, sizeof(fs_buf_));
-		uv_fs_read(uv_default_loop(), &read_req_, open_req_.result, &fs_iov_, 1, -1, NULL);
+		uv_fs_read(loop_, &read_req_, open_req_.result, &fs_iov_, 1, -1, NULL);
 		ids_ = atol(fs_iov_.base);
 };
 
@@ -115,6 +165,7 @@ gk::Index<T, K, O>::~Index() {
 	uv_fs_req_cleanup(&open_req_);
 	uv_fs_req_cleanup(&read_req_);
 	uv_fs_req_cleanup(&write_req_);
+	free(loop_);
 }
 
 template <typename T, typename K, typename O>
@@ -128,25 +179,33 @@ const std::string& gk::Index<T, K, O>::type() const noexcept {
 }
 
 template <typename T, typename K, typename O>
-O gk::Index<T, K, O>::incrementId() noexcept {
+O gk::Index<T, K, O>::incrementID() noexcept {
 	snprintf(fs_buf_, INDEX_BUF_SIZE, "%lld", ++ids_);
-	uv_fs_write(uv_default_loop(), &write_req_, open_req_.result, &fs_iov_, 1, 0, on_write);
+	uv_fs_write(loop_, &write_req_, open_req_.result, &fs_iov_, 1, 0, on_write_);
+	uv_run(loop_, UV_RUN_DEFAULT);
 	return ids_;
-}
-
-template <typename T, typename K, typename O>
-O gk::Index<T, K, O>::decrementId() noexcept {
-	return --ids_;
 }
 
 template  <typename T, typename K, typename O>
 bool gk::Index<T, K, O>::insert(T* node) noexcept {
 	if (0 == node->id()) {
-		node->id(incrementId());
+		node->id(incrementID());
 	}
 	return gk::RedBlackTree<T, true, K, O>::insert(node->id(), node, [&](T* n) {
 		n->indexed(true);
 		n->Ref();
+
+		// persist the Node
+		uv_fs_t open_req;
+		uv_fs_open(loop_, &open_req, ("data/" + n->hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+		char buf[1024];
+		uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
+		uv_fs_write(loop_, &write_req_, open_req.result, &iov, 1, 0, NULL);
+		uv_fs_t close_req;
+		uv_fs_close(loop_, &close_req, open_req.result, NULL);
+		uv_fs_req_cleanup(&open_req);
+		uv_fs_req_cleanup(&close_req);
+//		uv_run(loop_, UV_RUN_DEFAULT);
 	});
 }
 

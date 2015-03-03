@@ -14,6 +14,10 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
+*
+* Export.h
+*
+* Used to act as a parent Class for Classes that will exist in the Node.js environment.
 */
 
 #ifndef GRAPHKIT_SRC_EXPORT_H
@@ -24,17 +28,46 @@
 namespace gk {
 	class Export : public node::ObjectWrap {
 	public:
+
+		/**
+		* Export
+		* Constructor.
+		*/
 		Export() noexcept;
+
+		/**
+		* Default functions.
+		*/
 		Export(const Export&) = default;
 		Export& operator= (const Export&) = default;
 		Export(Export&&) = default;
 		Export& operator= (Export&&) = default;
 
+		/**
+		* Ref
+		* Increments the reference count so v8 does not garbarge collect the data.
+		*/
 		void Ref() noexcept;
+
+		/**
+		* Unref
+		* Decrements the reference count so v8 may delete the object when garbage collecting.
+		*/
 		void Unref() noexcept;
+
+		/**
+		* refs
+		* The current reference count.
+		* @return		int
+		*/
 		int refs() const noexcept;
 
 	protected:
+
+		/**
+		* ~Export
+		* Destructor.
+		*/
 		virtual ~Export();
 	};
 }
