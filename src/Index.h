@@ -29,7 +29,7 @@
 
 static const int INDEX_BUF_SIZE = 128;
 
-static void on_write(uv_fs_t* req) {
+void on_write(uv_fs_t* req) {
 	assert(0 > req->result);
 }
 
@@ -129,10 +129,8 @@ const std::string& gk::Index<T, K, O>::type() const noexcept {
 
 template <typename T, typename K, typename O>
 O gk::Index<T, K, O>::incrementId() noexcept {
-	++ids_;
-	snprintf(fs_buf_, INDEX_BUF_SIZE, "%lld", ids_);
-//	std::cout << " buf " << buf << " len " << read_req.result << " iov " << fs_buf_.base << std::endl;
-	uv_fs_write(uv_default_loop(), &write_req_, open_req_.result, &fs_iov_, 1, 0, NULL);
+	snprintf(fs_buf_, INDEX_BUF_SIZE, "%lld", ++ids_);
+	uv_fs_write(uv_default_loop(), &write_req_, open_req_.result, &fs_iov_, 1, 0, on_write);
 	return ids_;
 }
 
