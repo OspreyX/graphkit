@@ -20,13 +20,18 @@
 #define GRAPHKIT_SRC_INDEX_H
 
 #include <utility>
-#include <string>
 #include <cassert>
 #include "exports.h"
 #include "symbols.h"
 #include "Export.h"
 #include "RedBlackTree.h"
 #include "NodeClass.h"
+
+static const int INDEX_BUF_SIZE = 128;
+
+static void on_write(uv_fs_t* req) {
+	assert(0 > req->result);
+}
 
 namespace gk {
 	template <
@@ -62,6 +67,12 @@ namespace gk {
 		const gk::NodeClass nodeClass_;
 		const std::string type_;
 		O ids_;
+		char fs_buf_[INDEX_BUF_SIZE];
+		std::string fs_idx_;
+		uv_buf_t fs_iov_;
+		uv_fs_t open_req_;
+		uv_fs_t read_req_;
+		uv_fs_t write_req_;
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
@@ -91,11 +102,19 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 	  gk::RedBlackTree<T, true, K, O>{},
 	  nodeClass_{std::move(nodeClass)},
 	  type_{std::move(type)},
-	  ids_{} {};
+	  fs_idx_{gk::NodeClassToString(nodeClass_) + type_} {
+		uv_fs_open(uv_default_loop(), &open_req_, fs_idx_.c_str(), O_CREAT | O_RDWR, 0644, NULL);
+		fs_iov_ = uv_buf_init(fs_buf_, sizeof(fs_buf_));
+		uv_fs_read(uv_default_loop(), &read_req_, open_req_.result, &fs_iov_, 1, -1, NULL);
+		ids_ = atol(fs_iov_.base);
+};
 
 template <typename T, typename K, typename O>
 gk::Index<T, K, O>::~Index() {
 	cleanUp();
+	uv_fs_req_cleanup(&open_req_);
+	uv_fs_req_cleanup(&read_req_);
+	uv_fs_req_cleanup(&write_req_);
 }
 
 template <typename T, typename K, typename O>
@@ -110,7 +129,11 @@ const std::string& gk::Index<T, K, O>::type() const noexcept {
 
 template <typename T, typename K, typename O>
 O gk::Index<T, K, O>::incrementId() noexcept {
-	return ++ids_;
+	++ids_;
+	snprintf(fs_buf_, INDEX_BUF_SIZE, "%lld", ids_);
+//	std::cout << " buf " << buf << " len " << read_req.result << " iov " << fs_buf_.base << std::endl;
+	uv_fs_write(uv_default_loop(), &write_req_, open_req_.result, &fs_iov_, 1, 0, NULL);
+	return ids_;
 }
 
 template <typename T, typename K, typename O>
