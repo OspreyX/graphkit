@@ -91,23 +91,23 @@ const std::string& gk::Node::hash() noexcept {
 }
 
 std::string gk::Node::toJSON() noexcept {
-	std::string json = "{id:" + std::to_string(id()) +
-		",nodeClass:" + std::to_string(gk::NodeClassToInt(nodeClass())) +
-		",type:\"" + type() + "\"";
+	std::string json = "{\"id\":" + std::to_string(id()) +
+		",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(nodeClass())) +
+		",\"type\":\"" + type() + "\"";
 
 	// store properties
-	json += ",properties:{";
+	json += ",\"properties\":{";
 	auto ps = properties()->size();
 	if (ps) {
 		for (auto i = ps; 0 < i; --i) {
 			auto q = properties()->node(i);
-			json += q->key() + ":\"" + *q->data() + "\"";
+			json += "\"" + q->key() + "\":\"" + *q->data() + "\"";
 			if (1 != i) {
 				json += ",";
 			}
 		}
 	}
-	json += "},groups:[";
+	json += "},\"groups\":[";
 	// store groups
 	auto gs = groups()->size();
 	if (gs) {

@@ -31,6 +31,7 @@
 #include "Entity.h"
 #include "Action.h"
 #include "Bond.h"
+#include "json.h"
 
 namespace gk {
 	template <
@@ -100,31 +101,37 @@ gk::Graph<T, K, O>::Graph() noexcept
 
 		GK_SCOPE();
 
+		std::string dat = ".dat";
 		while (UV_EOF != uv_fs_scandir_next(&scandir_req, &dent)) {
 			assert(dent.type == UV_DIRENT_FILE || dent.type == UV_DIRENT_UNKNOWN);
 
-			// open the file
-			uv_fs_t open_req;
 			std::string dirname = "data/" + std::string(dent.name);
-			uv_fs_open(uv_default_loop(), &open_req, dirname.c_str(), O_RDONLY, 0644, NULL);
+			if (dirname.compare(dirname.length() - 4, 4, dat) == 0) {
+				// open the file
+				uv_fs_t open_req;
+				uv_fs_open(uv_default_loop(), &open_req, dirname.c_str(), O_RDONLY, 0644, NULL);
 
-			// read in file.
-			char buf[1024];
-			uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
-			uv_fs_t read_req;
-			uv_fs_read(uv_default_loop(), &read_req, open_req.result, &iov, 1, 0, NULL);
+				// read in file.
+				char buf[1024];
+				uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
+				uv_fs_t read_req;
+				uv_fs_read(uv_default_loop(), &read_req, open_req.result, &iov, 1, 0, NULL);
 
-			auto e = gk::Entity::Instance(isolate, "User");
-			insert(isolate, e);
+				auto json = nlohmann::json::parse(buf);
+				// insert the nodes into the Graph.
+				auto e = gk::Entity::Instance(isolate, json["type"].get<std::string>().c_str());
+				e->id(json["id"].get<long long>());
+				insert(isolate, e);
 
-			// close the directory
-			uv_fs_t close_req;
-			uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
+				// close the directory
+				uv_fs_t close_req;
+				uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
 
-			// cleanup
-			uv_fs_req_cleanup(&open_req);
-			uv_fs_req_cleanup(&read_req);
-			uv_fs_req_cleanup(&close_req);
+				// cleanup
+				uv_fs_req_cleanup(&open_req);
+				uv_fs_req_cleanup(&read_req);
+				uv_fs_req_cleanup(&close_req);
+			}
 		}
 		uv_fs_req_cleanup(&scandir_req);
 }

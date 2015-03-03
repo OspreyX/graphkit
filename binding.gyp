@@ -2,7 +2,7 @@
 	"targets": [
 		{
 			"target_name": "graphkit",
-			"cflags_cc": [],
+			"cflags_cc!": ["-fno-rtti", "-fno-exceptions"],
 			"cflags": ["-std=c++11", "-O3", "-Wall"],
 			"include_dirs" : [
 				"./src"
