@@ -19,6 +19,7 @@
 #ifndef GRAPHKIT_SRC_GRAPH_H
 #define GRAPHKIT_SRC_GRAPH_H
 
+#include <iostream>
 #include <string>
 #include "exports.h"
 #include "symbols.h"
@@ -87,7 +88,46 @@ GK_CONSTRUCTOR(gk::Graph<T, K, O>::constructor_);
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::Graph() noexcept
 	: gk::Export{},
-	  gk::RedBlackTree<T, true, K, O>{} {}
+	  gk::RedBlackTree<T, true, K, O>{} {
+
+		// scan through the data directory and insert the Nodes.
+		uv_fs_t scandir_req;
+		uv_fs_scandir(uv_default_loop(), &scandir_req, "data", O_CREAT | O_RDWR, NULL);
+		uv_dirent_t dent;
+		assert(scandir_req.fs_type == UV_FS_SCANDIR);
+		assert(scandir_req.path);
+		assert(memcmp(scandir_req.path, "data\0", 5) == 0);
+
+		GK_SCOPE();
+
+		while (UV_EOF != uv_fs_scandir_next(&scandir_req, &dent)) {
+			assert(dent.type == UV_DIRENT_FILE || dent.type == UV_DIRENT_UNKNOWN);
+
+			// open the file
+			uv_fs_t open_req;
+			std::string dirname = "data/" + std::string(dent.name);
+			uv_fs_open(uv_default_loop(), &open_req, dirname.c_str(), O_RDONLY, 0644, NULL);
+
+			// read in file.
+			char buf[1024];
+			uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
+			uv_fs_t read_req;
+			uv_fs_read(uv_default_loop(), &read_req, open_req.result, &iov, 1, 0, NULL);
+
+			auto e = gk::Entity::Instance(isolate, "User");
+			insert(isolate, e);
+
+			// close the directory
+			uv_fs_t close_req;
+			uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
+
+			// cleanup
+			uv_fs_req_cleanup(&open_req);
+			uv_fs_req_cleanup(&read_req);
+			uv_fs_req_cleanup(&close_req);
+		}
+		uv_fs_req_cleanup(&scandir_req);
+}
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::~Graph() {

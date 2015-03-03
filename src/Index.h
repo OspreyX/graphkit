@@ -37,8 +37,13 @@ static uv_buf_t fs_iov_;
 static uv_fs_t open_req_;
 static uv_fs_t read_req_;
 static uv_fs_t write_req_;
+static uv_fs_t unlink_req_;
 
 void on_write(uv_fs_t* req) {
+//	assert(0 > req->result);
+}
+
+void on_unlink(uv_fs_t* req) {
 //	assert(0 > req->result);
 }
 
@@ -108,6 +113,7 @@ namespace gk {
 		const std::string type_;
 		uv_loop_t* loop_;
 		uv_fs_cb on_write_;
+		uv_fs_cb on_unlink_;
 		std::string fs_idx_;
 		O ids_;
 
@@ -147,6 +153,7 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 	  nodeClass_{std::move(nodeClass)},
 	  type_{std::move(type)},
 	  on_write_(on_write),
+	  on_unlink_(on_unlink),
 	  fs_idx_{"data/" + std::to_string(gk::NodeClassToInt(nodeClass_)) + type_ + ".idx"} {
 
 		loop_ = (uv_loop_t*)malloc(sizeof(uv_loop_t));
@@ -162,9 +169,14 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 template <typename T, typename K, typename O>
 gk::Index<T, K, O>::~Index() {
 	cleanUp();
+
+	uv_fs_t close_req;
+	uv_fs_close(loop_, &close_req, open_req_.result, NULL);
+	uv_fs_req_cleanup(&close_req);
 	uv_fs_req_cleanup(&open_req_);
 	uv_fs_req_cleanup(&read_req_);
 	uv_fs_req_cleanup(&write_req_);
+	uv_fs_req_cleanup(&unlink_req_);
 	free(loop_);
 }
 
@@ -198,14 +210,15 @@ bool gk::Index<T, K, O>::insert(T* node) noexcept {
 		// persist the Node
 		uv_fs_t open_req;
 		uv_fs_open(loop_, &open_req, ("data/" + n->hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
-		char buf[1024];
+		std::string json = n->toJSON();
+		char buf[json.length() + 1];
+		strcpy(buf, json.c_str());
 		uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
 		uv_fs_write(loop_, &write_req_, open_req.result, &iov, 1, 0, NULL);
 		uv_fs_t close_req;
 		uv_fs_close(loop_, &close_req, open_req.result, NULL);
 		uv_fs_req_cleanup(&open_req);
 		uv_fs_req_cleanup(&close_req);
-//		uv_run(loop_, UV_RUN_DEFAULT);
 	});
 }
 
@@ -217,6 +230,10 @@ bool gk::Index<T, K, O>::remove(T* node) noexcept {
 	return gk::RedBlackTree<T, true, K, O>::remove(node->id(), [&](T* n) {
 		n->indexed(false);
 		n->Unref();
+
+		// delete the file
+		uv_fs_unlink(loop_, &unlink_req_, ("data/" + n->hash() + ".dat").c_str(), on_unlink);
+		uv_run(loop_, UV_RUN_DEFAULT);
 	});
 }
 
@@ -225,6 +242,10 @@ bool gk::Index<T, K, O>::remove(const int k) noexcept {
 	return gk::RedBlackTree<T, true, K, O>::remove(k, [&](T* n) {
 		n->indexed(false);
 		n->Unref();
+
+		// delete the file
+		uv_fs_unlink(loop_, &unlink_req_, ("data/" + n->hash() + ".dat").c_str(), on_unlink);
+		uv_run(loop_, UV_RUN_DEFAULT);
 	});
 }
 

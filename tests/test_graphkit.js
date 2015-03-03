@@ -38,7 +38,8 @@ let Multiset = gk.Multiset;
 let g1 = new Graph();
 let start = Date.now();
 for (let i = process.argv[2] || 1; 0 < i; --i) {
-	let e1 = g1.createEntity('User');
+	//let e1 = g1.createEntity('User');
+	//g1.remove(e1);
 	//e1['age'] = 26;
 	//e1['test property'] = 'success value';
 	//e1.addGroup('female');

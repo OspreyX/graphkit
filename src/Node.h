@@ -47,6 +47,7 @@ namespace gk {
 		void indexed(bool indexed) noexcept;
 
 		const std::string& hash() noexcept;
+		std::string toJSON() noexcept;
 
 	protected:
 		const gk::NodeClass nodeClass_;

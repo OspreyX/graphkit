@@ -85,9 +85,41 @@ gk::RedBlackTree<std::string, true, std::string>* gk::Node::properties() noexcep
 
 const std::string& gk::Node::hash() noexcept {
 	if (hash_.empty()) {
-		hash_ = std::string{std::to_string(gk::NodeClassToInt(nodeClass_)) + ":" + type_ + ":" + std::to_string(id_)};
+		hash_ = std::string{std::to_string(gk::NodeClassToInt(nodeClass_)) + type_ + std::to_string(id_)};
 	}
 	return hash_;
+}
+
+std::string gk::Node::toJSON() noexcept {
+	std::string json = "{id:" + std::to_string(id()) +
+		",nodeClass:" + std::to_string(gk::NodeClassToInt(nodeClass())) +
+		",type:\"" + type() + "\"";
+
+	// store properties
+	json += ",properties:{";
+	auto ps = properties()->size();
+	if (ps) {
+		for (auto i = ps; 0 < i; --i) {
+			auto q = properties()->node(i);
+			json += q->key() + ":\"" + *q->data() + "\"";
+			if (1 != i) {
+				json += ",";
+			}
+		}
+	}
+	json += "},groups:[";
+	// store groups
+	auto gs = groups()->size();
+	if (gs) {
+		for (auto i = gs; 0 < i; --i) {
+			json += "\"" + *groups()->select(i) + "\"";
+			if (1 != i) {
+				json += ",";
+			}
+		}
+	}
+	json += "]}";
+	return json;
 }
 
 GK_METHOD(gk::Node::AddGroup) {
