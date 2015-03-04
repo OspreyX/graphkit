@@ -179,7 +179,7 @@ GK_METHOD(gk::Multiset<T, O>::Remove) {
 	}
 
 	auto s = node::ObjectWrap::Unwrap<gk::Multiset<T, O>>(args.Holder());
-	if (args[0]->IsNumber() && args[1]->IsString() && args[2]->IsNumber()) {
+	if (args[0]->IntegerValue() && args[1]->IsString() && args[2]->IntegerValue()) {
 		v8::String::Utf8Value type(args[1]->ToString());
 		auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + ":" + *type + ":" + std::to_string(args[2]->IntegerValue())};
 		bool result = false;
@@ -213,7 +213,7 @@ template <typename T, typename O>
 GK_METHOD(gk::Multiset<T, O>::Find) {
 	GK_SCOPE();
 
-	if (args[0]->IsNumber() && (GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT > args[0]->IntegerValue() || GK_SYMBOL_NODE_CLASS_BOND_CONSTANT < args[0]->IntegerValue())) {
+	if (GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT > args[0]->IntegerValue() || GK_SYMBOL_NODE_CLASS_BOND_CONSTANT < args[0]->IntegerValue()) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct NodeClass value.]");
 	}
 
@@ -221,13 +221,13 @@ GK_METHOD(gk::Multiset<T, O>::Find) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct Type value.]");
 	}
 
-	if (!args[2]->IsNumber() || 0 > args[3]->IntegerValue()) {
+	if (args[2]->IntegerValue()) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
 
 	auto s = node::ObjectWrap::Unwrap<gk::Multiset<T, O>>(args.Holder());
 	v8::String::Utf8Value type(args[1]->ToString());
-	auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + ":" + *type + ":" + std::to_string(args[2]->IntegerValue())};
+	auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + *type + std::to_string(args[2]->IntegerValue())};
 	auto n = s->findByKey(k);
 	if (n) {
 		GK_RETURN(n->handle());

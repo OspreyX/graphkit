@@ -31,17 +31,10 @@
 #include "RedBlackTree.h"
 #include "NodeClass.h"
 
-static const int INDEX_BUF_SIZE = 64;
-
-void on_write(uv_fs_t* req) {
-//	assert(0 > req->result);
-}
-
-void on_unlink(uv_fs_t* req) {
-//	assert(0 > req->result);
-}
-
 namespace gk {
+
+	static const int GK_INDEX_BUF_SIZE = 64;
+
 	template <
 		typename T,
 		typename K = long long,
@@ -105,17 +98,15 @@ namespace gk {
 	private:
 		const gk::NodeClass nodeClass_;
 		const std::string type_;
-		uv_loop_t* loop_;
-		uv_fs_cb on_write_;
-		uv_fs_cb on_unlink_;
 		std::string fs_idx_;
 		O ids_;
 
-		char fs_buf_[INDEX_BUF_SIZE];
+		char fs_buf_[GK_INDEX_BUF_SIZE + 1];
 		uv_buf_t fs_iov_;
 		uv_fs_t open_req_;
 		uv_fs_t read_req_;
 		uv_fs_t write_req_;
+		uv_fs_t unlink_req_;
 
 		/**
 		* incrementID
@@ -152,17 +143,12 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 	  gk::RedBlackTree<T, true, K, O>{},
 	  nodeClass_{std::move(nodeClass)},
 	  type_{std::move(type)},
-	  on_write_(on_write),
-	  on_unlink_(on_unlink),
-	  fs_idx_{"./data/" + std::to_string(gk::NodeClassToInt(nodeClass_)) + type_ + ".idx"} {
-
-		loop_ = (uv_loop_t*)malloc(sizeof(uv_loop_t));
-		uv_loop_init(loop_);
+	  fs_idx_{"./data/" + std::to_string(gk::NodeClassToInt(nodeClass_)) + type_ + ".idx"},
+	  fs_iov_(uv_buf_init(fs_buf_, sizeof(fs_buf_))) {
 
 		// file writing
-		uv_fs_open(loop_, &open_req_, fs_idx_.c_str(), O_CREAT | O_RDWR, 0644, NULL);
-		fs_iov_ = uv_buf_init(fs_buf_, sizeof(fs_buf_));
-		uv_fs_read(loop_, &read_req_, open_req_.result, &fs_iov_, 1, -1, NULL);
+		uv_fs_open(uv_default_loop(), &open_req_, fs_idx_.c_str(), O_CREAT | O_RDWR, 0644, NULL);
+		uv_fs_read(uv_default_loop(), &read_req_, open_req_.result, &fs_iov_, 1, -1, NULL);
 		ids_ = atol(fs_iov_.base);
 		if (!ids_) {
 			ids_ = 0;
@@ -174,12 +160,12 @@ gk::Index<T, K, O>::~Index() {
 	cleanUp();
 
 	uv_fs_t close_req;
-	uv_fs_close(loop_, &close_req, open_req_.result, NULL);
+	uv_fs_close(uv_default_loop(), &close_req, open_req_.result, NULL);
 	uv_fs_req_cleanup(&close_req);
 	uv_fs_req_cleanup(&open_req_);
 	uv_fs_req_cleanup(&read_req_);
 	uv_fs_req_cleanup(&write_req_);
-	free(loop_);
+	uv_fs_req_cleanup(&unlink_req_);
 }
 
 template <typename T, typename K, typename O>
@@ -194,9 +180,8 @@ const std::string& gk::Index<T, K, O>::type() const noexcept {
 
 template <typename T, typename K, typename O>
 O gk::Index<T, K, O>::incrementID() noexcept {
-	snprintf(fs_buf_, INDEX_BUF_SIZE, "%lld", ++ids_);
-	uv_fs_write(loop_, &write_req_, open_req_.result, &fs_iov_, 1, 0, on_write_);
-	uv_run(loop_, UV_RUN_DEFAULT);
+	snprintf(fs_buf_, GK_INDEX_BUF_SIZE, "%lld", ++ids_);
+	uv_fs_write(uv_default_loop(), &write_req_, open_req_.result, &fs_iov_, 1, 0, NULL);
 	return ids_;
 }
 
@@ -245,9 +230,7 @@ void gk::Index<T, K, O>::cleanUp() noexcept {
 	}
 
 	// Unlink the idx file.
-	uv_fs_t unlink_req;
-	uv_fs_unlink(uv_default_loop(), &unlink_req, fs_idx_.c_str(), NULL);
-	uv_fs_req_cleanup(&unlink_req);
+	uv_fs_unlink(uv_default_loop(), &unlink_req_, fs_idx_.c_str(), NULL);
 }
 
 template  <typename T, typename K, typename O>
@@ -290,7 +273,7 @@ template <typename T, typename K, typename O>
 GK_METHOD(gk::Index<T, K, O>::New) {
 	GK_SCOPE();
 
-	if (args[0]->IsNumber() && (GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT > args[0]->IntegerValue() || GK_SYMBOL_NODE_CLASS_BOND_CONSTANT < args[0]->IntegerValue())) {
+	if (GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT > args[0]->IntegerValue() || GK_SYMBOL_NODE_CLASS_BOND_CONSTANT < args[0]->IntegerValue()) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct NodeClass value.]");
 	}
 
@@ -299,7 +282,7 @@ GK_METHOD(gk::Index<T, K, O>::New) {
 	}
 
 	if (args.IsConstructCall()) {
-		auto nc = args[0]->IsNumber() ? gk::NodeClassFromInt(args[0]->IntegerValue()) : gk::NodeClass::Entity;
+		auto nc = gk::NodeClassFromInt(args[0]->IntegerValue());
 		v8::String::Utf8Value type(args[1]->ToString());
 		auto obj = new gk::Index<T, K, O>{nc, *type};
 		obj->Wrap(args.This());
@@ -355,7 +338,7 @@ GK_METHOD(gk::Index<T, K, O>::Remove) {
 
 	auto i = node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(args.Holder());
 
-	if (args[0]->IsNumber()) {
+	if (args[0]->IntegerValue()) {
 		GK_RETURN(GK_BOOLEAN(i->remove(args[0]->IntegerValue())));
 	}
 
@@ -387,7 +370,7 @@ GK_METHOD(gk::Index<T, K, O>::Clear) {
 template <typename T, typename K, typename O>
 GK_METHOD(gk::Index<T, K, O>::Find) {
 	GK_SCOPE();
-	if (!args[0]->IsNumber() || 0 > args[0]->IntegerValue()) {
+	if (0 > args[0]->IntegerValue()) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
 	auto i = node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(args.Holder());

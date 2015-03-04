@@ -158,12 +158,12 @@ template <typename T, typename K, typename O>
 GK_METHOD(gk::Cluster<T, K, O>::New) {
 	GK_SCOPE();
 	
-	if (args[0]->IsNumber() && (GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT > args[0]->IntegerValue() || GK_SYMBOL_NODE_CLASS_BOND_CONSTANT < args[0]->IntegerValue())) {
+	if (GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT > args[0]->IntegerValue() || GK_SYMBOL_NODE_CLASS_BOND_CONSTANT < args[0]->IntegerValue()) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct NodeClass value.]");
 	}
 
 	if (args.IsConstructCall()) {
-		auto nc = args[0]->IsNumber() ? gk::NodeClassFromInt(args[0]->IntegerValue()) : gk::NodeClass::Entity;
+		auto nc = gk::NodeClassFromInt(args[0]->IntegerValue());
 		auto obj = new gk::Cluster<T, K, O>{nc};
 		obj->Wrap(args.This());
 		GK_RETURN(args.This());
@@ -214,7 +214,7 @@ GK_METHOD(gk::Cluster<T, K, O>::Remove) {
 	}
 
 	auto c = node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(args.Holder());
-	if (args[0]->IsString() && args[1]->IsNumber()) {
+	if (args[0]->IsString() && args[1]->IntegerValue()) {
 		v8::String::Utf8Value type(args[0]->ToString());
 		auto i = c->findByKey(*type);
 		if (i) {
@@ -257,7 +257,7 @@ GK_METHOD(gk::Cluster<T, K, O>::Find) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct Type value.]");
 	}
 
-	if (!args[1]->IsNumber() || 0 > args[1]->IntegerValue()) {
+	if (args[1]->IntegerValue()) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
 
