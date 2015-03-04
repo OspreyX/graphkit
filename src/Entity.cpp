@@ -42,6 +42,51 @@ gk::Set<gk::Bond<gk::Entity>>* gk::Entity::bonds(v8::Isolate* isolate) noexcept 
 	return bonds_;
 }
 
+std::string gk::Entity::toJSON() noexcept {
+	std::string json = "{\"id\":" + std::to_string(id()) +
+		",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(nodeClass())) +
+		",\"type\":\"" + type() + "\"";
+
+	// store properties
+	json += ",\"properties\":[";
+	for (auto i = properties()->size(); 0 < i; --i) {
+		auto q = properties_->node(i);
+		json += "[\"" + q->key() + "\",\"" + *q->data() + "\"]";
+		if (1 != i) {
+			json += ",";
+		}
+	}
+
+	json += "],\"groups\":[";
+	// store groups
+	for (auto i = groups()->size(); 0 < i; --i) {
+		json += "\"" + *groups_->select(i) + "\"";
+		if (1 != i) {
+			json += ",";
+		}
+	}
+	json += "]}";
+	return json;
+}
+
+void gk::Entity::persist() noexcept {
+	if (indexed()) {
+		uv_fs_t open_req;
+		uv_fs_open(uv_default_loop(), &open_req, ("data/" + hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+		std::string json = toJSON();
+		char buf[json.length() + 1];
+		strcpy(buf, json.c_str());
+		uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
+		uv_fs_t write_req;
+		uv_fs_write(uv_default_loop(), &write_req, open_req.result, &iov, 1, 0, NULL);
+		uv_fs_t close_req;
+		uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
+		uv_fs_req_cleanup(&open_req);
+		uv_fs_req_cleanup(&write_req);
+		uv_fs_req_cleanup(&close_req);
+	}
+}
+
 gk::Entity* gk::Entity::Instance(v8::Isolate* isolate, const char* type) noexcept {
 	const int argc = 1;
 	v8::Local<v8::Value> argv[argc] = {GK_STRING(type)};

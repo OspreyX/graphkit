@@ -120,22 +120,147 @@ gk::Graph<T, K, O>::Graph() noexcept
 				uv_fs_read(uv_default_loop(), &read_req, open_req.result, &iov, 1, 0, NULL);
 
 				auto json = nlohmann::json::parse(buf);
-				// insert the nodes into the Graph.
-				auto e = gk::Entity::Instance(isolate, json["type"].get<std::string>().c_str());
-				e->id(json["id"].get<long long>());
-				e->indexed(true);
-				insert(isolate, e);
+				auto nodeClass = gk::NodeClassFromInt(json["nodeClass"].get<short>());
+				if  (nodeClass == gk::NodeClass::Entity) {
+					// insert the nodes into the Graph.
+					auto e = gk::Entity::Instance(isolate, json["type"].get<std::string>().c_str());
+					e->id(json["id"].get<long long>());
+					e->indexed(true);
+					insert(isolate, e);
 
-				// groups
-				for (auto name : json["groups"]) {
-					std::string* v = new std::string(name.get<std::string>());
-					e->groups()->insert(*v, v);
-				}
+					// groups
+					for (auto name : json["groups"]) {
+						std::string *v = new std::string(name.get<std::string>());
+						e->groups()->insert(*v, v);
+					}
 
-				// properties
-				for (auto property : json["properties"]) {
-					std::string* v = new std::string(property[1].get<std::string>());
-					e->properties()->insert(property[0].get<std::string>(), v);
+					// properties
+					for (auto property : json["properties"]) {
+						std::string *v = new std::string(property[1].get<std::string>());
+						e->properties()->insert(property[0].get<std::string>(), v);
+					}
+				} else if (nodeClass == gk::NodeClass::Action) {
+					// insert the nodes into the Graph.
+					auto a = gk::Action<gk::Entity>::Instance(isolate, json["type"].get<std::string>().c_str());
+					a->id(json["id"].get<long long>());
+					a->indexed(true);
+					insert(isolate, a);
+
+					// groups
+					for (auto name : json["groups"]) {
+						std::string* v = new std::string(name.get<std::string>());
+						a->groups()->insert(*v, v);
+					}
+
+					// properties
+					for (auto property : json["properties"]) {
+						std::string* v = new std::string(property[1].get<std::string>());
+						a->properties()->insert(property[0].get<std::string>(), v);
+					}
+
+					for (auto subject : json["subjects"]) {
+						// insert the nodes into the Graph.
+						auto e = gk::Entity::Instance(isolate, subject["type"].get<std::string>().c_str());
+						e->id(subject["id"].get<long long>());
+						e->indexed(true);
+						insert(isolate, e);
+
+						// groups
+						for (auto name : subject["groups"]) {
+							std::string *v = new std::string(name.get<std::string>());
+							e->groups()->insert(*v, v);
+						}
+
+						// properties
+						for (auto property : subject["properties"]) {
+							std::string *v = new std::string(property[1].get<std::string>());
+							e->properties()->insert(property[0].get<std::string>(), v);
+						}
+						a->subjects(isolate)->insert(isolate, e);
+					}
+
+					for (auto object : json["objects"]) {
+						// insert the nodes into the Graph.
+						auto e = gk::Entity::Instance(isolate, object["type"].get<std::string>().c_str());
+						e->id(object["id"].get<long long>());
+						e->indexed(true);
+						insert(isolate, e);
+
+						// groups
+						for (auto name : object["groups"]) {
+							std::string *v = new std::string(name.get<std::string>());
+							e->groups()->insert(*v, v);
+						}
+
+						// properties
+						for (auto property : object["properties"]) {
+							std::string *v = new std::string(property[1].get<std::string>());
+							e->properties()->insert(property[0].get<std::string>(), v);
+						}
+						a->objects(isolate)->insert(isolate, e);
+					}
+				} else if (nodeClass == gk::NodeClass::Bond) {
+					// insert the nodes into the Graph.
+					auto b = gk::Bond < gk::Entity > ::Instance(isolate, json["type"].get<std::string>().c_str());
+					b->id(json["id"].get<long long>());
+					b->indexed(true);
+					insert(isolate, b);
+
+					// groups
+					for (auto name : json["groups"]) {
+						std::string *v = new std::string(name.get<std::string>());
+						b->groups()->insert(*v, v);
+					}
+
+					// properties
+					for (auto property : json["properties"]) {
+						std::string *v = new std::string(property[1].get<std::string>());
+						b->properties()->insert(property[0].get<std::string>(), v);
+					}
+
+					auto subject = json["subject"];
+					if (subject.is_object()) {
+						// insert the nodes into the Graph.
+						auto e = gk::Entity::Instance(isolate, subject["type"].get<std::string>().c_str());
+						e->id(subject["id"].get<long long>());
+						e->indexed(true);
+						insert(isolate, e);
+
+						// groups
+						for (auto name : subject["groups"]) {
+							std::string *v = new std::string(name.get<std::string>());
+							e->groups()->insert(*v, v);
+						}
+
+						// properties
+						for (auto property : subject["properties"]) {
+							std::string *v = new std::string(property[1].get<std::string>());
+							e->properties()->insert(property[0].get<std::string>(), v);
+						}
+						b->subject(isolate, e);
+					}
+
+					auto object = json["object"];
+					if (object.is_object()) {
+						// insert the nodes into the Graph.
+						auto e = gk::Entity::Instance(isolate, object["type"].get<std::string>().c_str());
+						e->id(object["id"].get<long long>());
+						e->indexed(true);
+						insert(isolate, e);
+
+						// groups
+						for (auto name : object["groups"]) {
+							std::string *v = new std::string(name.get<std::string>());
+							e->groups()->insert(*v, v);
+						}
+
+						// properties
+						for (auto property : object["properties"]) {
+							std::string *v = new std::string(property[1].get<std::string>());
+							e->properties()->insert(property[0].get<std::string>(), v);
+						}
+						b->object(isolate, e);
+					}
 				}
 
 				// close the directory

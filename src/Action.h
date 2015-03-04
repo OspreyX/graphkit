@@ -41,6 +41,9 @@ namespace gk {
 		gk::Set<T>* subjects(v8::Isolate* isolate) noexcept;
 		gk::Set<T>* objects(v8::Isolate* isolate) noexcept;
 
+		virtual std::string toJSON() noexcept;
+		virtual void persist() noexcept;
+
 		static Action<T>* Instance(v8::Isolate* isolate, const char* type) noexcept;
 		static GK_INIT(Init);
 
@@ -93,6 +96,74 @@ namespace gk {
 			objects_->Ref();
 		}
 		return objects_;
+	}
+
+	template <typename T>
+	std::string gk::Action<T>::toJSON() noexcept {
+		std::string json = "{\"id\":" + std::to_string(id()) +
+			",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(nodeClass())) +
+			",\"type\":\"" + type() + "\"";
+
+		// store properties
+		json += ",\"properties\":[";
+		for (auto i = properties()->size(); 0 < i; --i) {
+			auto q = properties_->node(i);
+			json += "[\"" + q->key() + "\",\"" + *q->data() + "\"]";
+			if (1 != i) {
+				json += ",";
+			}
+		}
+
+		json += "],\"groups\":[";
+		// store groups
+		for (auto i = groups()->size(); 0 < i; --i) {
+			json += "\"" + *groups_->select(i) + "\"";
+			if (1 != i) {
+				json += ",";
+			}
+		}
+
+		json += "],\"subjects\":[";
+		if (nullptr != subjects_) {
+			for (auto i = subjects_->size(); 0 < i; --i) {
+				json += subjects_->select(i)->toJSON();
+				if (1 != i) {
+					json += ",";
+				}
+			}
+		}
+
+		json += "],\"objects\":[";
+		if (nullptr != objects_) {
+			for (auto i = objects_->size(); 0 < i; --i) {
+				json += objects_->select(i)->toJSON();
+				if (1 != i) {
+					json += ",";
+				}
+			}
+		}
+
+		json += "]}";
+		return json;
+	}
+
+	template <typename T>
+	void gk::Action<T>::persist() noexcept {
+		if (indexed()) {
+			uv_fs_t open_req;
+			uv_fs_open(uv_default_loop(), &open_req, ("data/" + hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+			std::string json = toJSON();
+			char buf[json.length() + 1];
+			strcpy(buf, json.c_str());
+			uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
+			uv_fs_t write_req;
+			uv_fs_write(uv_default_loop(), &write_req, open_req.result, &iov, 1, 0, NULL);
+			uv_fs_t close_req;
+			uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
+			uv_fs_req_cleanup(&open_req);
+			uv_fs_req_cleanup(&write_req);
+			uv_fs_req_cleanup(&close_req);
+		}
 	}
 
 	template <typename T>

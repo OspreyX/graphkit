@@ -37,6 +37,9 @@ namespace gk {
 
 		gk::Set<gk::Bond<Entity>>* bonds(v8::Isolate* isolate) noexcept;
 
+		virtual std::string toJSON() noexcept;
+		virtual void persist() noexcept;
+
 		static Entity* Instance(v8::Isolate* isolate, const char* type) noexcept;
 		static GK_INIT(Init);
 		static GK_CONSTRUCTOR(constructor_);

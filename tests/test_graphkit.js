@@ -37,14 +37,30 @@ let Multiset = gk.Multiset;
 
 let g1 = new Graph();
 
+//let b1 = new Bond('Friend');
+//g1.insert(b1);
 //let e1 = new Entity('User');
-//e1['name'] = 'Eve';
-//e1.addGroup('female');
 //g1.insert(e1);
+//let e2 = new Entity('User');
+//g1.insert(e2);
+//b1.subject = e1;
+//b1.object = e2;
+
+//let e1 = new Entity('User');
+//g1.insert(e1);
+//let a1 = new Action('Clicked');
+//a1.subjects.insert(e1);
+////e1['ui'] = 'button';
+////e1.addGroup('session');
+//g1.insert(a1);
 //g1.clear();
-let e1 = g1.Entity.User[0];
+//let e1 = g1.Entity.User[0];
 //delete e1['age'];
-console.log(g1.Entity);
+//console.log(g1.Entity);
+//g1.clear();
+//console.log(g1.Entity.clear());
+//g1.insert(g1.Action.Clicked.find(2).subjects[0]);
+console.log(g1.Bond.Friend[2]);
 
 let start = Date.now();
 for (let i = process.argv[2] || 1; 0 < i; --i) {
@@ -73,6 +89,9 @@ console.log('Basic Time %d', Date.now() - start);
 //e1.addGroup('female');
 //g1.insert(e1);
 //console.log(e1);
+
+// clear the graph
+//g1.clear();
 
 //(function() {
 //	console.log('\nEntity Tests\n');
@@ -179,9 +198,6 @@ console.log('Basic Time %d', Date.now() - start);
 //	g1.insert(e);
 //	console.log(g1.size(), g1.Entity.User.size(), g1.Entity.User[0]);
 //	g1.remove(e);
-//	e.id = 10;
-//	g1.insert(e);
-//	console.log(g1.size(), g1.Entity.User.size(), g1.Entity.User.find(10));
 //
 //	if (1 != e.id || 'Entity:User:1' != e.hash) {
 //		console.log('Entity hash test failed.');
@@ -472,7 +488,7 @@ console.log('Basic Time %d', Date.now() - start);
 //		console.log('Index insert(a1) test failed.');
 //	} catch (error) {}
 //
-//	let count = 1000000;
+//	let count = 100;
 //	let start = Date.now();
 //	for (let i = count; 0 < i; --i) {
 //		if (!i1.insert(new Entity('User'))) {
@@ -546,7 +562,7 @@ console.log('Basic Time %d', Date.now() - start);
 //		console.log('Cluster remove() test failed.');
 //	}
 //
-//	let count = 1000000;
+//	let count = 100;
 //	let start = Date.now();
 //	for (let i = count; 0 < i; --i) {
 //		c1.insert(0 == i % 2 ? new Entity('User') : new Entity('Book'));
@@ -554,7 +570,7 @@ console.log('Basic Time %d', Date.now() - start);
 //	console.log('Cluster insert() stress tests passed', 'Operation Count', count, 'Time', Date.now() - start);
 //
 //	for (let i = c1.size() - 1; 0 <= i; --i) {
-//		if (500000 != c1[i].size()) {
+//		if (50 != c1[i].size()) {
 //			console.log('Cluster iterator[] test failed.');
 //			break;
 //		}
@@ -607,7 +623,7 @@ console.log('Basic Time %d', Date.now() - start);
 //		console.log('Graph remove() test failed.');
 //	}
 //
-//	let count = 1000000;
+//	let count = 100;
 //	let start = Date.now();
 //	for (let i = count; 0 < i; --i) {
 //		g1.insert(0 == i % 2 ? new Entity('User') : new Entity('Book'));
@@ -617,7 +633,7 @@ console.log('Basic Time %d', Date.now() - start);
 //
 //	for (let i = g1.size() - 1; 0 <= i; --i) {
 //		for (let j = g1[i].size() - 1; 0 <= j; --j) {
-//			if (500000 != g1[i][j].size()) {
+//			if (50 != g1[i][j].size()) {
 //				console.log('Graph iterator[] test failed.');
 //				break;
 //			}
@@ -656,7 +672,7 @@ console.log('Basic Time %d', Date.now() - start);
 //		console.log('GraphSet remove() test failed.');
 //	}
 //
-//	let count = 1000000;
+//	let count = 100;
 //	let start = Date.now();
 //	for (let i = count; 0 < i; --i) {
 //		s2.insert(new Entity('Book'));
@@ -697,7 +713,7 @@ console.log('Basic Time %d', Date.now() - start);
 //		console.log('GraphMultiset remove() test failed.');
 //	}
 //
-//	let count = 1000000;
+//	let count = 100;
 //	let start = Date.now();
 //	for (let i = count; 0 < i; --i) {
 //		s2.insert(new Entity('Book'));
@@ -738,7 +754,7 @@ console.log('Basic Time %d', Date.now() - start);
 //	}
 //
 //	s1.clear();
-//	let count = 1000000;
+//	let count = 100;
 //	let start = Date.now();
 //	for (let i = count; 0 < i; --i) {
 //		let e = new Entity('Book');
@@ -787,7 +803,7 @@ console.log('Basic Time %d', Date.now() - start);
 //	}
 //
 //	s1.clear();
-//	let count = 1000000;
+//	let count = 100;
 //	let start = Date.now();
 //	for (let i = count; 0 < i; --i) {
 //		let e = new Entity('Book');
@@ -814,3 +830,6 @@ console.log('Basic Time %d', Date.now() - start);
 //
 //	console.log('Multiset tests executed.');
 //})();
+//
+//// clear the graph
+//g1.clear();

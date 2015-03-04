@@ -43,6 +43,9 @@ namespace gk {
 		bool object(v8::Isolate* isolate, T* node) noexcept;
 		bool removeObject() noexcept;
 
+		virtual std::string toJSON() noexcept;
+		virtual void persist() noexcept;
+
 		static Bond<T>* Instance(v8::Isolate* isolate, const char* type) noexcept;
 		static GK_INIT(Init);
 
@@ -90,7 +93,11 @@ namespace gk {
 		removeSubject();
 		subject_ = node;
 		subject_->Ref();
-		return subject_->bonds(isolate)->insert(isolate, this);
+		auto result = subject_->bonds(isolate)->insert(isolate, this);
+		if (result) {
+			persist();
+		}
+		return result;
 	}
 
 	template <typename T>
@@ -99,6 +106,7 @@ namespace gk {
 			if (subject_->bonds(nullptr)->remove(this->hash())) {
 				subject_->Unref();
 				subject_ = nullptr;
+				persist();
 				return true;
 			}
 		}
@@ -116,7 +124,11 @@ namespace gk {
 		removeObject();
 		object_ = node;
 		object_->Ref();
-		return object_->bonds(isolate)->insert(isolate, this);
+		auto result = object_->bonds(isolate)->insert(isolate, this);
+		if (result) {
+			persist();
+		}
+		return result;
 	}
 
 	template <typename T>
@@ -125,10 +137,68 @@ namespace gk {
 			if (object_->bonds(nullptr)->remove(this->hash())) {
 				object_->Unref();
 				object_ = nullptr;
+				persist();
 				return true;
 			}
 		}
 		return false;
+	}
+
+	template <typename T>
+	std::string gk::Bond<T>::toJSON() noexcept {
+		std::string json = "{\"id\":" + std::to_string(id()) +
+			",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(nodeClass())) +
+			",\"type\":\"" + type() + "\"";
+
+		// store properties
+		json += ",\"properties\":[";
+		for (auto i = properties()->size(); 0 < i; --i) {
+			auto q = properties_->node(i);
+			json += "[\"" + q->key() + "\",\"" + *q->data() + "\"]";
+			if (1 != i) {
+				json += ",";
+			}
+		}
+
+		json += "],\"groups\":[";
+		// store groups
+		for (auto i = groups()->size(); 0 < i; --i) {
+			json += "\"" + *groups_->select(i) + "\"";
+			if (1 != i) {
+				json += ",";
+			}
+		}
+
+		json += "]";
+		if (nullptr != subject_) {
+			json += ",\"subject\":" + subject_->toJSON();
+		}
+
+		if (nullptr != object_) {
+			json += ",\"object\":" + object_->toJSON();
+		}
+
+		json += "}";
+		return json;
+	}
+
+	template <typename T>
+	void gk::Bond<T>::persist() noexcept {
+		if (indexed()) {
+			uv_fs_t open_req;
+			uv_fs_open(uv_default_loop(), &open_req, ("data/" + hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+			std::string json = toJSON();
+			char buf[json.length() + 1];
+			strcpy(buf, json.c_str());
+			uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
+			uv_fs_t write_req;
+			uv_fs_write(uv_default_loop(), &write_req, open_req.result, &iov, 1, 0, NULL);
+			uv_fs_t close_req;
+			uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
+			uv_fs_req_cleanup(&open_req);
+			uv_fs_req_cleanup(&write_req);
+			uv_fs_req_cleanup(&close_req);
+		}
 	}
 
 	template <typename T>

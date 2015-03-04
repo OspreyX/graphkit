@@ -91,54 +91,9 @@ const std::string& gk::Node::hash() noexcept {
 }
 
 std::string gk::Node::toJSON() noexcept {
-	std::string json = "{\"id\":" + std::to_string(id()) +
-		",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(nodeClass())) +
-		",\"type\":\"" + type() + "\"";
-
-	// store properties
-	json += ",\"properties\":[";
-	auto ps = properties()->size();
-	if (ps) {
-		for (auto i = ps; 0 < i; --i) {
-			auto q = properties()->node(i);
-			json += "[\"" + q->key() + "\",\"" + *q->data() + "\"]";
-			if (1 != i) {
-				json += ",";
-			}
-		}
-	}
-	json += "],\"groups\":[";
-	// store groups
-	auto gs = groups()->size();
-	if (gs) {
-		for (auto i = gs; 0 < i; --i) {
-			json += "\"" + *groups()->select(i) + "\"";
-			if (1 != i) {
-				json += ",";
-			}
-		}
-	}
-	json += "]}";
-	return json;
+	return "";
 }
-
-void gk::Node::persist() noexcept {
-	if (indexed()) {
-		uv_fs_t open_req;
-		uv_fs_open(uv_default_loop(), &open_req, ("data/" + hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
-		std::string json = toJSON();
-		char buf[json.length() + 1];
-		strcpy(buf, json.c_str());
-		uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
-		uv_fs_t write_req;
-		uv_fs_write(uv_default_loop(), &write_req, open_req.result, &iov, 1, 0, NULL);
-		uv_fs_t close_req;
-		uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
-		uv_fs_req_cleanup(&open_req);
-		uv_fs_req_cleanup(&write_req);
-		uv_fs_req_cleanup(&close_req);
-	}
-}
+void gk::Node::persist() noexcept {}
 
 void gk::Node::unlink() noexcept {
 	// delete the file
