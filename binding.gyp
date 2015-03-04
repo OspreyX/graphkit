@@ -17,8 +17,8 @@
 			"conditions": [
 				["OS=='mac'", {
 					"xcode_settings": {
-						"OTHER_CPLUSPLUSFLAGS" : ["-O3", "-Wall", "-std=c++11", "-stdlib=libc++"],
-						"OTHER_LDFLAGS": ["-stdlib=libc++"],
+						"OTHER_CPLUSPLUSFLAGS" : ["-O3", "-Wall", "-std=c++11", "-stdlib=libc++", "-frtti"],
+						"OTHER_LDFLAGS": ["-stdlib=libc++", "-frtti"],
 						"MACOSX_DEPLOYMENT_TARGET": "10.7",
 						"GCC_ENABLE_CPP_EXCEPTIONS": "YES"
 					}
