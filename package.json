@@ -5,7 +5,7 @@
     "name": "Daniel Dahan",
     "email": "daniel@graphkit.io"
   },
-  "version": "0.1.6-rc20150302-1",
+  "version": "0.1.6-rc20150303-1",
   "license": [
     {
       "type": "AGPLv3",
@@ -19,7 +19,7 @@
     "type": "git",
     "url": "https://github.com/GraphKit/graphkit.git"
   },
-  "description": "next generation graph framework for node.js",
+  "description": "next generation graph data store for node.js",
   "keywords": [
     "graph",
     "machine learning",

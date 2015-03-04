@@ -56,11 +56,11 @@ let g1 = new Graph();
 //g1.clear();
 //let e1 = g1.Entity.User[0];
 //delete e1['age'];
-//console.log(g1.Entity);
+//console.log(g1);
 //g1.clear();
 //console.log(g1.Entity.clear());
 //g1.insert(g1.Action.Clicked.find(2).subjects[0]);
-console.log(g1.Bond.Friend[2]);
+//console.log(g1.Bond.Friend[2]);
 
 let start = Date.now();
 for (let i = process.argv[2] || 1; 0 < i; --i) {

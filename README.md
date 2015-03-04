@@ -1,7 +1,7 @@
 
 #GraphKit  
 
-next generation graph framework for node.js
+next generation graph data store for node.js
 
 ##Installation
 
