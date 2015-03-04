@@ -255,7 +255,7 @@ GK_METHOD(gk::Graph<T, K, O>::Find) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct Type value.]");
 	}
 
-	if (args[2]->IntegerValue()) {
+	if (!args[2]->IntegerValue()) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
 
@@ -416,8 +416,6 @@ GK_METHOD(gk::Graph<T, K, O>::Listen) {
 	assert(scandir_req.fs_type == UV_FS_SCANDIR);
 	assert(scandir_req.path);
 	assert(memcmp(scandir_req.path, "./data\0", 7) == 0);
-
-
 
 	std::string dat = ".dat";
 	while (UV_EOF != uv_fs_scandir_next(&scandir_req, &dent)) {

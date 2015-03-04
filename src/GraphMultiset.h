@@ -234,7 +234,7 @@ GK_METHOD(gk::GraphMultiset<G, T, O>::Find) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct Type value.]");
 	}
 
-	if (args[2]->IntegerValue()) {
+	if (!args[2]->IntegerValue()) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
 

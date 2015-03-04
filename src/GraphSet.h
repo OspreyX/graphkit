@@ -194,7 +194,7 @@ GK_METHOD(gk::GraphSet<G, T, O>::Remove) {
 	auto s = node::ObjectWrap::Unwrap<gk::GraphSet<G, T, O>>(args.Holder());
 	if (args[0]->IntegerValue() && args[1]->IsString() && args[2]->IntegerValue()) {
 		v8::String::Utf8Value type(args[1]->ToString());
-		auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + ":" + *type + ":" + std::to_string(args[2]->IntegerValue())};
+		auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + *type + std::to_string(args[2]->IntegerValue())};
 		GK_RETURN(GK_BOOLEAN(s->remove(k)));
 	}
 
@@ -226,7 +226,7 @@ GK_METHOD(gk::GraphSet<G, T, O>::Find) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct Type value.]");
 	}
 
-	if (args[2]->IntegerValue()) {
+	if (!args[2]->IntegerValue()) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
 
