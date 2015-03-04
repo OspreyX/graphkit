@@ -96,18 +96,18 @@ std::string gk::Node::toJSON() noexcept {
 		",\"type\":\"" + type() + "\"";
 
 	// store properties
-	json += ",\"properties\":{";
+	json += ",\"properties\":[";
 	auto ps = properties()->size();
 	if (ps) {
 		for (auto i = ps; 0 < i; --i) {
 			auto q = properties()->node(i);
-			json += "\"" + q->key() + "\":\"" + *q->data() + "\"";
+			json += "[\"" + q->key() + "\",\"" + *q->data() + "\"]";
 			if (1 != i) {
 				json += ",";
 			}
 		}
 	}
-	json += "},\"groups\":[";
+	json += "],\"groups\":[";
 	// store groups
 	auto gs = groups()->size();
 	if (gs) {
@@ -120,6 +120,28 @@ std::string gk::Node::toJSON() noexcept {
 	}
 	json += "]}";
 	return json;
+}
+
+void gk::Node::persist() noexcept {
+	uv_fs_t open_req;
+	uv_fs_open(uv_default_loop(), &open_req, ("data/" + hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+	std::string json = toJSON();
+	char buf[json.length() + 1];
+	strcpy(buf, json.c_str());
+	uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
+	uv_fs_t write_req;
+	uv_fs_write(uv_default_loop(), &write_req, open_req.result, &iov, 1, 0, NULL);
+	uv_fs_t close_req;
+	uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
+	uv_fs_req_cleanup(&open_req);
+	uv_fs_req_cleanup(&write_req);
+	uv_fs_req_cleanup(&close_req);
+}
+
+void gk::Node::unlink() noexcept {
+	// delete the file
+	uv_fs_t unlink_req;
+	uv_fs_unlink(uv_default_loop(), &unlink_req, ("data/" + hash() + ".dat").c_str(), NULL);
 }
 
 GK_METHOD(gk::Node::AddGroup) {

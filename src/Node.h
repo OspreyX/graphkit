@@ -48,6 +48,8 @@ namespace gk {
 
 		const std::string& hash() noexcept;
 		std::string toJSON() noexcept;
+		void persist() noexcept;
+		void unlink() noexcept;
 
 	protected:
 		const gk::NodeClass nodeClass_;

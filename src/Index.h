@@ -37,7 +37,6 @@ static uv_buf_t fs_iov_;
 static uv_fs_t open_req_;
 static uv_fs_t read_req_;
 static uv_fs_t write_req_;
-static uv_fs_t unlink_req_;
 
 void on_write(uv_fs_t* req) {
 //	assert(0 > req->result);
@@ -176,7 +175,6 @@ gk::Index<T, K, O>::~Index() {
 	uv_fs_req_cleanup(&open_req_);
 	uv_fs_req_cleanup(&read_req_);
 	uv_fs_req_cleanup(&write_req_);
-	uv_fs_req_cleanup(&unlink_req_);
 	free(loop_);
 }
 
@@ -204,21 +202,14 @@ bool gk::Index<T, K, O>::insert(T* node) noexcept {
 		node->id(incrementID());
 	}
 	return gk::RedBlackTree<T, true, K, O>::insert(node->id(), node, [&](T* n) {
-		n->indexed(true);
 		n->Ref();
 
-		// persist the Node
-		uv_fs_t open_req;
-		uv_fs_open(loop_, &open_req, ("data/" + n->hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
-		std::string json = n->toJSON();
-		char buf[json.length() + 1];
-		strcpy(buf, json.c_str());
-		uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
-		uv_fs_write(loop_, &write_req_, open_req.result, &iov, 1, 0, NULL);
-		uv_fs_t close_req;
-		uv_fs_close(loop_, &close_req, open_req.result, NULL);
-		uv_fs_req_cleanup(&open_req);
-		uv_fs_req_cleanup(&close_req);
+		// Persist the Node, this test is for when the Graph initially loads the persisted data
+		// so it doesn't persist it again.
+		if (!n->indexed()) {
+			n->persist();
+			n->indexed(true);
+		}
 	});
 }
 
@@ -230,10 +221,7 @@ bool gk::Index<T, K, O>::remove(T* node) noexcept {
 	return gk::RedBlackTree<T, true, K, O>::remove(node->id(), [&](T* n) {
 		n->indexed(false);
 		n->Unref();
-
-		// delete the file
-		uv_fs_unlink(loop_, &unlink_req_, ("data/" + n->hash() + ".dat").c_str(), on_unlink);
-		uv_run(loop_, UV_RUN_DEFAULT);
+		n->unlink();
 	});
 }
 
@@ -242,19 +230,15 @@ bool gk::Index<T, K, O>::remove(const int k) noexcept {
 	return gk::RedBlackTree<T, true, K, O>::remove(k, [&](T* n) {
 		n->indexed(false);
 		n->Unref();
-
-		// delete the file
-		uv_fs_unlink(loop_, &unlink_req_, ("data/" + n->hash() + ".dat").c_str(), on_unlink);
-		uv_run(loop_, UV_RUN_DEFAULT);
+		n->unlink();
 	});
 }
 
 template  <typename T, typename K, typename O>
 void gk::Index<T, K, O>::cleanUp() noexcept {
-	this->clear([&](T *n) {
-		n->indexed(false);
-		n->Unref();
-	});
+	for (auto i = this->size(); 0 < i; --i) {
+		remove(this->select(i));
+	}
 }
 
 template  <typename T, typename K, typename O>

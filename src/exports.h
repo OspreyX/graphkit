@@ -51,7 +51,8 @@
 #define GK_PROPERTY_ENUMERATOR(Args...) void Args(const v8::PropertyCallbackInfo<v8::Array>& args) noexcept
 
 // scope
-#define GK_SCOPE() auto isolate = v8::Isolate::GetCurrent(); v8::HandleScope scope(isolate)
+#define GK_ISOLATE() auto isolate = v8::Isolate::GetCurrent()
+#define GK_SCOPE() GK_ISOLATE(); v8::HandleScope scope(isolate)
 
 // values
 #define GK_STRING(VALUE) v8::String::NewFromUtf8(isolate, VALUE)

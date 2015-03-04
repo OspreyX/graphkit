@@ -36,6 +36,14 @@ let Set = gk.Set;
 let Multiset = gk.Multiset;
 
 let g1 = new Graph();
+
+//let e1 = new Entity('User');
+//e1['name'] = 'Eve';
+//e1.addGroup('female');
+//g1.insert(e1);
+g1.clear();
+console.log(g1.Entity);
+
 let start = Date.now();
 for (let i = process.argv[2] || 1; 0 < i; --i) {
 	//let e1 = g1.createEntity('User');
@@ -56,7 +64,6 @@ for (let i = process.argv[2] || 1; 0 < i; --i) {
 //e1.addGroup('female');
 //g1.insert(e1);
 //console.log(e1);
-console.log(g1.Entity);
 console.log('Basic Time %d', Date.now() - start);
 //e1['name'] = 'Eve';
 //e1['age'] = 26;

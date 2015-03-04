@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <string>
+#include <map>
 #include "exports.h"
 #include "symbols.h"
 #include "NodeClass.h"
@@ -99,7 +100,8 @@ gk::Graph<T, K, O>::Graph() noexcept
 		assert(scandir_req.path);
 		assert(memcmp(scandir_req.path, "data\0", 5) == 0);
 
-		GK_SCOPE();
+		// get the isolate
+		GK_ISOLATE();
 
 		std::string dat = ".dat";
 		while (UV_EOF != uv_fs_scandir_next(&scandir_req, &dent)) {
@@ -121,7 +123,20 @@ gk::Graph<T, K, O>::Graph() noexcept
 				// insert the nodes into the Graph.
 				auto e = gk::Entity::Instance(isolate, json["type"].get<std::string>().c_str());
 				e->id(json["id"].get<long long>());
+				e->indexed(true);
 				insert(isolate, e);
+
+				// groups
+				for (auto name : json["groups"]) {
+					std::string* v = new std::string(name.get<std::string>());
+					e->groups()->insert(*v, v);
+				}
+
+				// properties
+				for (auto property : json["properties"]) {
+					std::string* v = new std::string(property[1].get<std::string>());
+					e->properties()->insert(property[0].get<std::string>(), v);
+				}
 
 				// close the directory
 				uv_fs_t close_req;
