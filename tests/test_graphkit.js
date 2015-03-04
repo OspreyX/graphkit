@@ -60,7 +60,7 @@ let g1 = new Graph();
 //g1.clear();
 //console.log(g1.Entity.clear());
 //g1.insert(g1.Action.Clicked.find(2).subjects[0]);
-//console.log(g1.Bond.Friend[2]);
+console.log(g1);
 
 let start = Date.now();
 for (let i = process.argv[2] || 1; 0 < i; --i) {

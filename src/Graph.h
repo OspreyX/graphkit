@@ -92,13 +92,16 @@ gk::Graph<T, K, O>::Graph() noexcept
 	: gk::Export{},
 	  gk::RedBlackTree<T, true, K, O>{} {
 
+		uv_fs_t mkdir_req;
+		uv_fs_mkdir(uv_default_loop(), &mkdir_req, "./data", 0644, NULL);
+
 		// scan through the data directory and insert the Nodes.
 		uv_fs_t scandir_req;
-		uv_fs_scandir(uv_default_loop(), &scandir_req, "data", O_CREAT | O_RDWR, NULL);
+		uv_fs_scandir(uv_default_loop(), &scandir_req, "./data", O_CREAT | O_RDWR, NULL);
 		uv_dirent_t dent;
 		assert(scandir_req.fs_type == UV_FS_SCANDIR);
 		assert(scandir_req.path);
-		assert(memcmp(scandir_req.path, "data\0", 5) == 0);
+		assert(memcmp(scandir_req.path, "./data\0", 7) == 0);
 
 		// get the isolate
 		GK_ISOLATE();
@@ -107,7 +110,7 @@ gk::Graph<T, K, O>::Graph() noexcept
 		while (UV_EOF != uv_fs_scandir_next(&scandir_req, &dent)) {
 			assert(dent.type == UV_DIRENT_FILE || dent.type == UV_DIRENT_UNKNOWN);
 
-			std::string dirname = "data/" + std::string(dent.name);
+			std::string dirname = "./data/" + std::string(dent.name);
 			if (dirname.compare(dirname.length() - 4, 4, dat) == 0) {
 				// open the file
 				uv_fs_t open_req;
@@ -274,6 +277,7 @@ gk::Graph<T, K, O>::Graph() noexcept
 			}
 		}
 		uv_fs_req_cleanup(&scandir_req);
+		uv_fs_req_cleanup(&mkdir_req);
 }
 
 template <typename T, typename K, typename O>

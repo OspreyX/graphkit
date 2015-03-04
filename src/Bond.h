@@ -186,7 +186,7 @@ namespace gk {
 	void gk::Bond<T>::persist() noexcept {
 		if (indexed()) {
 			uv_fs_t open_req;
-			uv_fs_open(uv_default_loop(), &open_req, ("data/" + hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+			uv_fs_open(uv_default_loop(), &open_req, ("./data/" + hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
 			std::string json = toJSON();
 			char buf[json.length() + 1];
 			strcpy(buf, json.c_str());
