@@ -223,7 +223,11 @@ namespace gk {
 		a->properties()->remove(prop, [&](std::string* v) {
 			delete v;
 		});
-		GK_RETURN(GK_BOOLEAN(a->properties()->insert(prop, new std::string{*v})));
+		auto result = a->properties()->insert(prop, new std::string{*v});
+		if (result) {
+			a->persist();
+		}
+		GK_RETURN(GK_BOOLEAN(result));
 	}
 
 	template <typename T>
@@ -233,6 +237,7 @@ namespace gk {
 		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
 		GK_RETURN(GK_BOOLEAN(a->properties()->remove(*prop, [&](std::string* v) {
 			delete v;
+			a->persist();
 		})));
 	}
 

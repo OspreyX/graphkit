@@ -285,7 +285,11 @@ namespace gk {
 		b->properties()->remove(prop, [&](std::string* v) {
 			delete v;
 		});
-		GK_RETURN(GK_BOOLEAN(b->properties()->insert(prop, new std::string{*v})));
+		auto result = b->properties()->insert(prop, new std::string{*v});
+		if (result) {
+			b->persist();
+		}
+		GK_RETURN(GK_BOOLEAN(result));
 	}
 
 	template <typename T>
@@ -303,6 +307,7 @@ namespace gk {
 
 		GK_RETURN(GK_BOOLEAN(b->properties()->remove(*p, [&](std::string* v) {
 			delete v;
+			b->persist();
 		})));
 	}
 

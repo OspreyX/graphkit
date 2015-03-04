@@ -159,7 +159,11 @@ GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
 	e->properties()->remove(prop, [&](std::string* v) {
 		delete v;
 	});
-	GK_RETURN(GK_BOOLEAN(e->properties()->insert(prop, new std::string{*v})));
+	auto result = e->properties()->insert(prop, new std::string{*v});
+	if (result) {
+		e->persist();
+	}
+	GK_RETURN(GK_BOOLEAN(result));
 }
 
 GK_PROPERTY_DELETER(gk::Entity::PropertyDeleter) {
@@ -168,6 +172,7 @@ GK_PROPERTY_DELETER(gk::Entity::PropertyDeleter) {
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
 	GK_RETURN(GK_BOOLEAN(e->properties()->remove(*prop, [&](std::string* v) {
 		delete v;
+		e->persist();
 	})));
 }
 

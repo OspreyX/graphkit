@@ -163,6 +163,9 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 		fs_iov_ = uv_buf_init(fs_buf_, sizeof(fs_buf_));
 		uv_fs_read(loop_, &read_req_, open_req_.result, &fs_iov_, 1, -1, NULL);
 		ids_ = atol(fs_iov_.base);
+		if (!ids_) {
+			ids_ = 0;
+		}
 };
 
 template <typename T, typename K, typename O>
@@ -207,8 +210,8 @@ bool gk::Index<T, K, O>::insert(T* node) noexcept {
 		// Persist the Node, this test is for when the Graph initially loads the persisted data
 		// so it doesn't persist it again.
 		if (!n->indexed()) {
-			n->persist();
 			n->indexed(true);
+			n->persist();
 		}
 	});
 }
@@ -239,6 +242,11 @@ void gk::Index<T, K, O>::cleanUp() noexcept {
 	for (auto i = this->size(); 0 < i; --i) {
 		remove(this->select(i));
 	}
+
+	// Unlink the idx file.
+	uv_fs_t unlink_req;
+	uv_fs_unlink(uv_default_loop(), &unlink_req, fs_idx_.c_str(), NULL);
+	uv_fs_req_cleanup(&unlink_req);
 }
 
 template  <typename T, typename K, typename O>

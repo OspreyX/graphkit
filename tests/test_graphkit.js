@@ -41,7 +41,9 @@ let g1 = new Graph();
 //e1['name'] = 'Eve';
 //e1.addGroup('female');
 //g1.insert(e1);
-g1.clear();
+//g1.clear();
+let e1 = g1.Entity.User[0];
+//delete e1['age'];
 console.log(g1.Entity);
 
 let start = Date.now();

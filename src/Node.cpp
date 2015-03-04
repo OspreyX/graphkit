@@ -123,19 +123,21 @@ std::string gk::Node::toJSON() noexcept {
 }
 
 void gk::Node::persist() noexcept {
-	uv_fs_t open_req;
-	uv_fs_open(uv_default_loop(), &open_req, ("data/" + hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
-	std::string json = toJSON();
-	char buf[json.length() + 1];
-	strcpy(buf, json.c_str());
-	uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
-	uv_fs_t write_req;
-	uv_fs_write(uv_default_loop(), &write_req, open_req.result, &iov, 1, 0, NULL);
-	uv_fs_t close_req;
-	uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
-	uv_fs_req_cleanup(&open_req);
-	uv_fs_req_cleanup(&write_req);
-	uv_fs_req_cleanup(&close_req);
+	if (indexed()) {
+		uv_fs_t open_req;
+		uv_fs_open(uv_default_loop(), &open_req, ("data/" + hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+		std::string json = toJSON();
+		char buf[json.length() + 1];
+		strcpy(buf, json.c_str());
+		uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
+		uv_fs_t write_req;
+		uv_fs_write(uv_default_loop(), &write_req, open_req.result, &iov, 1, 0, NULL);
+		uv_fs_t close_req;
+		uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
+		uv_fs_req_cleanup(&open_req);
+		uv_fs_req_cleanup(&write_req);
+		uv_fs_req_cleanup(&close_req);
+	}
 }
 
 void gk::Node::unlink() noexcept {
@@ -152,7 +154,11 @@ GK_METHOD(gk::Node::AddGroup) {
 	v8::String::Utf8Value value(args[0]->ToString());
 	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
 	std::string* v = new std::string{*value};
-	GK_RETURN(GK_BOOLEAN(n->groups()->insert(*v, v)));
+	auto result = n->groups()->insert(*v, v);
+	if (result) {
+		n->persist();
+	}
+	GK_RETURN(GK_BOOLEAN(result));
 }
 
 GK_METHOD(gk::Node::HasGroup) {
@@ -174,6 +180,7 @@ GK_METHOD(gk::Node::RemoveGroup) {
 	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
 	GK_RETURN(GK_BOOLEAN(n->groups()->remove(*value, [&](std::string* v) {
 		delete v;
+		n->persist();
 	})));
 }
 
