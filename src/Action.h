@@ -39,7 +39,12 @@ namespace gk {
 		Action& operator= (Action&&) = default;
 
 		gk::Set<T>* subjects(v8::Isolate* isolate) noexcept;
+		bool addSubject(v8::Isolate* isolate, T* node) noexcept;
+		bool removeSubject(v8::Isolate* isolate, T* node) noexcept;
+
 		gk::Set<T>* objects(v8::Isolate* isolate) noexcept;
+		bool addObject(v8::Isolate* isolate, T* node) noexcept;
+		bool removeObject(v8::Isolate* isolate, T* node) noexcept;
 
 		virtual std::string toJSON() noexcept;
 		virtual void persist() noexcept;
@@ -53,6 +58,10 @@ namespace gk {
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
+		static GK_METHOD(AddSubject);
+		static GK_METHOD(RemoveSubject);
+		static GK_METHOD(AddObject);
+		static GK_METHOD(RemoveObject);
 		static GK_PROPERTY_GETTER(PropertyGetter);
 		static GK_PROPERTY_SETTER(PropertySetter);
 		static GK_PROPERTY_DELETER(PropertyDeleter);
@@ -90,12 +99,44 @@ namespace gk {
 	}
 
 	template <typename T>
+	bool gk::Action<T>::addSubject(v8::Isolate* isolate, T* node) noexcept {
+		assert(node);
+		subjects(isolate)->insert(node);
+		persist();
+		return true;
+	}
+
+	template <typename T>
+	bool gk::Action<T>::removeSubject(v8::Isolate* isolate, T* node) noexcept {
+		assert(node);
+		auto result = subjects(isolate)->remove(node->hash());
+		persist();
+		return result;
+	}
+
+	template <typename T>
 	gk::Set<T>* gk::Action<T>::objects(v8::Isolate* isolate) noexcept {
 		if (nullptr == objects_) {
 			objects_ = gk::Set<T>::Instance(isolate);
 			objects_->Ref();
 		}
 		return objects_;
+	}
+
+	template <typename T>
+	bool gk::Action<T>::addObject(v8::Isolate* isolate, T* node) noexcept {
+		assert(node);
+		auto result = objects(isolate)->insert(node);
+		persist();
+		return result;
+	}
+
+	template <typename T>
+	bool gk::Action<T>::removeObject(v8::Isolate* isolate, T* node) noexcept {
+		assert(node);
+		auto result = objects(isolate)->remove(node->hash());
+		persist();
+		return result;
 	}
 
 	template <typename T>
@@ -126,7 +167,8 @@ namespace gk {
 		json += "],\"subjects\":[";
 		if (nullptr != subjects_) {
 			for (auto i = subjects_->size(); 0 < i; --i) {
-				json += subjects_->select(i)->toJSON();
+				auto subject = subjects_->select(i);
+				json += "{\"id\":" + std::to_string(subject->id()) + ",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(subject->nodeClass())) + ",\"type\":\"" + subject->type() + "\"}";
 				if (1 != i) {
 					json += ",";
 				}
@@ -136,7 +178,8 @@ namespace gk {
 		json += "],\"objects\":[";
 		if (nullptr != objects_) {
 			for (auto i = objects_->size(); 0 < i; --i) {
-				json += objects_->select(i)->toJSON();
+				auto object = objects_->select(i);
+				json += "{\"id\":" + std::to_string(object->id()) + ",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(object->nodeClass())) + ",\"type\":\"" + object->type() + "\"}";
 				if (1 != i) {
 					json += ",";
 				}
@@ -184,6 +227,10 @@ namespace gk {
 		t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 		t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_ADD_SUBJECT, AddSubject);
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE_SUBJECT, RemoveSubject);
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_ADD_OBJECT, AddObject);
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE_OBJECT, RemoveObject);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_ADD_GROUP, AddGroup);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_HAS_GROUP, HasGroup);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE_GROUP, RemoveGroup);
@@ -217,6 +264,58 @@ namespace gk {
 	}
 
 	template <typename T>
+	GK_METHOD(gk::Action<T>::AddSubject) {
+		GK_SCOPE();
+		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		if (args[0]->IsObject()) {
+			auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
+			if (gk::NodeClass::Entity == n->nodeClass()) {
+				GK_RETURN(GK_BOOLEAN(a->addSubject(isolate, n)));
+			}
+		}
+		GK_EXCEPTION("[GraphKit Error: Argument at 0 is expected to be an Entity instance.]");
+	}
+
+	template <typename T>
+	GK_METHOD(gk::Action<T>::RemoveSubject) {
+		GK_SCOPE();
+		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		if (args[0]->IsObject()) {
+			auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
+			if (gk::NodeClass::Entity == n->nodeClass()) {
+				GK_RETURN(GK_BOOLEAN(a->removeSubject(isolate, n)));
+			}
+		}
+		GK_EXCEPTION("[GraphKit Error: Argument at 0 is expected to be an Entity instance.]");
+	}
+
+	template <typename T>
+	GK_METHOD(gk::Action<T>::AddObject) {
+		GK_SCOPE();
+		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		if (args[0]->IsObject()) {
+			auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
+			if (gk::NodeClass::Entity == n->nodeClass()) {
+				GK_RETURN(GK_BOOLEAN(a->addObject(isolate, n)));
+			}
+		}
+		GK_EXCEPTION("[GraphKit Error: Argument at 0 is expected to be an Entity instance.]");
+	}
+
+	template <typename T>
+	GK_METHOD(gk::Action<T>::RemoveObject) {
+		GK_SCOPE();
+		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+		if (args[0]->IsObject()) {
+			auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
+			if (gk::NodeClass::Entity == n->nodeClass()) {
+				GK_RETURN(GK_BOOLEAN(a->removeObject(isolate, n)));
+			}
+		}
+		GK_EXCEPTION("[GraphKit Error: Argument at 0 is expected to be an Entity instance.]");
+	}
+
+	template <typename T>
 	GK_PROPERTY_GETTER(gk::Action<T>::PropertyGetter) {
 		GK_SCOPE();
 		v8::String::Utf8Value p(property);
@@ -242,7 +341,11 @@ namespace gk {
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_OBJECTS)) {
 			GK_RETURN(n->objects(isolate)->handle());
 		}
-		if (0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_GROUP) &&
+		if (0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_SUBJECT) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_SUBJECT) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_OBJECT) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_OBJECT) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_GROUP) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_HAS_GROUP) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_SIZE) &&

@@ -32,11 +32,6 @@
 #include "NodeClass.h"
 
 static const int INDEX_BUF_SIZE = 64;
-static char fs_buf_[INDEX_BUF_SIZE];
-static uv_buf_t fs_iov_;
-static uv_fs_t open_req_;
-static uv_fs_t read_req_;
-static uv_fs_t write_req_;
 
 void on_write(uv_fs_t* req) {
 //	assert(0 > req->result);
@@ -116,6 +111,12 @@ namespace gk {
 		std::string fs_idx_;
 		O ids_;
 
+		char fs_buf_[INDEX_BUF_SIZE];
+		uv_buf_t fs_iov_;
+		uv_fs_t open_req_;
+		uv_fs_t read_req_;
+		uv_fs_t write_req_;
+
 		/**
 		* incrementID
 		* Increments the ID value of the next Node to be managed.
@@ -153,7 +154,7 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 	  type_{std::move(type)},
 	  on_write_(on_write),
 	  on_unlink_(on_unlink),
-	  fs_idx_{"data/" + std::to_string(gk::NodeClassToInt(nodeClass_)) + type_ + ".idx"} {
+	  fs_idx_{"./data/" + std::to_string(gk::NodeClassToInt(nodeClass_)) + type_ + ".idx"} {
 
 		loop_ = (uv_loop_t*)malloc(sizeof(uv_loop_t));
 		uv_loop_init(loop_);

@@ -93,11 +93,9 @@ namespace gk {
 		removeSubject();
 		subject_ = node;
 		subject_->Ref();
-		auto result = subject_->bonds(isolate)->insert(isolate, this);
-		if (result) {
-			persist();
-		}
-		return result;
+		subject_->bonds(isolate)->insert(this);
+		persist();
+		return true;
 	}
 
 	template <typename T>
@@ -124,11 +122,9 @@ namespace gk {
 		removeObject();
 		object_ = node;
 		object_->Ref();
-		auto result = object_->bonds(isolate)->insert(isolate, this);
-		if (result) {
-			persist();
-		}
-		return result;
+		object_->bonds(isolate)->insert(this);
+		persist();
+		return true;
 	}
 
 	template <typename T>
@@ -171,11 +167,11 @@ namespace gk {
 
 		json += "]";
 		if (nullptr != subject_) {
-			json += ",\"subject\":" + subject_->toJSON();
+			json += ",\"subject\":{\"id\":" + std::to_string(subject_->id()) + ",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(subject_->nodeClass())) + ",\"type\":\"" + subject_->type() + "\"}";
 		}
 
 		if (nullptr != object_) {
-			json += ",\"object\":" + object_->toJSON();
+			json += ",\"object\":{\"id\":" + std::to_string(object_->id()) + ",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(object_->nodeClass())) + ",\"type\":\"" + object_->type() + "\"}";
 		}
 
 		json += "}";

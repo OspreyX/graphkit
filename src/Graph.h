@@ -162,49 +162,37 @@ gk::Graph<T, K, O>::Graph() noexcept
 					}
 
 					for (auto subject : json["subjects"]) {
-						// insert the nodes into the Graph.
-						auto e = gk::Entity::Instance(isolate, subject["type"].get<std::string>().c_str());
-						e->id(subject["id"].get<long long>());
-						e->indexed(true);
-						insert(isolate, e);
-
-						// groups
-						for (auto name : subject["groups"]) {
-							std::string *v = new std::string(name.get<std::string>());
-							e->groups()->insert(*v, v);
+						if (subject.is_object()) {
+							auto c = this->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
+							if (c && 0 < c->size()) {
+								auto i = c->findByKey(subject["type"].get<std::string>());
+								if (i && 0 < i->size()) {
+									auto n = i->findByKey(subject["id"].get<long long>());
+									if (n) {
+										a->addSubject(isolate, dynamic_cast<gk::Entity*>(n));
+									}
+								}
+							}
 						}
-
-						// properties
-						for (auto property : subject["properties"]) {
-							std::string *v = new std::string(property[1].get<std::string>());
-							e->properties()->insert(property[0].get<std::string>(), v);
-						}
-						a->subjects(isolate)->insert(isolate, e);
 					}
 
 					for (auto object : json["objects"]) {
-						// insert the nodes into the Graph.
-						auto e = gk::Entity::Instance(isolate, object["type"].get<std::string>().c_str());
-						e->id(object["id"].get<long long>());
-						e->indexed(true);
-						insert(isolate, e);
-
-						// groups
-						for (auto name : object["groups"]) {
-							std::string *v = new std::string(name.get<std::string>());
-							e->groups()->insert(*v, v);
+						if (object.is_object()) {
+							auto c = this->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
+							if (c && 0 < c->size()) {
+								auto i = c->findByKey(object["type"].get<std::string>());
+								if (i && 0 < i->size()) {
+									auto n = i->findByKey(object["id"].get<long long>());
+									if (n) {
+										a->addObject(isolate, dynamic_cast<gk::Entity*>(n));
+									}
+								}
+							}
 						}
-
-						// properties
-						for (auto property : object["properties"]) {
-							std::string *v = new std::string(property[1].get<std::string>());
-							e->properties()->insert(property[0].get<std::string>(), v);
-						}
-						a->objects(isolate)->insert(isolate, e);
 					}
 				} else if (nodeClass == gk::NodeClass::Bond) {
 					// insert the nodes into the Graph.
-					auto b = gk::Bond < gk::Entity > ::Instance(isolate, json["type"].get<std::string>().c_str());
+					auto b = gk::Bond<gk::Entity>::Instance(isolate, json["type"].get<std::string>().c_str());
 					b->id(json["id"].get<long long>());
 					b->indexed(true);
 					insert(isolate, b);
@@ -223,46 +211,30 @@ gk::Graph<T, K, O>::Graph() noexcept
 
 					auto subject = json["subject"];
 					if (subject.is_object()) {
-						// insert the nodes into the Graph.
-						auto e = gk::Entity::Instance(isolate, subject["type"].get<std::string>().c_str());
-						e->id(subject["id"].get<long long>());
-						e->indexed(true);
-						insert(isolate, e);
-
-						// groups
-						for (auto name : subject["groups"]) {
-							std::string *v = new std::string(name.get<std::string>());
-							e->groups()->insert(*v, v);
+						auto c = this->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
+						if (c && 0 < c->size()) {
+							auto i = c->findByKey(subject["type"].get<std::string>());
+							if (i && 0 < i->size()) {
+								auto n = i->findByKey(subject["id"].get<long long>());
+								if (n) {
+									b->subject(isolate, dynamic_cast<gk::Entity*>(n));
+								}
+							}
 						}
-
-						// properties
-						for (auto property : subject["properties"]) {
-							std::string *v = new std::string(property[1].get<std::string>());
-							e->properties()->insert(property[0].get<std::string>(), v);
-						}
-						b->subject(isolate, e);
 					}
 
 					auto object = json["object"];
 					if (object.is_object()) {
-						// insert the nodes into the Graph.
-						auto e = gk::Entity::Instance(isolate, object["type"].get<std::string>().c_str());
-						e->id(object["id"].get<long long>());
-						e->indexed(true);
-						insert(isolate, e);
-
-						// groups
-						for (auto name : object["groups"]) {
-							std::string *v = new std::string(name.get<std::string>());
-							e->groups()->insert(*v, v);
+						auto c = this->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
+						if (c && 0 < c->size()) {
+							auto i = c->findByKey(object["type"].get<std::string>());
+							if (i && 0 < i->size()) {
+								auto n = i->findByKey(object["id"].get<long long>());
+								if (n) {
+									b->object(isolate, dynamic_cast<gk::Entity*>(n));
+								}
+							}
 						}
-
-						// properties
-						for (auto property : object["properties"]) {
-							std::string *v = new std::string(property[1].get<std::string>());
-							e->properties()->insert(property[0].get<std::string>(), v);
-						}
-						b->object(isolate, e);
 					}
 				}
 

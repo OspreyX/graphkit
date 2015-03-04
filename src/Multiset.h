@@ -41,7 +41,7 @@ namespace gk {
 		Multiset(Multiset&&) = default;
 		Multiset& operator= (Multiset&&) = default;
 
-		bool insert(v8::Isolate* isolate, T* node) noexcept;
+		bool insert(T* node) noexcept;
 		bool remove(const std::string& k) noexcept;
 		void cleanUp() noexcept;
 
@@ -82,10 +82,7 @@ gk::Multiset<T, O>::~Multiset() {
 }
 
 template <typename T, typename O>
-bool gk::Multiset<T, O>::insert(v8::Isolate* isolate, T* node) noexcept {
-	if (!node->indexed()) {
-		return false;
-	}
+bool gk::Multiset<T, O>::insert(T* node) noexcept {
 	return gk::RedBlackTree<T, false, std::string, O>::insert(node->hash(), node, [&](T* n) {
 		n->Ref();
 	});
@@ -170,7 +167,7 @@ GK_METHOD(gk::Multiset<T, O>::Insert) {
 	}
 
 	auto s = node::ObjectWrap::Unwrap<gk::Multiset<T, O>>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(s->insert(isolate, n)));
+	GK_RETURN(GK_BOOLEAN(s->insert(n)));
 }
 
 template <typename T, typename O>

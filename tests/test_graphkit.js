@@ -37,29 +37,31 @@ let Multiset = gk.Multiset;
 
 let g1 = new Graph();
 
-//let b1 = new Bond('Friend');
-//g1.insert(b1);
-//let e1 = new Entity('User');
-//g1.insert(e1);
-//let e2 = new Entity('User');
-//g1.insert(e2);
-//b1.subject = e1;
-//b1.object = e2;
+let u1 = g1.find(gk.ENTITY, 'User', 1) || g1.createEntity('User');
+u1['name'] = 'Eve';
 
-//let e1 = new Entity('User');
-//g1.insert(e1);
-//let a1 = new Action('Clicked');
-//a1.subjects.insert(e1);
-////e1['ui'] = 'button';
-////e1.addGroup('session');
-//g1.insert(a1);
-//g1.clear();
-//let e1 = g1.Entity.User[0];
-//delete e1['age'];
-//console.log(g1);
-//g1.clear();
-//console.log(g1.Entity.clear());
-//g1.insert(g1.Action.Clicked.find(2).subjects[0]);
+let u2 = g1.find(gk.ENTITY, 'User', 2) || g1.createEntity('User');
+u2['name'] = 'Daniel';
+
+let u3 = g1.find(gk.ENTITY, 'User', 3) || g1.createEntity('User');
+u3['name'] = 'Adam';
+
+let b1 = g1.find(gk.BOND, 'Friend', 1) || g1.createBond('Friend');
+b1.subject = u1;
+b1.object = u2;
+
+let b2 = g1.find(gk.BOND, 'Friend', 2) || g1.createBond('Friend');
+b2.subject = u3;
+b2.object = u2;
+
+let m1 = g1.find(gk.ENTITY, 'Message', 1) || g1.createEntity('Message');
+m1['text'] = 'Hey, how are you?';
+
+let a1 = g1.find(gk.ACTION, 'Emailed', 1) || g1.createAction('Emailed');
+a1.addSubject(u1);
+a1.addSubject(u2);
+a1.addObject(m1);
+
 console.log(g1);
 
 let start = Date.now();
