@@ -1,11 +1,11 @@
 {
   "name": "graphkit",
-  "homepage": "http://graphkit.io",
+  "homepage": "http://graphkit.io/nodejs",
   "author": {
     "name": "Daniel Dahan",
     "email": "daniel@graphkit.io"
   },
-  "version": "0.1.8-rc20150305-1",
+  "version": "0.1.8-rc20150305-2",
   "license": [
     {
       "type": "AGPLv3",
