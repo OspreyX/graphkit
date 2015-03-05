@@ -1,7 +1,7 @@
 
 #GraphKit  
 
-next generation graph data store for node.js
+a Wonderful Graph Data Store for Node.js
 
 ##Installation
 
@@ -62,7 +62,7 @@ console.log(a1.id);
 a1['session'] = 123;
 
 // Insert u1 as a subject for the Action.
-a1.subjects.insert(u1);
+a1.addSubject(u1);
 
 // Create another Book Entity.
 let b2 = g1.createEntity('Book');
@@ -74,8 +74,8 @@ b2.addGroup('Favourite');
 console.log(b2.id);
 
 // Add the books as the objects for the Action.
-a1.objects.insert(b1);
-a1.objects.insert(b2);
+a1.addObject(b1);
+a1.addObject(b2);
 
 // Output: 1
 console.log(a1.subjects.size());
