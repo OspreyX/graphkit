@@ -72,10 +72,11 @@ std::string gk::Entity::toJSON() noexcept {
 void gk::Entity::persist() noexcept {
 	if (indexed()) {
 		uv_fs_t open_req;
-		uv_fs_open(uv_default_loop(), &open_req, ("./data/" + hash() + ".dat").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+		uv_fs_open(uv_default_loop(), &open_req, ("./gk-data/" + hash() + ".gk").c_str(), O_CREAT | O_RDWR, 0644, NULL);
 		std::string json = toJSON();
-		char buf[json.length() + 1];
-		strcpy(buf, json.c_str());
+		int len = json.length() + 1;
+		char buf[len];
+		snprintf(buf, len, "%s", json.c_str());
 		uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
 		uv_fs_t write_req;
 		uv_fs_write(uv_default_loop(), &write_req, open_req.result, &iov, 1, 0, NULL);
@@ -199,12 +200,11 @@ GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
 	}
 
 	v8::String::Utf8Value v(value);
-	auto prop = std::string{*p};
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
-	e->properties()->remove(prop, [&](std::string* v) {
+	e->properties()->remove(*p, [&](std::string* v) {
 		delete v;
 	});
-	auto result = e->properties()->insert(prop, new std::string{*v});
+	auto result = e->properties()->insert(*p, new std::string{*v});
 	if (result) {
 		e->persist();
 	}
@@ -213,9 +213,28 @@ GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
 
 GK_PROPERTY_DELETER(gk::Entity::PropertyDeleter) {
 	GK_SCOPE();
-	v8::String::Utf8Value prop(property);
+	v8::String::Utf8Value p(property);
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS)) {
+		GK_EXCEPTION("[GraphKit Error: Cannot set nodeClass property.]");
+	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_TYPE)) {
+		GK_EXCEPTION("[GraphKit Error: Cannot delete type property.]");
+	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ID)) {
+		GK_EXCEPTION("[GraphKit Error: Cannot delete id property.]");
+	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_HASH)) {
+		GK_EXCEPTION("[GraphKit Error: Cannot delete hash property.]");
+	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_INDEXED)) {
+		GK_EXCEPTION("[GraphKit Error: Cannot delete indexed property.]");
+	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_BONDS)) {
+		GK_EXCEPTION("[GraphKit Error: Cannot delete bonds property.]");
+	}
+
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(e->properties()->remove(*prop, [&](std::string* v) {
+	GK_RETURN(GK_BOOLEAN(e->properties()->remove(*p, [&](std::string* v) {
 		delete v;
 		e->persist();
 	})));

@@ -143,7 +143,7 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 	  gk::RedBlackTree<T, true, K, O>{},
 	  nodeClass_{std::move(nodeClass)},
 	  type_{std::move(type)},
-	  fs_idx_{"./data/" + std::to_string(gk::NodeClassToInt(nodeClass_)) + type_ + ".idx"},
+	  fs_idx_{"./gk-data/" + std::to_string(gk::NodeClassToInt(nodeClass_)) + type_ + ".idx"},
 	  fs_iov_(uv_buf_init(fs_buf_, sizeof(fs_buf_))) {
 
 		// file writing

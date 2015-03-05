@@ -407,21 +407,21 @@ GK_METHOD(gk::Graph<T, K, O>::Listen) {
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
 
 	uv_fs_t mkdir_req;
-	uv_fs_mkdir(uv_default_loop(), &mkdir_req, "./data", 0644, NULL);
+	uv_fs_mkdir(uv_default_loop(), &mkdir_req, "./gk-data", 0644, NULL);
 
 	// scan through the data directory and insert the Nodes.
 	uv_fs_t scandir_req;
-	uv_fs_scandir(uv_default_loop(), &scandir_req, "./data", O_CREAT | O_RDWR, NULL);
+	uv_fs_scandir(uv_default_loop(), &scandir_req, "./gk-data", O_CREAT | O_RDWR, NULL);
 	uv_dirent_t dent;
 	assert(scandir_req.fs_type == UV_FS_SCANDIR);
 	assert(scandir_req.path);
-	assert(memcmp(scandir_req.path, "./data\0", 7) == 0);
+	assert(memcmp(scandir_req.path, "./gk-data\0", 9) == 0);
 
-	std::string dat = ".dat";
+	std::string dat = ".gk";
 	while (UV_EOF != uv_fs_scandir_next(&scandir_req, &dent)) {
 		assert(dent.type == UV_DIRENT_FILE || dent.type == UV_DIRENT_UNKNOWN);
 
-		std::string dirname = "./data/" + std::string(dent.name);
+		std::string dirname = "./gk-data/" + std::string(dent.name);
 		if (dirname.compare(dirname.length() - 4, 4, dat) == 0) {
 			// open the file
 			uv_fs_t open_req;

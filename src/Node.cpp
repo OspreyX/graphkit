@@ -98,7 +98,7 @@ void gk::Node::persist() noexcept {}
 void gk::Node::unlink() noexcept {
 	// delete the file
 	uv_fs_t unlink_req;
-	uv_fs_unlink(uv_default_loop(), &unlink_req, ("data/" + hash() + ".dat").c_str(), NULL);
+	uv_fs_unlink(uv_default_loop(), &unlink_req, ("gk-data/" + hash() + ".gk").c_str(), NULL);
 }
 
 GK_METHOD(gk::Node::AddGroup) {
