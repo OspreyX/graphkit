@@ -377,12 +377,6 @@ namespace gk {
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_INDEXED)) {
 			GK_EXCEPTION("[GraphKit Error: Cannot delete indexed property.]");
 		}
-		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_SUBJECT)) {
-			GK_EXCEPTION("[GraphKit Error: Cannot delete subject property.]");
-		}
-		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_OBJECT)) {
-			GK_EXCEPTION("[GraphKit Error: Cannot delete object property.]");
-		}
 
 		auto b = node::ObjectWrap::Unwrap<gk::Bond<T>>(args.Holder());
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_SUBJECT)) {
