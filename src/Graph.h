@@ -125,10 +125,8 @@ void gk::Graph<T, K, O>::sync(v8::Isolate* isolate) noexcept {
 	assert(scandir_req.path);
 	assert(memcmp(scandir_req.path, "./gk-data\0", 10) == 0);
 
+	// create a buffer
 	std::string dat = ".gk";
-	char buf[4096];
-	uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
-
 	while (UV_EOF != uv_fs_scandir_next(&scandir_req, &dent)) {
 		assert(dent.type == UV_DIRENT_FILE || dent.type == UV_DIRENT_UNKNOWN);
 
@@ -138,9 +136,20 @@ void gk::Graph<T, K, O>::sync(v8::Isolate* isolate) noexcept {
 			uv_fs_t open_req;
 			uv_fs_open(uv_default_loop(), &open_req, dirname.c_str(), O_RDONLY, 0644, NULL);
 
+			char buf[4096];
+			uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
+
 			// read in file.
 			uv_fs_t read_req;
-			uv_fs_read(uv_default_loop(), &read_req, open_req.result, &iov, 1, 0, NULL);
+			uv_fs_read(uv_default_loop(), &read_req, open_req.result, &iov, 1, -1, NULL);
+
+			// cleanup file if empty
+			if (0 == read_req.result) {
+				uv_fs_t unlink_req;
+				uv_fs_unlink(uv_default_loop(), &unlink_req, dirname.c_str(), NULL);
+				uv_fs_req_cleanup(&unlink_req);
+				continue;
+			}
 
 			auto json = nlohmann::json::parse(buf);
 			auto nodeClass = gk::NodeClassFromInt(json["nodeClass"].get<short>());
@@ -268,6 +277,8 @@ void gk::Graph<T, K, O>::sync(v8::Isolate* isolate) noexcept {
 			uv_fs_req_cleanup(&close_req);
 		}
 	}
+
+	// cleanup
 	uv_fs_req_cleanup(&scandir_req);
 	uv_fs_req_cleanup(&mkdir_req);
 }

@@ -228,9 +228,6 @@ void gk::Index<T, K, O>::cleanUp() noexcept {
 	for (auto i = this->size(); 0 < i; --i) {
 		remove(this->select(i));
 	}
-
-	// Unlink the idx file.
-	uv_fs_unlink(uv_default_loop(), &unlink_req_, fs_idx_.c_str(), NULL);
 }
 
 template  <typename T, typename K, typename O>
