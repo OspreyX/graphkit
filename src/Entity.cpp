@@ -75,7 +75,7 @@ void gk::Entity::persist() noexcept {
 		uv_fs_open(uv_default_loop(), &open_req, ("./gk-data/" + hash() + ".gk").c_str(), O_CREAT | O_RDWR, 0644, NULL);
 		std::string json = toJSON();
 		int len = json.length() + 1;
-		char buf[len];
+		char buf[4096];
 		snprintf(buf, len, "%s", json.c_str());
 		uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
 		uv_fs_t write_req;

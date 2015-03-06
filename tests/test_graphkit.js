@@ -36,34 +36,37 @@ let Set = gk.Set;
 let Multiset = gk.Multiset;
 
 let g1 = new Graph();
-g1.listen();
+g1.clear();
 
 let start = Date.now();
 for (let i = process.argv[2] || 1; 0 < i; --i) {
-	let u1 = g1.find(gk.ENTITY, 'User', i) || g1.createEntity('User');
-	u1['name'] = 'Eve';
+	let e1 = new Entity('User');
+	g1.insert(e1);
 
-	let u2 = g1.find(gk.ENTITY, 'User', i) || g1.createEntity('User');
-	u2['name'] = 'Daniel';
+	//let u1 = g1.find(gk.ENTITY, 'User', i) || g1.createEntity('User');
+	//u1['name'] = 'Eve';
 
-	let u3 = g1.find(gk.ENTITY, 'User', i) || g1.createEntity('User');
-	u3['name'] = 'Adam';
-
-	let b1 = g1.find(gk.BOND, 'Friend', i) || g1.createBond('Friend');
-	b1.subject = u1;
-	b1.object = u2;
-
-	let b2 = g1.find(gk.BOND, 'Friend', i) || g1.createBond('Friend');
-	b2.subject = u3;
-	b2.object = u2;
-
-	let m1 = g1.find(gk.ENTITY, 'Message', i) || g1.createEntity('Message');
-	m1['text'] = 'Hey, how are you?';
-
-	let a1 = g1.find(gk.ACTION, 'Emailed', i) || g1.createAction('Emailed');
-	a1.addSubject(u1);
-	a1.addSubject(u2);
-	a1.addObject(m1);
+	//let u2 = g1.find(gk.ENTITY, 'User', i) || g1.createEntity('User');
+	//u2['name'] = 'Daniel';
+	//
+	//let u3 = g1.find(gk.ENTITY, 'User', i) || g1.createEntity('User');
+	//u3['name'] = 'Adam';
+	//
+	//let b1 = g1.find(gk.BOND, 'Friend', i) || g1.createBond('Friend');
+	//b1.subject = u1;
+	//b1.object = u2;
+	//
+	//let b2 = g1.find(gk.BOND, 'Friend', i) || g1.createBond('Friend');
+	//b2.subject = u3;
+	//b2.object = u2;
+	//
+	//let m1 = g1.find(gk.ENTITY, 'Message', i) || g1.createEntity('Message');
+	//m1['text'] = 'Hey, how are you?';
+	//
+	//let a1 = g1.find(gk.ACTION, 'Emailed', i) || g1.createAction('Emailed');
+	//a1.addSubject(u1);
+	//a1.addSubject(u2);
+	//a1.addObject(m1);
 }
 //let e1 = new Entity('User');
 //e1['age'] = 26;
