@@ -9,7 +9,7 @@ npm install graphkit
 
 ##Documentation
 
-[graphkit.io](http://graphkit.io)
+[graphkit.io](http://graphkit.io/nodejs)
 
 ##A Taste
 
