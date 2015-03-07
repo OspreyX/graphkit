@@ -23,6 +23,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include <uv.h>
+#include "Storage.h"
 
 // modules and node helpers
 #define GK_EXPORT(Args...) void Args(v8::Handle<v8::Object> exports) noexcept

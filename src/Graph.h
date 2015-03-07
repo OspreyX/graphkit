@@ -114,23 +114,24 @@ bool gk::Graph<T, K, O>::insert(v8::Isolate* isolate, typename T::Index::Node* n
 
 template  <typename T, typename K, typename O>
 void gk::Graph<T, K, O>::sync(v8::Isolate* isolate) noexcept {
+	std::string dir (GK_FS_DB_DIR);
 	uv_fs_t mkdir_req;
-	uv_fs_mkdir(uv_default_loop(), &mkdir_req, "./gk-data", 0644, NULL);
+	uv_fs_mkdir(uv_default_loop(), &mkdir_req, ("./" + dir).c_str(), S_IRWXU, NULL);
 
 	// scan through the data directory and insert the Nodes.
 	uv_fs_t scandir_req;
-	uv_fs_scandir(uv_default_loop(), &scandir_req, "./gk-data", O_CREAT | O_RDWR, NULL);
+	uv_fs_scandir(uv_default_loop(), &scandir_req, ("./" + dir).c_str(), O_CREAT | O_RDWR, NULL);
 	uv_dirent_t dent;
 	assert(scandir_req.fs_type == UV_FS_SCANDIR);
 	assert(scandir_req.path);
-	assert(memcmp(scandir_req.path, "./gk-data\0", 10) == 0);
+	assert(memcmp(scandir_req.path, ("./" + dir + "\0").c_str(), 8) == 0);
 
 	// create a buffer
 	std::string dat = ".gk";
 	while (UV_EOF != uv_fs_scandir_next(&scandir_req, &dent)) {
 		assert(dent.type == UV_DIRENT_FILE || dent.type == UV_DIRENT_UNKNOWN);
 
-		std::string dirname = "./gk-data/" + std::string(dent.name);
+		std::string dirname = "./" + dir + "/" + std::string(dent.name);
 		if (dirname.compare(dirname.length() - 3, 3, dat) == 0) {
 			// open the file
 			uv_fs_t open_req;

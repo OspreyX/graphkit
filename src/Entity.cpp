@@ -71,8 +71,9 @@ std::string gk::Entity::toJSON() noexcept {
 
 void gk::Entity::persist() noexcept {
 	if (indexed()) {
+		std::string dir (GK_FS_DB_DIR);
 		uv_fs_t open_req;
-		uv_fs_open(uv_default_loop(), &open_req, ("./gk-data/" + hash() + ".gk").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+		uv_fs_open(uv_default_loop(), &open_req, ("./" + dir + "/" + hash() + ".gk").c_str(), O_CREAT | O_RDWR, S_IRWXU, NULL);
 		std::string json = toJSON();
 		int len = json.length() + 1;
 		char buf[4096];

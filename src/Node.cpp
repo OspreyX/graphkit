@@ -98,7 +98,8 @@ void gk::Node::persist() noexcept {}
 void gk::Node::unlink() noexcept {
 	// delete the file
 	uv_fs_t unlink_req;
-	uv_fs_unlink(uv_default_loop(), &unlink_req, ("gk-data/" + hash() + ".gk").c_str(), NULL);
+	std::string dir (GK_FS_DB_DIR);
+	uv_fs_unlink(uv_default_loop(), &unlink_req, (dir + "/" + hash() + ".gk").c_str(), NULL);
 }
 
 GK_METHOD(gk::Node::AddGroup) {

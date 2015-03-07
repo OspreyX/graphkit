@@ -36,12 +36,16 @@ let Set = gk.Set;
 let Multiset = gk.Multiset;
 
 let g1 = new Graph();
+console.log(g1.Entity.User.size());
 g1.clear();
 
 let start = Date.now();
 for (let i = process.argv[2] || 1; 0 < i; --i) {
+
 	let e1 = new Entity('User');
+	console.log(e1);
 	g1.insert(e1);
+	console.log(e1);
 
 	//let u1 = g1.find(gk.ENTITY, 'User', i) || g1.createEntity('User');
 	//u1['name'] = 'Eve';
