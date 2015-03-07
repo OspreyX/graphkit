@@ -84,6 +84,9 @@ let g1 = new Graph();
 		let user = users[i];
 		for (let j = 10; 0 < j; --j) {
 			let index = Math.floor((Math.random() * count) + 1);
+			let b1 = new Bond('Friend');
+			b1.subject = user;
+			b2.object = users[index];
 		}
 	}
 	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
