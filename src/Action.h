@@ -14,6 +14,10 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
+*
+* Action.h
+*
+* A relationship Node used to connect a Set of Subject Entity Nodes to a Set of Object Entity Nodes.
 */
 
 #ifndef GRAPHKIT_SRC_ACTION_H
@@ -31,25 +35,114 @@ namespace gk {
 	template <typename T>
 	class Action : public gk::Node {
 	public:
+
+		/**
+		* Action
+		* Constructor.
+		* An explicit constructor that accepts a type value.
+		*/
 		explicit Action(const std::string&& type) noexcept;
+
+		/**
+		* ~Action
+		* Destructor.
+		* Should never be directly unless the instance was
+		* created using the "new" method not through the node.js
+		* environment. Reference errors in v8's garbage collection
+		* may try and release the memory and crash due to this.
+		*/
 		virtual ~Action();
+
+		/**
+		* Default declarations.
+		*/
 		Action(const Action& other) = default;
 		Action& operator= (const Action&) = default;
 		Action(Action&& other) = default;
 		Action& operator= (Action&&) = default;
 
+		/**
+		* subjects
+		* Retrieves the Subjects Set of template type T Nodes.
+		* @param		v8:Isolate* isolate
+		* @return		gk::Set<T>*
+		*/
 		gk::Set<T>* subjects(v8::Isolate* isolate) noexcept;
+
+		/**
+		* addSubject
+		* Adds a Node of template type T to the Subjects Set.
+		* @param		v8::Isolate* isolate
+		* @param		T* node
+		* @return		bool value of the result. If added, true, false otherwise.
+		*/
 		bool addSubject(v8::Isolate* isolate, T* node) noexcept;
+
+		/**
+		* removeSubject
+		* Removes a Node of template type T from the Subjects Set.
+		* @param		v8::Isolate* isolate
+		* @param		T* node
+		* @return		bool value of the result. If removed, true, false otherwise.
+		*/
 		bool removeSubject(v8::Isolate* isolate, T* node) noexcept;
 
+		/**
+		* objects
+		* Retrieves the Objects Set of template type T Nodes.
+		* @param		v8:Isolate* isolate
+		* @return		gk::Set<T>*
+		*/
 		gk::Set<T>* objects(v8::Isolate* isolate) noexcept;
+
+
+		/**
+		* addObject
+		* Adds a Node of template type T to the Objects Set.
+		* @param		v8::Isolate* isolate
+		* @param		T* node
+		* @return		bool value of the result. If added, true, false otherwise.
+		*/
 		bool addObject(v8::Isolate* isolate, T* node) noexcept;
+
+
+		/**
+		* removeObject
+		* Removes a Node of template type T from the Objects Set.
+		* @param		v8::Isolate* isolate
+		* @param		T* node
+		* @return		bool value of the result. If removed, true, false otherwise.
+		*/
 		bool removeObject(v8::Isolate* isolate, T* node) noexcept;
 
+		/**
+		* toJSON
+		* Outputs a JSON string of the Action<T> instance.
+		* @return		std::string
+		*/
 		virtual std::string toJSON() noexcept;
+
+		/**
+		* persist
+		* Saves the Action<T> instance to disk.
+		*/
 		virtual void persist() noexcept;
 
+		/**
+		* Instance
+		* Constructs a new Action<T> instance through the v8 engine.
+		* This should be used when creating and Action<T> instances that
+		* will exist in the node.js environment.
+		* @param		v8::Isolate* isolate
+		* @param		const char* type
+		* @return		An instance of the Action<T> Node Class.
+		*/
 		static Action<T>* Instance(v8::Isolate* isolate, const char* type) noexcept;
+
+		/**
+		* Init
+		* Initializes the Class as an export Object in the node.js environment.
+		*/
 		static GK_INIT(Init);
 
 	protected:
