@@ -171,6 +171,9 @@ GK_PROPERTY_GETTER(gk::Entity::PropertyGetter) {
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_BONDS)) {
 		GK_RETURN(n->bonds(isolate)->handle());
 	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ACTIONS)) {
+		GK_RETURN(n->actions(isolate)->handle());
+	}
 	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_HAS_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
@@ -212,6 +215,9 @@ GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_BONDS)) {
 		GK_EXCEPTION("[GraphKit Error: Cannot set bonds property.]");
 	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ACTIONS)) {
+		GK_EXCEPTION("[GraphKit Error: Cannot set actions property.]");
+	}
 
 	v8::String::Utf8Value v(value);
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
@@ -245,6 +251,9 @@ GK_PROPERTY_DELETER(gk::Entity::PropertyDeleter) {
 	}
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_BONDS)) {
 		GK_EXCEPTION("[GraphKit Error: Cannot delete bonds property.]");
+	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ACTIONS)) {
+		GK_EXCEPTION("[GraphKit Error: Cannot delete actions property.]");
 	}
 
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());

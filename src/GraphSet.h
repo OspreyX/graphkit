@@ -232,7 +232,7 @@ GK_METHOD(gk::GraphSet<G, T, O>::Find) {
 
 	auto s = node::ObjectWrap::Unwrap<gk::GraphSet<G, T, O>>(args.Holder());
 	v8::String::Utf8Value type(args[1]->ToString());
-	auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + *type + std::to_string(args[2]->IntegerValue())};
+	auto k = std::to_string(args[0]->IntegerValue()) + *type + std::to_string(args[2]->IntegerValue());
 	auto n = s->findByKey(k);
 	if (n) {
 		GK_RETURN(n->handle());
