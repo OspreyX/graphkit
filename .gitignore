@@ -2,7 +2,7 @@
 .idea
 prog
 node_modules
-data
+gk.db
 build
 *.log
 *.o
