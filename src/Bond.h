@@ -118,6 +118,7 @@ namespace gk {
 	template <typename T>
 	bool gk::Bond<T>::subject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
+		assert(this->indexed());
 		removeSubject();
 		subject_ = node;
 		subject_->Ref();
@@ -146,6 +147,7 @@ namespace gk {
 	template <typename T>
 	bool gk::Bond<T>::object(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
+		assert(this->indexed());
 		removeObject();
 		object_ = node;
 		object_->Ref();
@@ -350,25 +352,35 @@ namespace gk {
 
 		auto b = node::ObjectWrap::Unwrap<gk::Bond<T>>(args.Holder());
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_SUBJECT)) {
+
+			// the bond must be indexed
+			if (!b->indexed()) {
+				GK_EXCEPTION("[GraphKit Error: Bond must be indexed prior to setting the subject property.]");
+			}
+
 			if (value->IsObject()) {
 				auto n = node::ObjectWrap::Unwrap<T>(value->ToObject());
 				if (gk::NodeClass::Entity == n->nodeClass()) {
 					if (b->subject(isolate, n)) {
 						GK_RETURN(n->handle());
 					}
-					GK_EXCEPTION("[GraphKit Error: Bond must be indexed prior to setting subject property.]");
 				}
 			}
 			GK_EXCEPTION("[GraphKit Error: Expecting Entity instance.]");
 		}
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_OBJECT)) {
+
+			// the bond must be indexed
+			if (!b->indexed()) {
+				GK_EXCEPTION("[GraphKit Error: Bond must be indexed prior to setting the object property.]");
+			}
+
 			if (value->IsObject()) {
 				auto n = node::ObjectWrap::Unwrap<T>(value->ToObject());
 				if (gk::NodeClass::Entity == n->nodeClass()) {
 					if (b->object(isolate, n)) {
 						GK_RETURN(n->handle());
 					}
-					GK_EXCEPTION("[GraphKit Error: Bond must be indexed prior to setting object property.]");
 				}
 			}
 			GK_EXCEPTION("[GraphKit Error: Expecting Entity instance.]");

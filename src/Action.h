@@ -151,6 +151,12 @@ namespace gk {
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
+
+		/**
+		* AddSubject
+		* Adds a Node of template type T. The Action must be indexed prior to adding
+		* the Node.
+		*/
 		static GK_METHOD(AddSubject);
 		static GK_METHOD(RemoveSubject);
 		static GK_METHOD(AddObject);
@@ -194,6 +200,7 @@ namespace gk {
 	template <typename T>
 	bool gk::Action<T>::addSubject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
+		assert(this->indexed());
 		auto result = subjects(isolate)->insert(node);
 		if (result) {
 			node->actions(isolate)->insert(this);
@@ -225,6 +232,7 @@ namespace gk {
 	template <typename T>
 	bool gk::Action<T>::addObject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
+		assert(this->indexed());
 		auto result = objects(isolate)->insert(node);
 		if (result) {
 			node->actions(isolate)->insert(this);
@@ -374,6 +382,13 @@ namespace gk {
 	GK_METHOD(gk::Action<T>::AddSubject) {
 		GK_SCOPE();
 		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+
+		// the action must be indexed
+		if (!a->indexed()) {
+			GK_EXCEPTION("[GraphKit Error: Action must be indexed prior to adding a subject.]");
+		}
+
+
 		if (args[0]->IsObject()) {
 			auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
 			if (gk::NodeClass::Entity == n->nodeClass()) {
@@ -400,6 +415,12 @@ namespace gk {
 	GK_METHOD(gk::Action<T>::AddObject) {
 		GK_SCOPE();
 		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+
+		// the action must be indexed
+		if (!a->indexed()) {
+			GK_EXCEPTION("[GraphKit Error: Action must be indexed prior to adding an object.]");
+		}
+
 		if (args[0]->IsObject()) {
 			auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
 			if (gk::NodeClass::Entity == n->nodeClass()) {
