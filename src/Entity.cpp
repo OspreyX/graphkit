@@ -202,7 +202,7 @@ GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
 
 	v8::String::Utf8Value v(value);
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
-	e->properties()->remove(*p, [&](std::string* v) {
+	e->properties()->remove(*p, [](std::string* v) {
 		delete v;
 	});
 	auto result = e->properties()->insert(*p, new std::string{*v});

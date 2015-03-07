@@ -395,7 +395,7 @@ namespace gk {
 
 		v8::String::Utf8Value v(value);
 		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
-		a->properties()->remove(*p, [&](std::string* v) {
+		a->properties()->remove(*p, [](std::string* v) {
 			delete v;
 		});
 		auto result = a->properties()->insert(*p, new std::string{*v});

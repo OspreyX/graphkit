@@ -20,7 +20,6 @@
 #define GRAPHKIT_SRC_GRAPH_H
 
 #include <string>
-#include <map>
 #include "exports.h"
 #include "symbols.h"
 #include "NodeClass.h"
@@ -94,7 +93,10 @@ gk::Graph<T, K, O>::Graph() noexcept
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::~Graph() {
-	cleanUp();
+	this->clear([](T *c) {
+		c->cleanUp();
+		c->Unref();
+	});
 }
 
 template  <typename T, typename K, typename O>
@@ -103,7 +105,7 @@ bool gk::Graph<T, K, O>::insert(v8::Isolate* isolate, typename T::Index::Node* n
 	if (!c) {
 		auto nc = node->nodeClass();
 		c = T::Instance(isolate, nc);
-		if (!gk::RedBlackTree<T, true, K, O>::insert(c->nodeClass(), c, [&](T* c) {
+		if (!gk::RedBlackTree<T, true, K, O>::insert(c->nodeClass(), c, [](T* c) {
 			c->Ref();
 		})) {
 			return false;
@@ -135,7 +137,7 @@ void gk::Graph<T, K, O>::sync(v8::Isolate* isolate) noexcept {
 		if (dirname.compare(dirname.length() - 3, 3, dat) == 0) {
 			// open the file
 			uv_fs_t open_req;
-			uv_fs_open(uv_default_loop(), &open_req, dirname.c_str(), O_RDONLY, 0644, NULL);
+			uv_fs_open(uv_default_loop(), &open_req, dirname.c_str(), O_RDONLY, 0, NULL);
 
 			char buf[4096];
 			uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
@@ -286,10 +288,9 @@ void gk::Graph<T, K, O>::sync(v8::Isolate* isolate) noexcept {
 
 template  <typename T, typename K, typename O>
 void gk::Graph<T, K, O>::cleanUp() noexcept {
-	this->clear([&](T* c) {
-		c->cleanUp();
-		c->Unref();
-	});
+	for (auto i = this->size(); 0 < i; --i) {
+		this->select(i)->cleanUp();
+	}
 }
 
 template <typename T, typename K, typename O>

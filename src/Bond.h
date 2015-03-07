@@ -348,7 +348,7 @@ namespace gk {
 
 		v8::String::Utf8Value v(value);
 		auto prop = std::string{*p};
-		b->properties()->remove(prop, [&](std::string* v) {
+		b->properties()->remove(prop, [](std::string* v) {
 			delete v;
 		});
 		auto result = b->properties()->insert(prop, new std::string{*v});

@@ -83,21 +83,21 @@ gk::Set<T, O>::~Set() {
 
 template <typename T, typename O>
 bool gk::Set<T, O>::insert(T* node) noexcept {
-	return gk::RedBlackTree<T, true, std::string, O>::insert(node->hash(), node, [&](T* n) {
+	return gk::RedBlackTree<T, true, std::string, O>::insert(node->hash(), node, [](T* n) {
 		n->Ref();
 	});
 }
 
 template <typename T, typename O>
 bool gk::Set<T, O>::remove(const std::string& k) noexcept {
-	return gk::RedBlackTree<T, true, std::string, O>::remove(k, [&](T* n) {
+	return gk::RedBlackTree<T, true, std::string, O>::remove(k, [](T* n) {
 		n->Unref();
 	});
 }
 
 template <typename T, typename O>
 void gk::Set<T, O>::cleanUp() noexcept {
-	this->clear([&](T *n) {
+	this->clear([](T *n) {
 		n->Unref();
 	});
 }

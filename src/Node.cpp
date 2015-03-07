@@ -31,13 +31,13 @@ gk::Node::Node(const gk::NodeClass& nodeClass, const std::string&& type) noexcep
 
 gk::Node::~Node() {
 	if (nullptr != groups_) {
-		groups_->clear([&](std::string* v) {
+		groups_->clear([](std::string* v) {
 			delete v;
 		});
 		delete groups_;
 	}
 	if (nullptr != properties_) {
-		properties_->clear([&](std::string* v) {
+		properties_->clear([](std::string* v) {
 			delete v;
 		});
 		delete properties_;
@@ -93,6 +93,7 @@ const std::string& gk::Node::hash() noexcept {
 std::string gk::Node::toJSON() noexcept {
 	return "";
 }
+
 void gk::Node::persist() noexcept {}
 
 void gk::Node::unlink() noexcept {

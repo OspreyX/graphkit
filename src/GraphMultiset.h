@@ -95,21 +95,21 @@ bool gk::GraphMultiset<G, T, O>::insert(v8::Isolate* isolate, T* node) noexcept 
 	if (!node->indexed()) {
 		return false;
 	}
-	return gk::RedBlackTree<T, false, std::string, O>::insert(node->hash(), node, [&](T* n) {
+	return gk::RedBlackTree<T, false, std::string, O>::insert(node->hash(), node, [](T* n) {
 		n->Ref();
 	});
 }
 
 template <typename G, typename T, typename O>
 bool gk::GraphMultiset<G, T, O>::remove(const std::string& k) noexcept {
-	return gk::RedBlackTree<T, false, std::string, O>::remove(k, [&](T* n) {
+	return gk::RedBlackTree<T, false, std::string, O>::remove(k, [](T* n) {
 		n->Unref();
 	});
 }
 
 template <typename G, typename T, typename O>
 void gk::GraphMultiset<G, T, O>::cleanUp() noexcept {
-	this->clear([&](T *n) {
+	this->clear([](T *n) {
 		n->Unref();
 	});
 }

@@ -157,7 +157,9 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 
 template <typename T, typename K, typename O>
 gk::Index<T, K, O>::~Index() {
-	cleanUp();
+	this->clear([](T* n) {
+		n->Unref();
+	});
 
 	uv_fs_t close_req;
 	uv_fs_close(uv_default_loop(), &close_req, open_req_.result, NULL);
@@ -190,7 +192,7 @@ bool gk::Index<T, K, O>::insert(T* node) noexcept {
 	if (0 == node->id()) {
 		node->id(incrementID());
 	}
-	return gk::RedBlackTree<T, true, K, O>::insert(node->id(), node, [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::insert(node->id(), node, [](T* n) {
 		n->Ref();
 
 		// Persist the Node, this test is for when the Graph initially loads the persisted data
@@ -207,19 +209,19 @@ bool gk::Index<T, K, O>::remove(T* node) noexcept {
 	if (!node->indexed()) {
 		return false;
 	}
-	return gk::RedBlackTree<T, true, K, O>::remove(node->id(), [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::remove(node->id(), [](T* n) {
 		n->indexed(false);
-		n->Unref();
 		n->unlink();
+		n->Unref();
 	});
 }
 
 template  <typename T, typename K, typename O>
 bool gk::Index<T, K, O>::remove(const int k) noexcept {
-	return gk::RedBlackTree<T, true, K, O>::remove(k, [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::remove(k, [](T* n) {
 		n->indexed(false);
-		n->Unref();
 		n->unlink();
+		n->Unref();
 	});
 }
 

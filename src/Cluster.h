@@ -86,7 +86,10 @@ gk::Cluster<T, K, O>::Cluster(const gk::NodeClass& nodeClass) noexcept
 
 template <typename T, typename K, typename O>
 gk::Cluster<T, K, O>::~Cluster() {
-	cleanUp();
+	this->clear([](T *i) {
+		i->cleanUp();
+		i->Unref();
+	});
 }
 
 template <typename T, typename K, typename O>
@@ -101,7 +104,7 @@ bool gk::Cluster<T, K, O>::insert(v8::Isolate* isolate, typename T::Node* node) 
 		auto nc = node->nodeClass();
 		auto t = node->type();
 		i = T::Instance(isolate, nc, t);
-		if (!gk::RedBlackTree<T, true, K, O>::insert(i->type(), i, [&](T* i) {
+		if (!gk::RedBlackTree<T, true, K, O>::insert(i->type(), i, [](T* i) {
 			i->Ref();
 		})) {
 			return false;
@@ -112,10 +115,9 @@ bool gk::Cluster<T, K, O>::insert(v8::Isolate* isolate, typename T::Node* node) 
 
 template  <typename T, typename K, typename O>
 void gk::Cluster<T, K, O>::cleanUp() noexcept {
-	this->clear([&](T *i) {
-		i->cleanUp();
-		i->Unref();
-	});
+	for (auto i = this->size(); 0 < i; --i) {
+		this->select(i)->cleanUp();
+	}
 }
 
 template  <typename T, typename K, typename O>
