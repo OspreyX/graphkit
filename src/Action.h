@@ -17,7 +17,7 @@
 *
 * Action.h
 *
-* A relationship Node used to connect a Set of Subject Entity Nodes to a Set of Object Entity Nodes.
+* A relationship Node used to connect a Set of Subject template type T Nodes to a Set of Object template type T Nodes.
 */
 
 #ifndef GRAPHKIT_SRC_ACTION_H
@@ -252,7 +252,7 @@ namespace gk {
 
 		// store properties
 		json += ",\"properties\":[";
-		for (auto i = properties()->size(); 0 < i; --i) {
+		for (auto i = properties()->count(); 0 < i; --i) {
 			auto q = properties_->node(i);
 			json += "[\"" + q->key() + "\",\"" + *q->data() + "\"]";
 			if (1 != i) {
@@ -262,7 +262,7 @@ namespace gk {
 
 		json += "],\"groups\":[";
 		// store groups
-		for (auto i = groups()->size(); 0 < i; --i) {
+		for (auto i = groups()->count(); 0 < i; --i) {
 			json += "\"" + *groups_->select(i) + "\"";
 			if (1 != i) {
 				json += ",";
@@ -271,7 +271,7 @@ namespace gk {
 
 		json += "],\"subjects\":[";
 		if (nullptr != subjects_) {
-			for (auto i = subjects_->size(); 0 < i; --i) {
+			for (auto i = subjects_->count(); 0 < i; --i) {
 				auto subject = subjects_->select(i);
 				json += "{\"id\":" + std::to_string(subject->id()) + ",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(subject->nodeClass())) + ",\"type\":\"" + subject->type() + "\"}";
 				if (1 != i) {
@@ -282,7 +282,7 @@ namespace gk {
 
 		json += "],\"objects\":[";
 		if (nullptr != objects_) {
-			for (auto i = objects_->size(); 0 < i; --i) {
+			for (auto i = objects_->count(); 0 < i; --i) {
 				auto object = objects_->select(i);
 				json += "{\"id\":" + std::to_string(object->id()) + ",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(object->nodeClass())) + ",\"type\":\"" + object->type() + "\"}";
 				if (1 != i) {
@@ -341,8 +341,8 @@ namespace gk {
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_ADD_GROUP, AddGroup);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_HAS_GROUP, HasGroup);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE_GROUP, RemoveGroup);
-		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_SIZE, groupSize);
-		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_SIZE, propertySize);
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_COUNT, groupCount);
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_COUNT, propertyCount);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING, NodeClassToString);
 
 		constructor_.Reset(isolate, t->GetFunction());
@@ -455,8 +455,8 @@ namespace gk {
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_GROUP) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_HAS_GROUP) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
-			0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_SIZE) &&
-			0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_SIZE) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_COUNT) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_COUNT) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
 			auto v = n->properties()->findByKey(*p);
 			if (v) {
@@ -547,7 +547,7 @@ namespace gk {
 	GK_PROPERTY_ENUMERATOR(gk::Action<T>::PropertyEnumerator) {
 		GK_SCOPE();
 		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
-		auto ps = a->properties()->size();
+		auto ps = a->properties()->count();
 		v8::Handle<v8::Array> array = v8::Array::New(isolate, 6 + ps);
 
 		// iterate through the properties

@@ -60,7 +60,7 @@ namespace gk {
 	private:
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
-		static GK_METHOD(Size);
+		static GK_METHOD(Count);
 		static GK_METHOD(Insert);
 		static GK_METHOD(Remove);
 		static GK_METHOD(Clear);
@@ -196,9 +196,9 @@ void gk::Graph<T, K, O>::sync(v8::Isolate* isolate) noexcept {
 				for (auto subject : json["subjects"]) {
 					if (subject.is_object()) {
 						auto c = this->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
-						if (c && 0 < c->size()) {
+						if (c && 0 < c->count()) {
 							auto i = c->findByKey(subject["type"].get<std::string>());
-							if (i && 0 < i->size()) {
+							if (i && 0 < i->count()) {
 								auto n = i->findByKey(subject["id"].get<long long>());
 								if (n) {
 									a->addSubject(isolate, dynamic_cast<gk::Entity*>(n));
@@ -211,9 +211,9 @@ void gk::Graph<T, K, O>::sync(v8::Isolate* isolate) noexcept {
 				for (auto object : json["objects"]) {
 					if (object.is_object()) {
 						auto c = this->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
-						if (c && 0 < c->size()) {
+						if (c && 0 < c->count()) {
 							auto i = c->findByKey(object["type"].get<std::string>());
-							if (i && 0 < i->size()) {
+							if (i && 0 < i->count()) {
 								auto n = i->findByKey(object["id"].get<long long>());
 								if (n) {
 									a->addObject(isolate, dynamic_cast<gk::Entity*>(n));
@@ -244,9 +244,9 @@ void gk::Graph<T, K, O>::sync(v8::Isolate* isolate) noexcept {
 				auto subject = json["subject"];
 				if (subject.is_object()) {
 					auto c = this->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
-					if (c && 0 < c->size()) {
+					if (c && 0 < c->count()) {
 						auto i = c->findByKey(subject["type"].get<std::string>());
-						if (i && 0 < i->size()) {
+						if (i && 0 < i->count()) {
 							auto n = i->findByKey(subject["id"].get<long long>());
 							if (n) {
 								b->subject(isolate, dynamic_cast<gk::Entity*>(n));
@@ -258,9 +258,9 @@ void gk::Graph<T, K, O>::sync(v8::Isolate* isolate) noexcept {
 				auto object = json["object"];
 				if (object.is_object()) {
 					auto c = this->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
-					if (c && 0 < c->size()) {
+					if (c && 0 < c->count()) {
 						auto i = c->findByKey(object["type"].get<std::string>());
-						if (i && 0 < i->size()) {
+						if (i && 0 < i->count()) {
 							auto n = i->findByKey(object["id"].get<long long>());
 							if (n) {
 								b->object(isolate, dynamic_cast<gk::Entity*>(n));
@@ -288,7 +288,7 @@ void gk::Graph<T, K, O>::sync(v8::Isolate* isolate) noexcept {
 
 template  <typename T, typename K, typename O>
 void gk::Graph<T, K, O>::cleanUp() noexcept {
-	for (auto i = this->size(); 0 < i; --i) {
+	for (auto i = this->count(); 0 < i; --i) {
 		this->select(i)->cleanUp();
 	}
 }
@@ -311,7 +311,7 @@ GK_INIT(gk::Graph<T, K, O>::Init) {
 	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_COUNT, Count);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
@@ -344,10 +344,10 @@ GK_METHOD(gk::Graph<T, K, O>::New) {
 }
 
 template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::Size) {
+GK_METHOD(gk::Graph<T, K, O>::Count) {
 	GK_SCOPE();
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	GK_RETURN(GK_NUMBER(g->size()));
+	GK_RETURN(GK_NUMBER(g->count()));
 }
 
 template <typename T, typename K, typename O>
@@ -433,10 +433,10 @@ GK_METHOD(gk::Graph<T, K, O>::Find) {
 
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
 	auto c = g->findByKey(gk::NodeClassFromInt(args[0]->IntegerValue()));
-	if (c && 0 < c->size()) {
+	if (c && 0 < c->count()) {
 		v8::String::Utf8Value type(args[1]->ToString());
 		auto i = c->findByKey(*type);
-		if (i && 0 < i->size()) {
+		if (i && 0 < i->count()) {
 			auto n = i->findByKey(args[2]->IntegerValue());
 			if (n) {
 				GK_RETURN(n->handle());
@@ -450,7 +450,7 @@ template <typename T, typename K, typename O>
 GK_INDEX_GETTER(gk::Graph<T, K, O>::IndexGetter) {
 	GK_SCOPE();
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	if (++index > g->size()) {
+	if (++index > g->count()) {
 		GK_EXCEPTION("[GraphKit Error: Index out of range.]");
 	}
 	GK_RETURN(g->select(index)->handle());
@@ -472,7 +472,7 @@ template <typename T, typename K, typename O>
 GK_INDEX_ENUMERATOR(gk::Graph<T, K, O>::IndexEnumerator) {
 	GK_SCOPE();
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto is = g->size();
+	auto is = g->count();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {
 		array->Set(j, GK_INTEGER(j));
@@ -484,7 +484,7 @@ template <typename T, typename K, typename O>
 GK_PROPERTY_GETTER(gk::Graph<T, K, O>::PropertyGetter) {
 	GK_SCOPE();
 	v8::String::Utf8Value p(property);
-	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_SIZE) &&
+	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_COUNT) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_INSERT) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_CLEAR) &&

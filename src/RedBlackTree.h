@@ -35,7 +35,7 @@ namespace gk {
 		using RBNode = gk::RedBlackNode<T, U, K, O>;
 		RBNode* nil_;
 		RBNode* root_;
-		O size_;
+		O count_;
 
 		inline void leftRotate(RBNode* x) noexcept {
 			auto y = x->right_;
@@ -280,7 +280,7 @@ namespace gk {
 				y->right_ = z;
 			}
 			insertCleanUp(z);
-			++size_;
+			++count_;
 			return z;
 		}
 
@@ -335,13 +335,13 @@ namespace gk {
 			if (!colour) {
 				removeCleanUp(x);
 			}
-			--size_;
+			--count_;
 			return z;
 		}
 
 	public:
 		RedBlackTree() noexcept
-			: nil_{new RBNode{}}, root_{nil_}, size_{} {
+			: nil_{new RBNode{}}, root_{nil_}, count_{} {
 		}
 
 		virtual ~RedBlackTree() {
@@ -397,13 +397,13 @@ namespace gk {
 		}
 
 		inline void clear() noexcept {
-			for (auto order = size_; 0 < order; --order) {
+			for (auto order = count_; 0 < order; --order) {
 				remove(node(order)->key_);
 			}
 		}
 
 		inline void clear(const DataCallback& callback) noexcept {
-			for (auto order = size_; 0 < order; --order) {
+			for (auto order = count_; 0 < order; --order) {
 				remove(node(order)->key_, callback);
 			}
 		}
@@ -412,12 +412,12 @@ namespace gk {
 			return root_ == nil_ ? nil_->data_ : internalFindByKey(key)->data_;
 		}
 
-		inline O& size() noexcept {
-			return size_;
+		inline O& count() noexcept {
+			return count_;
 		}
 
 		inline bool empty() const noexcept {
-			return 0 == size_;
+			return 0 == count_;
 		}
 
 		inline T* select(const O& order) const noexcept {
@@ -429,7 +429,7 @@ namespace gk {
 		}
 
 		inline T* back() const noexcept {
-			return select(size_);
+			return select(count_);
 		}
 
 		inline const RBNode* node(const O& order) const noexcept {

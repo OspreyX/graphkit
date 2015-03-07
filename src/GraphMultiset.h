@@ -53,7 +53,7 @@ namespace gk {
 		G* graph_;
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
-		static GK_METHOD(Size);
+		static GK_METHOD(Count);
 		static GK_METHOD(Insert);
 		static GK_METHOD(Remove);
 		static GK_METHOD(Clear);
@@ -132,7 +132,7 @@ GK_INIT(gk::GraphMultiset<G, T, O>::Init) {
 	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_COUNT, Count);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
@@ -164,10 +164,10 @@ GK_METHOD(gk::GraphMultiset<G, T, O>::New) {
 }
 
 template <typename G, typename T, typename O>
-GK_METHOD(gk::GraphMultiset<G, T, O>::Size) {
+GK_METHOD(gk::GraphMultiset<G, T, O>::Count) {
 	GK_SCOPE();
 	auto s = node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(args.Holder());
-	GK_RETURN(GK_NUMBER(s->size()));
+	GK_RETURN(GK_NUMBER(s->count()));
 }
 
 template <typename G, typename T, typename O>
@@ -252,7 +252,7 @@ template <typename G, typename T, typename O>
 GK_INDEX_GETTER(gk::GraphMultiset<G, T, O>::IndexGetter) {
 	GK_SCOPE();
 	auto i = node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(args.Holder());
-	if (++index > i->size()) {
+	if (++index > i->count()) {
 		GK_EXCEPTION("[GraphKit Error: GraphMultiset out of range.]");
 	}
 	GK_RETURN(i->select(index)->handle());
@@ -274,7 +274,7 @@ template <typename G, typename T, typename O>
 GK_INDEX_ENUMERATOR(gk::GraphMultiset<G, T, O>::IndexEnumerator) {
 	GK_SCOPE();
 	auto i = node::ObjectWrap::Unwrap<gk::GraphMultiset<G, T, O>>(args.Holder());
-	auto is = i->size();
+	auto is = i->count();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {
 		array->Set(j, GK_INTEGER(j));

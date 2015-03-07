@@ -58,7 +58,7 @@ namespace gk {
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
-		static GK_METHOD(Size);
+		static GK_METHOD(Count);
 		static GK_METHOD(Insert);
 		static GK_METHOD(Remove);
 		static GK_METHOD(Clear);
@@ -115,7 +115,7 @@ bool gk::Cluster<T, K, O>::insert(v8::Isolate* isolate, typename T::Node* node) 
 
 template  <typename T, typename K, typename O>
 void gk::Cluster<T, K, O>::cleanUp() noexcept {
-	for (auto i = this->size(); 0 < i; --i) {
+	for (auto i = this->count(); 0 < i; --i) {
 		this->select(i)->cleanUp();
 	}
 }
@@ -145,7 +145,7 @@ GK_INIT(gk::Cluster<T, K, O>::Init) {
 	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_COUNT, Count);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
@@ -178,10 +178,10 @@ GK_METHOD(gk::Cluster<T, K, O>::New) {
 }
 
 template <typename T, typename K, typename O>
-GK_METHOD(gk::Cluster<T, K, O>::Size) {
+GK_METHOD(gk::Cluster<T, K, O>::Count) {
 	GK_SCOPE();
 	auto c = node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(args.Holder());
-	GK_RETURN(GK_NUMBER(c->size()));
+	GK_RETURN(GK_NUMBER(c->count()));
 }
 
 template <typename T, typename K, typename O>
@@ -266,7 +266,7 @@ GK_METHOD(gk::Cluster<T, K, O>::Find) {
 	auto c = node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(args.Holder());
 	v8::String::Utf8Value type(args[0]->ToString());
 	auto i = c->findByKey(*type);
-	if (i && 0 < i->size()) {
+	if (i && 0 < i->count()) {
 		auto n = i->findByKey(args[1]->IntegerValue());
 		if (n) {
 			GK_RETURN(n->handle());
@@ -279,7 +279,7 @@ template <typename T, typename K, typename O>
 GK_INDEX_GETTER(gk::Cluster<T, K, O>::IndexGetter) {
 	GK_SCOPE();
 	auto i = node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(args.Holder());
-	if (++index > i->size()) {
+	if (++index > i->count()) {
 		GK_EXCEPTION("[GraphKit Error: Index out of range.]");
 	}
 	GK_RETURN(i->select(index)->handle());
@@ -301,7 +301,7 @@ template <typename T, typename K, typename O>
 GK_INDEX_ENUMERATOR(gk::Cluster<T, K, O>::IndexEnumerator) {
 	GK_SCOPE();
 	auto c = node::ObjectWrap::Unwrap<gk::Cluster<T, K, O>>(args.Holder());
-	auto is = c->size();
+	auto is = c->count();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {
 		array->Set(j, GK_INTEGER(j));
@@ -317,7 +317,7 @@ GK_PROPERTY_GETTER(gk::Cluster<T, K, O>::PropertyGetter) {
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS)) {
 		GK_RETURN(GK_INTEGER(gk::NodeClassToInt(c->nodeClass())));
 	}
-	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_SIZE) &&
+	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_COUNT) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_INSERT) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_CLEAR) &&

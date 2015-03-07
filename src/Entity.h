@@ -14,6 +14,10 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
+*
+* Entity.h
+*
+* An Entity is a Node that is analogous with a noun -- person, place, or thing.
 */
 
 #ifndef GRAPHKIT_SRC_ENTITY_H

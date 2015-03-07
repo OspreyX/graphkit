@@ -62,7 +62,7 @@ std::string gk::Entity::toJSON() noexcept {
 
 	// store properties
 	json += ",\"properties\":[";
-	for (auto i = properties()->size(); 0 < i; --i) {
+	for (auto i = properties()->count(); 0 < i; --i) {
 		auto q = properties_->node(i);
 		json += "[\"" + q->key() + "\",\"" + *q->data() + "\"]";
 		if (1 != i) {
@@ -72,7 +72,7 @@ std::string gk::Entity::toJSON() noexcept {
 
 	json += "],\"groups\":[";
 	// store groups
-	for (auto i = groups()->size(); 0 < i; --i) {
+	for (auto i = groups()->count(); 0 < i; --i) {
 		json += "\"" + *groups_->select(i) + "\"";
 		if (1 != i) {
 			json += ",";
@@ -121,8 +121,8 @@ GK_INIT(gk::Entity::Init) {
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_ADD_GROUP, AddGroup);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_HAS_GROUP, HasGroup);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE_GROUP, RemoveGroup);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_SIZE, groupSize);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_SIZE, propertySize);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_COUNT, groupCount);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_COUNT, propertyCount);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING, NodeClassToString);
 
 	constructor_.Reset(isolate, t->GetFunction());
@@ -174,8 +174,8 @@ GK_PROPERTY_GETTER(gk::Entity::PropertyGetter) {
 	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_HAS_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_SIZE) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_SIZE) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_COUNT) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_COUNT) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
 		auto v = n->properties()->findByKey(*p);
 		if (v) {
@@ -257,7 +257,7 @@ GK_PROPERTY_DELETER(gk::Entity::PropertyDeleter) {
 GK_PROPERTY_ENUMERATOR(gk::Entity::PropertyEnumerator) {
 	GK_SCOPE();
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
-	auto ps = e->properties()->size();
+	auto ps = e->properties()->count();
 
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, 4 + ps);
 	for (auto i = ps - 1; 0 <= i; --i) {

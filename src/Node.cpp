@@ -141,10 +141,10 @@ GK_METHOD(gk::Node::RemoveGroup) {
 	})));
 }
 
-GK_METHOD(gk::Node::groupSize) {
+GK_METHOD(gk::Node::groupCount) {
 	GK_SCOPE();
 	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	GK_RETURN(GK_INTEGER(n->groups()->size()));
+	GK_RETURN(GK_INTEGER(n->groups()->count()));
 }
 
 GK_METHOD(gk::Node::NodeClassToString) {
@@ -156,7 +156,7 @@ GK_METHOD(gk::Node::NodeClassToString) {
 GK_INDEX_GETTER(gk::Node::IndexGetter) {
 	GK_SCOPE();
 	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	if (++index > n->groups()->size()) {
+	if (++index > n->groups()->count()) {
 		GK_EXCEPTION("[GraphKit Error: Index out of range.]");
 	}
 	GK_RETURN(GK_STRING((*n->groups()->select(index)).c_str()));
@@ -175,7 +175,7 @@ GK_INDEX_DELETER(gk::Node::IndexDeleter) {
 GK_INDEX_ENUMERATOR(gk::Node::IndexEnumerator) {
 	GK_SCOPE();
 	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	auto gs = n->groups()->size();
+	auto gs = n->groups()->count();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, gs);
 	for (auto i = gs - 1; 0 <= i; --i) {
 		array->Set(i, GK_INTEGER(i));
@@ -183,8 +183,8 @@ GK_INDEX_ENUMERATOR(gk::Node::IndexEnumerator) {
 	GK_RETURN(array);
 }
 
-GK_METHOD(gk::Node::propertySize) {
+GK_METHOD(gk::Node::propertyCount) {
 	GK_SCOPE();
 	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	GK_RETURN(GK_INTEGER(n->properties()->size()));
+	GK_RETURN(GK_INTEGER(n->properties()->count()));
 }

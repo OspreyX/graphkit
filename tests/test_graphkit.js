@@ -14,6 +14,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program located at the root of the software package
  * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * The following is a simple
+ * recommendation engine that
+ * tests GraphKit.
+ *
+ * In this recommendation, books will be purchased
+ * and based on the books the User's friends bought
+ * it will recommend a book for that user.
  */
 
 'use strict';
@@ -35,43 +44,52 @@ let GraphMultiset = gk.GraphMultiset;
 let Set = gk.Set;
 let Multiset = gk.Multiset;
 
+// Setup our initial input graph
 let g1 = new Graph();
-//console.log(g1.Entity.User.size());
-console.log('Clear');
+
+(function() {
+	// add some books
+	let start = Date.now();
+	for (let i = 1000; 0 < i; --i) {
+		let e1 = new Entity('Book');
+		e1['title'] = 'Title ' + i;
+		g1.insert(e1);
+	}
+	console.log('Books added (%d) Time %d', g1.Entity.Book.count(),  Date.now() - start);
+})();
+
+(function() {
+	// add some users
+	let start = Date.now();
+	let males = 300;
+	for (let i = 1000; 0 < i; --i) {
+		let e1 = new Entity('User');
+		e1['name'] = 'Name ' + i;
+		g1.insert(e1);
+
+		// let's make some female and some male
+		e1.addGroup(--males ? 'male' : 'female');
+	}
+	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
+})();
+
+(function() {
+	// make users friends
+	// we can do this by
+	// giving each user a set of 10 friends randomly.
+	let users = g1.Entity.User;
+	let count = users.count();
+	let start = Date.now();
+	for (let i = count - 1; 0 <= i; --i) {
+		let user = users[i];
+		for (let j = 10; 0 < j; --j) {
+			let index = Math.floor((Math.random() * count) + 1);
+		}
+	}
+	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
+})();
+
+let g2 = new Graph();
+console.log(g2.Entity.Book.count(), g2.Entity.User.count());
+
 g1.clear();
-
-console.log('iterator');
-let start = Date.now();
-for (let i = process.argv[2] || 1; 0 < i; --i) {
-
-	let e1 = new Entity('User');
-	//console.log(e1);
-	g1.insert(e1);
-	//console.log(e1);
-
-	//let u1 = g1.find(gk.ENTITY, 'User', i) || g1.createEntity('User');
-	//u1['name'] = 'Eve';
-
-	//let u2 = g1.find(gk.ENTITY, 'User', i) || g1.createEntity('User');
-	//u2['name'] = 'Daniel';
-	//
-	//let u3 = g1.find(gk.ENTITY, 'User', i) || g1.createEntity('User');
-	//u3['name'] = 'Adam';
-	//
-	//let b1 = g1.find(gk.BOND, 'Friend', i) || g1.createBond('Friend');
-	//b1.subject = u1;
-	//b1.object = u2;
-	//
-	//let b2 = g1.find(gk.BOND, 'Friend', i) || g1.createBond('Friend');
-	//b2.subject = u3;
-	//b2.object = u2;
-	//
-	//let m1 = g1.find(gk.ENTITY, 'Message', i) || g1.createEntity('Message');
-	//m1['text'] = 'Hey, how are you?';
-	//
-	//let a1 = g1.find(gk.ACTION, 'Emailed', i) || g1.createAction('Emailed');
-	//a1.addSubject(u1);
-	//a1.addSubject(u2);
-	//a1.addObject(m1);
-}
-console.log('Basic Time %d', Date.now() - start);
