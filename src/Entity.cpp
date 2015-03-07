@@ -25,12 +25,17 @@ GK_CONSTRUCTOR(gk::Entity::constructor_);
 
 gk::Entity::Entity(const std::string&& type) noexcept
 	: gk::Node{gk::NodeClass::Entity, std::move(type)},
-	  bonds_{nullptr} {}
+	  bonds_{nullptr},
+	  actions_{nullptr} {}
 
 gk::Entity::~Entity() {
 	if (nullptr != bonds_) {
 		bonds_->cleanUp();
 		bonds_->Unref();
+	}
+	if (nullptr != actions_) {
+		actions_->cleanUp();
+		actions_->Unref();
 	}
 }
 
@@ -40,6 +45,14 @@ gk::Set<gk::Bond<gk::Entity>>* gk::Entity::bonds(v8::Isolate* isolate) noexcept 
 		bonds_->Ref();
 	}
 	return bonds_;
+}
+
+gk::Set<gk::Action<gk::Entity>>* gk::Entity::actions(v8::Isolate* isolate) noexcept {
+	if (nullptr == actions_) {
+		actions_ = gk::Set<gk::Action<gk::Entity>>::Instance(isolate);
+		actions_->Ref();
+	}
+	return actions_;
 }
 
 std::string gk::Entity::toJSON() noexcept {

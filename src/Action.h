@@ -46,7 +46,7 @@ namespace gk {
 		/**
 		* ~Action
 		* Destructor.
-		* Should never be directly unless the instance was
+		* Should never be used directly unless the instance was
 		* created using the "new" method not through the node.js
 		* environment. Reference errors in v8's garbage collection
 		* may try and release the memory and crash due to this.
@@ -131,7 +131,7 @@ namespace gk {
 		/**
 		* Instance
 		* Constructs a new Action<T> instance through the v8 engine.
-		* This should be used when creating and Action<T> instances that
+		* This should be used when creating an Action<T> instances that
 		* will exist in the node.js environment.
 		* @param		v8::Isolate* isolate
 		* @param		const char* type
@@ -194,16 +194,22 @@ namespace gk {
 	template <typename T>
 	bool gk::Action<T>::addSubject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
-		subjects(isolate)->insert(node);
-		persist();
-		return true;
+		auto result = subjects(isolate)->insert(node);
+		if (result) {
+			node->actions(isolate)->insert(this);
+			persist();
+		}
+		return result;
 	}
 
 	template <typename T>
 	bool gk::Action<T>::removeSubject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
 		auto result = subjects(isolate)->remove(node->hash());
-		persist();
+		if (result) {
+			node->actions(isolate)->remove(this->hash());
+			persist();
+		}
 		return result;
 	}
 
@@ -220,7 +226,10 @@ namespace gk {
 	bool gk::Action<T>::addObject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
 		auto result = objects(isolate)->insert(node);
-		persist();
+		if (result) {
+			node->actions(isolate)->insert(this);
+			persist();
+		}
 		return result;
 	}
 
@@ -228,7 +237,10 @@ namespace gk {
 	bool gk::Action<T>::removeObject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
 		auto result = objects(isolate)->remove(node->hash());
-		persist();
+		if (result) {
+			node->actions(isolate)->remove(this->hash());
+			persist();
+		}
 		return result;
 	}
 
