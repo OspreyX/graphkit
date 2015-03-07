@@ -31,13 +31,13 @@ gk::Node::Node(const gk::NodeClass& nodeClass, const std::string&& type) noexcep
 
 gk::Node::~Node() {
 	if (nullptr != groups_) {
-		groups_->clear([&](std::string* v) {
+		groups_->clear([](std::string* v) {
 			delete v;
 		});
 		delete groups_;
 	}
 	if (nullptr != properties_) {
-		properties_->clear([&](std::string* v) {
+		properties_->clear([](std::string* v) {
 			delete v;
 		});
 		delete properties_;
@@ -93,12 +93,14 @@ const std::string& gk::Node::hash() noexcept {
 std::string gk::Node::toJSON() noexcept {
 	return "";
 }
+
 void gk::Node::persist() noexcept {}
 
 void gk::Node::unlink() noexcept {
 	// delete the file
 	uv_fs_t unlink_req;
-	uv_fs_unlink(uv_default_loop(), &unlink_req, ("gk-data/" + hash() + ".gk").c_str(), NULL);
+	std::string dir (GK_FS_DB_DIR);
+	uv_fs_unlink(uv_default_loop(), &unlink_req, (dir + "/" + hash() + ".gk").c_str(), NULL);
 }
 
 GK_METHOD(gk::Node::AddGroup) {
@@ -139,10 +141,10 @@ GK_METHOD(gk::Node::RemoveGroup) {
 	})));
 }
 
-GK_METHOD(gk::Node::groupSize) {
+GK_METHOD(gk::Node::groupCount) {
 	GK_SCOPE();
 	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	GK_RETURN(GK_INTEGER(n->groups()->size()));
+	GK_RETURN(GK_INTEGER(n->groups()->count()));
 }
 
 GK_METHOD(gk::Node::NodeClassToString) {
@@ -154,7 +156,7 @@ GK_METHOD(gk::Node::NodeClassToString) {
 GK_INDEX_GETTER(gk::Node::IndexGetter) {
 	GK_SCOPE();
 	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	if (++index > n->groups()->size()) {
+	if (++index > n->groups()->count()) {
 		GK_EXCEPTION("[GraphKit Error: Index out of range.]");
 	}
 	GK_RETURN(GK_STRING((*n->groups()->select(index)).c_str()));
@@ -173,7 +175,7 @@ GK_INDEX_DELETER(gk::Node::IndexDeleter) {
 GK_INDEX_ENUMERATOR(gk::Node::IndexEnumerator) {
 	GK_SCOPE();
 	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	auto gs = n->groups()->size();
+	auto gs = n->groups()->count();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, gs);
 	for (auto i = gs - 1; 0 <= i; --i) {
 		array->Set(i, GK_INTEGER(i));
@@ -181,8 +183,8 @@ GK_INDEX_ENUMERATOR(gk::Node::IndexEnumerator) {
 	GK_RETURN(array);
 }
 
-GK_METHOD(gk::Node::propertySize) {
+GK_METHOD(gk::Node::propertyCount) {
 	GK_SCOPE();
 	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	GK_RETURN(GK_INTEGER(n->properties()->size()));
+	GK_RETURN(GK_INTEGER(n->properties()->count()));
 }

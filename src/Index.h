@@ -117,7 +117,7 @@ namespace gk {
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
-		static GK_METHOD(Size);
+		static GK_METHOD(Count);
 		static GK_METHOD(Insert);
 		static GK_METHOD(Remove);
 		static GK_METHOD(Clear);
@@ -143,11 +143,11 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 	  gk::RedBlackTree<T, true, K, O>{},
 	  nodeClass_{std::move(nodeClass)},
 	  type_{std::move(type)},
-	  fs_idx_{"./gk-data/" + std::to_string(gk::NodeClassToInt(nodeClass_)) + type_ + ".idx"},
+	  fs_idx_{"./" + std::string(GK_FS_DB_DIR)+ "/" + std::to_string(gk::NodeClassToInt(nodeClass_)) + type_ + ".idx"},
 	  fs_iov_(uv_buf_init(fs_buf_, sizeof(fs_buf_))) {
 
 		// file writing
-		uv_fs_open(uv_default_loop(), &open_req_, fs_idx_.c_str(), O_CREAT | O_RDWR, 0644, NULL);
+		uv_fs_open(uv_default_loop(), &open_req_, fs_idx_.c_str(), O_CREAT | O_RDWR, S_IRWXU, NULL);
 		uv_fs_read(uv_default_loop(), &read_req_, open_req_.result, &fs_iov_, 1, -1, NULL);
 		ids_ = atol(fs_iov_.base);
 		if (!ids_) {
@@ -157,7 +157,9 @@ gk::Index<T, K, O>::Index(const gk::NodeClass& nodeClass, const std::string& typ
 
 template <typename T, typename K, typename O>
 gk::Index<T, K, O>::~Index() {
-	cleanUp();
+	this->clear([](T* n) {
+		n->Unref();
+	});
 
 	uv_fs_t close_req;
 	uv_fs_close(uv_default_loop(), &close_req, open_req_.result, NULL);
@@ -190,7 +192,7 @@ bool gk::Index<T, K, O>::insert(T* node) noexcept {
 	if (0 == node->id()) {
 		node->id(incrementID());
 	}
-	return gk::RedBlackTree<T, true, K, O>::insert(node->id(), node, [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::insert(node->id(), node, [](T* n) {
 		n->Ref();
 
 		// Persist the Node, this test is for when the Graph initially loads the persisted data
@@ -207,25 +209,25 @@ bool gk::Index<T, K, O>::remove(T* node) noexcept {
 	if (!node->indexed()) {
 		return false;
 	}
-	return gk::RedBlackTree<T, true, K, O>::remove(node->id(), [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::remove(node->id(), [](T* n) {
 		n->indexed(false);
-		n->Unref();
 		n->unlink();
+		n->Unref();
 	});
 }
 
 template  <typename T, typename K, typename O>
 bool gk::Index<T, K, O>::remove(const int k) noexcept {
-	return gk::RedBlackTree<T, true, K, O>::remove(k, [&](T* n) {
+	return gk::RedBlackTree<T, true, K, O>::remove(k, [](T* n) {
 		n->indexed(false);
-		n->Unref();
 		n->unlink();
+		n->Unref();
 	});
 }
 
 template  <typename T, typename K, typename O>
 void gk::Index<T, K, O>::cleanUp() noexcept {
-	for (auto i = this->size(); 0 < i; --i) {
+	for (auto i = this->count(); 0 < i; --i) {
 		remove(this->select(i));
 	}
 }
@@ -255,7 +257,7 @@ GK_INIT(gk::Index<T, K, O>::Init) {
 	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_SIZE, Size);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_COUNT, Count);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
@@ -293,10 +295,10 @@ GK_METHOD(gk::Index<T, K, O>::New) {
 }
 
 template <typename T, typename K, typename O>
-GK_METHOD(gk::Index<T, K, O>::Size) {
+GK_METHOD(gk::Index<T, K, O>::Count) {
 	GK_SCOPE();
 	auto i = node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(args.Holder());
-	GK_RETURN(GK_NUMBER(i->size()));
+	GK_RETURN(GK_NUMBER(i->count()));
 }
 
 template <typename T, typename K, typename O>
@@ -371,7 +373,7 @@ GK_METHOD(gk::Index<T, K, O>::Find) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
 	auto i = node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(args.Holder());
-	if (0 < i->size()) {
+	if (0 < i->count()) {
 		auto n = i->findByKey(args[0]->IntegerValue());
 		if (n) {
 			GK_RETURN(n->handle());
@@ -384,7 +386,7 @@ template <typename T, typename K, typename O>
 GK_INDEX_GETTER(gk::Index<T, K, O>::IndexGetter) {
 	GK_SCOPE();
 	auto i = node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(args.Holder());
-	if (++index > i->size()) {
+	if (++index > i->count()) {
 		GK_EXCEPTION("[GraphKit Error: Index out of range.]");
 	}
 	GK_RETURN(i->select(index)->handle());
@@ -406,7 +408,7 @@ template <typename T, typename K, typename O>
 GK_INDEX_ENUMERATOR(gk::Index<T, K, O>::IndexEnumerator) {
 	GK_SCOPE();
 	auto i = node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(args.Holder());
-	auto is = i->size();
+	auto is = i->count();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {
 		array->Set(j, GK_INTEGER(j));
@@ -443,7 +445,7 @@ template <typename T, typename K, typename O>
 GK_PROPERTY_ENUMERATOR(gk::Index<T, K, O>::PropertyEnumerator) {
 	GK_SCOPE();
 	auto i = node::ObjectWrap::Unwrap<gk::Index<T, K, O>>(args.Holder());
-	auto is = i->size();
+	auto is = i->count();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {
 		auto node = i->node(j + 1);

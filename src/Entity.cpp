@@ -25,12 +25,17 @@ GK_CONSTRUCTOR(gk::Entity::constructor_);
 
 gk::Entity::Entity(const std::string&& type) noexcept
 	: gk::Node{gk::NodeClass::Entity, std::move(type)},
-	  bonds_{nullptr} {}
+	  bonds_{nullptr},
+	  actions_{nullptr} {}
 
 gk::Entity::~Entity() {
 	if (nullptr != bonds_) {
 		bonds_->cleanUp();
 		bonds_->Unref();
+	}
+	if (nullptr != actions_) {
+		actions_->cleanUp();
+		actions_->Unref();
 	}
 }
 
@@ -42,6 +47,14 @@ gk::Set<gk::Bond<gk::Entity>>* gk::Entity::bonds(v8::Isolate* isolate) noexcept 
 	return bonds_;
 }
 
+gk::Set<gk::Action<gk::Entity>>* gk::Entity::actions(v8::Isolate* isolate) noexcept {
+	if (nullptr == actions_) {
+		actions_ = gk::Set<gk::Action<gk::Entity>>::Instance(isolate);
+		actions_->Ref();
+	}
+	return actions_;
+}
+
 std::string gk::Entity::toJSON() noexcept {
 	std::string json = "{\"id\":" + std::to_string(id()) +
 		",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(nodeClass())) +
@@ -49,7 +62,7 @@ std::string gk::Entity::toJSON() noexcept {
 
 	// store properties
 	json += ",\"properties\":[";
-	for (auto i = properties()->size(); 0 < i; --i) {
+	for (auto i = properties()->count(); 0 < i; --i) {
 		auto q = properties_->node(i);
 		json += "[\"" + q->key() + "\",\"" + *q->data() + "\"]";
 		if (1 != i) {
@@ -59,7 +72,7 @@ std::string gk::Entity::toJSON() noexcept {
 
 	json += "],\"groups\":[";
 	// store groups
-	for (auto i = groups()->size(); 0 < i; --i) {
+	for (auto i = groups()->count(); 0 < i; --i) {
 		json += "\"" + *groups_->select(i) + "\"";
 		if (1 != i) {
 			json += ",";
@@ -71,8 +84,9 @@ std::string gk::Entity::toJSON() noexcept {
 
 void gk::Entity::persist() noexcept {
 	if (indexed()) {
+		std::string dir (GK_FS_DB_DIR);
 		uv_fs_t open_req;
-		uv_fs_open(uv_default_loop(), &open_req, ("./gk-data/" + hash() + ".gk").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+		uv_fs_open(uv_default_loop(), &open_req, ("./" + dir + "/" + hash() + ".gk").c_str(), O_CREAT | O_RDWR, S_IRWXU, NULL);
 		std::string json = toJSON();
 		int len = json.length() + 1;
 		char buf[4096];
@@ -107,8 +121,8 @@ GK_INIT(gk::Entity::Init) {
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_ADD_GROUP, AddGroup);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_HAS_GROUP, HasGroup);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE_GROUP, RemoveGroup);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_SIZE, groupSize);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_SIZE, propertySize);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_COUNT, groupCount);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_COUNT, propertyCount);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING, NodeClassToString);
 
 	constructor_.Reset(isolate, t->GetFunction());
@@ -157,11 +171,14 @@ GK_PROPERTY_GETTER(gk::Entity::PropertyGetter) {
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_BONDS)) {
 		GK_RETURN(n->bonds(isolate)->handle());
 	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ACTIONS)) {
+		GK_RETURN(n->actions(isolate)->handle());
+	}
 	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_HAS_GROUP) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_SIZE) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_SIZE) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_COUNT) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_COUNT) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
 		auto v = n->properties()->findByKey(*p);
 		if (v) {
@@ -198,10 +215,13 @@ GK_PROPERTY_SETTER(gk::Entity::PropertySetter) {
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_BONDS)) {
 		GK_EXCEPTION("[GraphKit Error: Cannot set bonds property.]");
 	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ACTIONS)) {
+		GK_EXCEPTION("[GraphKit Error: Cannot set actions property.]");
+	}
 
 	v8::String::Utf8Value v(value);
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
-	e->properties()->remove(*p, [&](std::string* v) {
+	e->properties()->remove(*p, [](std::string* v) {
 		delete v;
 	});
 	auto result = e->properties()->insert(*p, new std::string{*v});
@@ -232,6 +252,9 @@ GK_PROPERTY_DELETER(gk::Entity::PropertyDeleter) {
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_BONDS)) {
 		GK_EXCEPTION("[GraphKit Error: Cannot delete bonds property.]");
 	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_ACTIONS)) {
+		GK_EXCEPTION("[GraphKit Error: Cannot delete actions property.]");
+	}
 
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
 	GK_RETURN(GK_BOOLEAN(e->properties()->remove(*p, [&](std::string* v) {
@@ -243,7 +266,7 @@ GK_PROPERTY_DELETER(gk::Entity::PropertyDeleter) {
 GK_PROPERTY_ENUMERATOR(gk::Entity::PropertyEnumerator) {
 	GK_SCOPE();
 	auto e = node::ObjectWrap::Unwrap<gk::Entity>(args.Holder());
-	auto ps = e->properties()->size();
+	auto ps = e->properties()->count();
 
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, 4 + ps);
 	for (auto i = ps - 1; 0 <= i; --i) {

@@ -14,6 +14,10 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
+*
+* Bond.h
+*
+* A relationship Node that connects a Subject template type T Node to an Object template type T Node.
 */
 
 #ifndef GRAPHKIT_SRC_BOND_H
@@ -28,13 +32,37 @@ namespace gk {
 	template <typename T>
 	class Bond : public gk::Node {
 	public:
+
+		/**
+		* Bond
+		* Constructor.
+		* An explicit constructor that accepts a type value.
+		*/
 		explicit Bond(const std::string&& type) noexcept;
+
+		/**
+		* ~Bond
+		* Destructor.
+		* Should never be used directly unless the instance was
+		* created using the "new" method not through the node.js
+		* environment. Reference errors in v8's garbage collection
+		* may try and release the memory and crash due to this.
+		*/
 		virtual ~Bond();
+
+		/**
+		* Default declarations.
+		*/
 		Bond(const Bond& other) = default;
 		Bond& operator= (const Bond&) = default;
 		Bond(Bond&& other) = default;
 		Bond& operator= (Bond&&) = default;
 
+		/**
+		* subject
+		* Retrieves the Subject template type T Node.
+		* @return
+		*/
 		T* subject() const noexcept;
 		bool subject(v8::Isolate* isolate, T* node) noexcept;
 		bool removeSubject() noexcept;
@@ -90,6 +118,7 @@ namespace gk {
 	template <typename T>
 	bool gk::Bond<T>::subject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
+		assert(this->indexed());
 		removeSubject();
 		subject_ = node;
 		subject_->Ref();
@@ -118,6 +147,7 @@ namespace gk {
 	template <typename T>
 	bool gk::Bond<T>::object(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
+		assert(this->indexed());
 		removeObject();
 		object_ = node;
 		object_->Ref();
@@ -146,7 +176,7 @@ namespace gk {
 
 		// store properties
 		json += ",\"properties\":[";
-		for (auto i = properties()->size(); 0 < i; --i) {
+		for (auto i = properties()->count(); 0 < i; --i) {
 			auto q = properties_->node(i);
 			json += "[\"" + q->key() + "\",\"" + *q->data() + "\"]";
 			if (1 != i) {
@@ -156,7 +186,7 @@ namespace gk {
 
 		json += "],\"groups\":[";
 		// store groups
-		for (auto i = groups()->size(); 0 < i; --i) {
+		for (auto i = groups()->count(); 0 < i; --i) {
 			json += "\"" + *groups_->select(i) + "\"";
 			if (1 != i) {
 				json += ",";
@@ -179,8 +209,9 @@ namespace gk {
 	template <typename T>
 	void gk::Bond<T>::persist() noexcept {
 		if (indexed()) {
+			std::string dir (GK_FS_DB_DIR);
 			uv_fs_t open_req;
-			uv_fs_open(uv_default_loop(), &open_req, ("./gk-data/" + hash() + ".gk").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+			uv_fs_open(uv_default_loop(), &open_req, ("./" + dir + "/" + hash() + ".gk").c_str(), O_CREAT | O_RDWR, S_IRWXU, NULL);
 			std::string json = toJSON();
 			int len = json.length() + 1;
 			char buf[len];
@@ -217,8 +248,8 @@ namespace gk {
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_ADD_GROUP, AddGroup);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_HAS_GROUP, HasGroup);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE_GROUP, RemoveGroup);
-		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_SIZE, groupSize);
-		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_SIZE, propertySize);
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_COUNT, groupCount);
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_COUNT, propertyCount);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING, NodeClassToString);
 	
 		constructor_.Reset(isolate, t->GetFunction());
@@ -281,8 +312,8 @@ namespace gk {
 		if (0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_GROUP) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_HAS_GROUP) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
-			0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_SIZE) &&
-			0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_SIZE) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_COUNT) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_COUNT) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
 			auto v = n->properties()->findByKey(*p);
 			if (v) {
@@ -321,25 +352,35 @@ namespace gk {
 
 		auto b = node::ObjectWrap::Unwrap<gk::Bond<T>>(args.Holder());
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_SUBJECT)) {
+
+			// the bond must be indexed
+			if (!b->indexed()) {
+				GK_EXCEPTION("[GraphKit Error: Bond must be indexed prior to setting the subject property.]");
+			}
+
 			if (value->IsObject()) {
 				auto n = node::ObjectWrap::Unwrap<T>(value->ToObject());
 				if (gk::NodeClass::Entity == n->nodeClass()) {
 					if (b->subject(isolate, n)) {
 						GK_RETURN(n->handle());
 					}
-					GK_EXCEPTION("[GraphKit Error: Bond must be indexed prior to setting subject property.]");
 				}
 			}
 			GK_EXCEPTION("[GraphKit Error: Expecting Entity instance.]");
 		}
 		if (0 == strcmp(*p, GK_SYMBOL_OPERATION_OBJECT)) {
+
+			// the bond must be indexed
+			if (!b->indexed()) {
+				GK_EXCEPTION("[GraphKit Error: Bond must be indexed prior to setting the object property.]");
+			}
+
 			if (value->IsObject()) {
 				auto n = node::ObjectWrap::Unwrap<T>(value->ToObject());
 				if (gk::NodeClass::Entity == n->nodeClass()) {
 					if (b->object(isolate, n)) {
 						GK_RETURN(n->handle());
 					}
-					GK_EXCEPTION("[GraphKit Error: Bond must be indexed prior to setting object property.]");
 				}
 			}
 			GK_EXCEPTION("[GraphKit Error: Expecting Entity instance.]");
@@ -347,7 +388,7 @@ namespace gk {
 
 		v8::String::Utf8Value v(value);
 		auto prop = std::string{*p};
-		b->properties()->remove(prop, [&](std::string* v) {
+		b->properties()->remove(prop, [](std::string* v) {
 			delete v;
 		});
 		auto result = b->properties()->insert(prop, new std::string{*v});
@@ -404,7 +445,7 @@ namespace gk {
 	GK_PROPERTY_ENUMERATOR(gk::Bond<T>::PropertyEnumerator) {
 		GK_SCOPE();
 		auto b = node::ObjectWrap::Unwrap<gk::Bond<T>>(args.Holder());
-		auto ps = b->properties()->size();
+		auto ps = b->properties()->count();
 		v8::Handle<v8::Array> array = v8::Array::New(isolate, 6 + ps);
 
 		// iterate through the properties

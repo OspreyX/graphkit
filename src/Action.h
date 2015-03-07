@@ -14,6 +14,10 @@
 * You should have received a copy of the GNU Affero General Public License
 * along with this program located at the root of the software package
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
+*
+* Action.h
+*
+* A relationship Node used to connect a Set of Subject template type T Nodes to a Set of Object template type T Nodes.
 */
 
 #ifndef GRAPHKIT_SRC_ACTION_H
@@ -31,25 +35,114 @@ namespace gk {
 	template <typename T>
 	class Action : public gk::Node {
 	public:
+
+		/**
+		* Action
+		* Constructor.
+		* An explicit constructor that accepts a type value.
+		*/
 		explicit Action(const std::string&& type) noexcept;
+
+		/**
+		* ~Action
+		* Destructor.
+		* Should never be used directly unless the instance was
+		* created using the "new" method not through the node.js
+		* environment. Reference errors in v8's garbage collection
+		* may try and release the memory and crash due to this.
+		*/
 		virtual ~Action();
+
+		/**
+		* Default declarations.
+		*/
 		Action(const Action& other) = default;
 		Action& operator= (const Action&) = default;
 		Action(Action&& other) = default;
 		Action& operator= (Action&&) = default;
 
+		/**
+		* subjects
+		* Retrieves the Subjects Set of template type T Nodes.
+		* @param		v8:Isolate* isolate
+		* @return		gk::Set<T>*
+		*/
 		gk::Set<T>* subjects(v8::Isolate* isolate) noexcept;
+
+		/**
+		* addSubject
+		* Adds a Node of template type T to the Subjects Set.
+		* @param		v8::Isolate* isolate
+		* @param		T* node
+		* @return		bool value of the result. If added, true, false otherwise.
+		*/
 		bool addSubject(v8::Isolate* isolate, T* node) noexcept;
+
+		/**
+		* removeSubject
+		* Removes a Node of template type T from the Subjects Set.
+		* @param		v8::Isolate* isolate
+		* @param		T* node
+		* @return		bool value of the result. If removed, true, false otherwise.
+		*/
 		bool removeSubject(v8::Isolate* isolate, T* node) noexcept;
 
+		/**
+		* objects
+		* Retrieves the Objects Set of template type T Nodes.
+		* @param		v8:Isolate* isolate
+		* @return		gk::Set<T>*
+		*/
 		gk::Set<T>* objects(v8::Isolate* isolate) noexcept;
+
+
+		/**
+		* addObject
+		* Adds a Node of template type T to the Objects Set.
+		* @param		v8::Isolate* isolate
+		* @param		T* node
+		* @return		bool value of the result. If added, true, false otherwise.
+		*/
 		bool addObject(v8::Isolate* isolate, T* node) noexcept;
+
+
+		/**
+		* removeObject
+		* Removes a Node of template type T from the Objects Set.
+		* @param		v8::Isolate* isolate
+		* @param		T* node
+		* @return		bool value of the result. If removed, true, false otherwise.
+		*/
 		bool removeObject(v8::Isolate* isolate, T* node) noexcept;
 
+		/**
+		* toJSON
+		* Outputs a JSON string of the Action<T> instance.
+		* @return		std::string
+		*/
 		virtual std::string toJSON() noexcept;
+
+		/**
+		* persist
+		* Saves the Action<T> instance to disk.
+		*/
 		virtual void persist() noexcept;
 
+		/**
+		* Instance
+		* Constructs a new Action<T> instance through the v8 engine.
+		* This should be used when creating an Action<T> instances that
+		* will exist in the node.js environment.
+		* @param		v8::Isolate* isolate
+		* @param		const char* type
+		* @return		An instance of the Action<T> Node Class.
+		*/
 		static Action<T>* Instance(v8::Isolate* isolate, const char* type) noexcept;
+
+		/**
+		* Init
+		* Initializes the Class as an export Object in the node.js environment.
+		*/
 		static GK_INIT(Init);
 
 	protected:
@@ -58,6 +151,12 @@ namespace gk {
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
+
+		/**
+		* AddSubject
+		* Adds a Node of template type T. The Action must be indexed prior to adding
+		* the Node.
+		*/
 		static GK_METHOD(AddSubject);
 		static GK_METHOD(RemoveSubject);
 		static GK_METHOD(AddObject);
@@ -101,16 +200,23 @@ namespace gk {
 	template <typename T>
 	bool gk::Action<T>::addSubject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
-		subjects(isolate)->insert(node);
-		persist();
-		return true;
+		assert(this->indexed());
+		auto result = subjects(isolate)->insert(node);
+		if (result) {
+			node->actions(isolate)->insert(this);
+			persist();
+		}
+		return result;
 	}
 
 	template <typename T>
 	bool gk::Action<T>::removeSubject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
 		auto result = subjects(isolate)->remove(node->hash());
-		persist();
+		if (result) {
+			node->actions(isolate)->remove(this->hash());
+			persist();
+		}
 		return result;
 	}
 
@@ -126,8 +232,12 @@ namespace gk {
 	template <typename T>
 	bool gk::Action<T>::addObject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
+		assert(this->indexed());
 		auto result = objects(isolate)->insert(node);
-		persist();
+		if (result) {
+			node->actions(isolate)->insert(this);
+			persist();
+		}
 		return result;
 	}
 
@@ -135,7 +245,10 @@ namespace gk {
 	bool gk::Action<T>::removeObject(v8::Isolate* isolate, T* node) noexcept {
 		assert(node);
 		auto result = objects(isolate)->remove(node->hash());
-		persist();
+		if (result) {
+			node->actions(isolate)->remove(this->hash());
+			persist();
+		}
 		return result;
 	}
 
@@ -147,7 +260,7 @@ namespace gk {
 
 		// store properties
 		json += ",\"properties\":[";
-		for (auto i = properties()->size(); 0 < i; --i) {
+		for (auto i = properties()->count(); 0 < i; --i) {
 			auto q = properties_->node(i);
 			json += "[\"" + q->key() + "\",\"" + *q->data() + "\"]";
 			if (1 != i) {
@@ -157,7 +270,7 @@ namespace gk {
 
 		json += "],\"groups\":[";
 		// store groups
-		for (auto i = groups()->size(); 0 < i; --i) {
+		for (auto i = groups()->count(); 0 < i; --i) {
 			json += "\"" + *groups_->select(i) + "\"";
 			if (1 != i) {
 				json += ",";
@@ -166,7 +279,7 @@ namespace gk {
 
 		json += "],\"subjects\":[";
 		if (nullptr != subjects_) {
-			for (auto i = subjects_->size(); 0 < i; --i) {
+			for (auto i = subjects_->count(); 0 < i; --i) {
 				auto subject = subjects_->select(i);
 				json += "{\"id\":" + std::to_string(subject->id()) + ",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(subject->nodeClass())) + ",\"type\":\"" + subject->type() + "\"}";
 				if (1 != i) {
@@ -177,7 +290,7 @@ namespace gk {
 
 		json += "],\"objects\":[";
 		if (nullptr != objects_) {
-			for (auto i = objects_->size(); 0 < i; --i) {
+			for (auto i = objects_->count(); 0 < i; --i) {
 				auto object = objects_->select(i);
 				json += "{\"id\":" + std::to_string(object->id()) + ",\"nodeClass\":" + std::to_string(gk::NodeClassToInt(object->nodeClass())) + ",\"type\":\"" + object->type() + "\"}";
 				if (1 != i) {
@@ -193,8 +306,9 @@ namespace gk {
 	template <typename T>
 	void gk::Action<T>::persist() noexcept {
 		if (indexed()) {
+			std::string dir (GK_FS_DB_DIR);
 			uv_fs_t open_req;
-			uv_fs_open(uv_default_loop(), &open_req, ("./gk-data/" + hash() + ".gk").c_str(), O_CREAT | O_RDWR, 0644, NULL);
+			uv_fs_open(uv_default_loop(), &open_req, ("./" + dir + "/" + hash() + ".gk").c_str(), O_CREAT | O_RDWR, S_IRWXU, NULL);
 			std::string json = toJSON();
 			int len = json.length() + 1;
 			char buf[len];
@@ -207,7 +321,7 @@ namespace gk {
 			uv_fs_req_cleanup(&open_req);
 			uv_fs_req_cleanup(&write_req);
 			uv_fs_req_cleanup(&close_req);
-		}
+		};
 	}
 
 	template <typename T>
@@ -235,8 +349,8 @@ namespace gk {
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_ADD_GROUP, AddGroup);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_HAS_GROUP, HasGroup);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE_GROUP, RemoveGroup);
-		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_SIZE, groupSize);
-		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_SIZE, propertySize);
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP_COUNT, groupCount);
+		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_PROPERTY_COUNT, propertyCount);
 		NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING, NodeClassToString);
 
 		constructor_.Reset(isolate, t->GetFunction());
@@ -268,6 +382,13 @@ namespace gk {
 	GK_METHOD(gk::Action<T>::AddSubject) {
 		GK_SCOPE();
 		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+
+		// the action must be indexed
+		if (!a->indexed()) {
+			GK_EXCEPTION("[GraphKit Error: Action must be indexed prior to adding a subject.]");
+		}
+
+
 		if (args[0]->IsObject()) {
 			auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
 			if (gk::NodeClass::Entity == n->nodeClass()) {
@@ -294,6 +415,12 @@ namespace gk {
 	GK_METHOD(gk::Action<T>::AddObject) {
 		GK_SCOPE();
 		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
+
+		// the action must be indexed
+		if (!a->indexed()) {
+			GK_EXCEPTION("[GraphKit Error: Action must be indexed prior to adding an object.]");
+		}
+
 		if (args[0]->IsObject()) {
 			auto n = node::ObjectWrap::Unwrap<T>(args[0]->ToObject());
 			if (gk::NodeClass::Entity == n->nodeClass()) {
@@ -349,8 +476,8 @@ namespace gk {
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_ADD_GROUP) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_HAS_GROUP) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE_GROUP) &&
-			0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_SIZE) &&
-			0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_SIZE) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_GROUP_COUNT) &&
+			0 != strcmp(*p, GK_SYMBOL_OPERATION_PROPERTY_COUNT) &&
 			0 != strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS_TO_STRING)) {
 			auto v = n->properties()->findByKey(*p);
 			if (v) {
@@ -394,7 +521,7 @@ namespace gk {
 
 		v8::String::Utf8Value v(value);
 		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
-		a->properties()->remove(*p, [&](std::string* v) {
+		a->properties()->remove(*p, [](std::string* v) {
 			delete v;
 		});
 		auto result = a->properties()->insert(*p, new std::string{*v});
@@ -441,7 +568,7 @@ namespace gk {
 	GK_PROPERTY_ENUMERATOR(gk::Action<T>::PropertyEnumerator) {
 		GK_SCOPE();
 		auto a = node::ObjectWrap::Unwrap<gk::Action<T>>(args.Holder());
-		auto ps = a->properties()->size();
+		auto ps = a->properties()->count();
 		v8::Handle<v8::Array> array = v8::Array::New(isolate, 6 + ps);
 
 		// iterate through the properties
