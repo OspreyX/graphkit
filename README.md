@@ -1,7 +1,7 @@
 
 #GraphKit  
 
-a Wonderful Graph Data Store for Node.js
+A Wonderful Graph Data Store for Node.js.
 
 ##Installation
 

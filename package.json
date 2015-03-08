@@ -5,7 +5,7 @@
     "name": "Daniel Dahan",
     "email": "daniel@graphkit.io"
   },
-  "version": "0.1.8-rc20150307-1",
+  "version": "0.1.8-rc20150307-2",
   "license": [
     {
       "type": "AGPLv3",
@@ -19,7 +19,7 @@
     "type": "git",
     "url": "https://github.com/GraphKit/graphkit.git"
   },
-  "description": "a Wonderful Graph Data Store for Node.js",
+  "description": "A Wonderful Graph Data Store for Node.js.",
   "keywords": [
     "graph",
     "machine learning",
