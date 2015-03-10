@@ -22,4 +22,28 @@
 // classes
 #define GK_FS_DB_DIR					"gk.db"
 
+namespace gk {
+	class Storage {
+		/**
+		* Storage
+		* Constructor.
+		*/
+		Storage() noexcept;
+
+		/**
+		* ~Storage
+		* Destructor.
+		*/
+		virtual ~Storage();
+
+		/**
+		* Default declarations.
+		*/
+		Storage(const Storage& other) = default;
+		Storage& operator= (const Storage&) = default;
+		Storage(Storage&& other) = default;
+		Storage& operator= (Storage&&) = default;
+	};
+}
+
 #endif

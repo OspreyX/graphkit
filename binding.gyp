@@ -2,7 +2,7 @@
 	"targets": [
 		{
 			"target_name": "graphkit",
-			"cflags_cc!": ["-fno-rtti", "-fno-exceptions"],
+			"cflags_cc": ["-frtti", "-fexceptions"],
 			"cflags": ["-std=c++11", "-O3", "-Wall"],
 			"include_dirs" : [
 				"./src"
@@ -12,7 +12,8 @@
 				"./src/GraphKit.cpp",
 				"./src/Export.cpp",
 				"./src/Node.cpp",
-				"./src/Entity.cpp"
+				"./src/Entity.cpp",
+				"./src/Storage.cpp"
 			],
 			"conditions": [
 				["OS=='mac'", {
