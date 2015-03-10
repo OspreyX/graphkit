@@ -52,9 +52,9 @@ g1.clear();
 	// add some books
 	let start = Date.now();
 	for (let i = 1000; 0 < i; --i) {
-		let e1 = new Entity('Book');
-		e1['title'] = 'Title ' + i;
-		g1.insert(e1);
+		let user = new Entity('Book');
+		user['title'] = 'Title ' + i;
+		g1.insert(user);
 	}
 	console.log('Books added (%d) Time %d', g1.Entity.Book.count(),  Date.now() - start);
 })();
@@ -64,12 +64,12 @@ g1.clear();
 	let start = Date.now();
 	let males = 300;
 	for (let i = 1000; 0 < i; --i) {
-		let e1 = new Entity('User');
-		e1['name'] = 'Name ' + i;
-		g1.insert(e1);
+		let user = new Entity('User');
+		user['name'] = 'Name ' + i;
+		g1.insert(user);
 
 		// let's make some female and some male
-		e1.addGroup(--males ? 'male' : 'female');
+		user.addGroup(--males ? 'male' : 'female');
 	}
 	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
 })();
@@ -85,11 +85,36 @@ g1.clear();
 		let user = users[i];
 		for (let j = 10; 0 < j; --j) {
 			let index = Math.floor((Math.random() * count));
-			let b1 = new Bond('Friend');
-			g1.insert(b1);
-			b1.subject = user;
-			b1.object = users[index];
+			let friend = new Bond('Friend');
+			g1.insert(friend);
+			friend.subject = user;
+			friend.object = users[index];
 		}
 	}
 	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
+})();
+
+(function() {
+	// set the user to have read many books
+	// in a single action call
+	let users = g1.Entity.User;
+	let books = g1.Entity.Book;
+	let start = Date.now();
+	for (let i = users.count() - 1; 0 <= i; --i) {
+		let user = users[i];
+		for (let j = 10; 0 < j; --j) {
+			let index = Math.floor((Math.random() * books.count()));
+			let read = new Action('Read');
+			g1.insert(read);
+			read.addSubject(user);
+			read.addObject(books[index]);
+			if (user.actions.find(read.nodeClass, read.type, read.id) != read) {
+				console.log('Action addSubject(user) test failed.');
+			}
+			if (read.subjects.find(user.nodeClass, user.type, user.id) != user) {
+				console.log('Action subjects test failed.');
+			}
+		}
+	}
+	console.log('Actions added (%d) Time %d', g1.Action.Read.count(), Date.now() - start);
 })();

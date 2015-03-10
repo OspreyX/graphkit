@@ -92,7 +92,6 @@ namespace gk {
 		*/
 		virtual void persist() noexcept;
 
-
 		/**
 		* Instance
 		* Constructs a new Entity instance through the v8 engine.
@@ -103,7 +102,6 @@ namespace gk {
 		* @return		An instance of the Entity Node Class.
 		*/
 		static Entity* Instance(v8::Isolate* isolate, const char* type) noexcept;
-
 
 		/**
 		* Init

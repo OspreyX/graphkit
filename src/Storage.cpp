@@ -16,34 +16,8 @@
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GRAPHKIT_SRC_STORAGE_H
-#define GRAPHKIT_SRC_STORAGE_H
+#include "Storage.h"
 
-// classes
-#define GK_FS_DB_DIR					"gk.db"
+gk::Storage::Storage() noexcept {}
 
-namespace gk {
-	class Storage {
-		/**
-		* Storage
-		* Constructor.
-		*/
-		Storage() noexcept;
-
-		/**
-		* ~Storage
-		* Destructor.
-		*/
-		virtual ~Storage();
-
-		/**
-		* Default declarations.
-		*/
-		Storage(const Storage& other) = default;
-		Storage& operator= (const Storage&) = default;
-		Storage(Storage&& other) = default;
-		Storage& operator= (Storage&&) = default;
-	};
-}
-
-#endif
+gk::Storage::~Storage() {}
