@@ -19,6 +19,7 @@
 #ifndef GRAPHKIT_SRC_NODE_H
 #define GRAPHKIT_SRC_NODE_H
 
+#include <memory>
 #include <string>
 #include "exports.h"
 #include "NodeClass.h"
