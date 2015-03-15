@@ -25,14 +25,15 @@
 #include "Bond.h"
 
 bool gk::Coordinator::synched_ = false;
-std::shared_ptr<gk::Coordinator::Tree> gk::Coordinator::nodeGraph_;
+std::shared_ptr<gk::Coordinator::NodeGraph> gk::Coordinator::nodeGraph_;
+std::shared_ptr<gk::Coordinator::GroupGraph> gk::Coordinator::groupGraph_;
 
 gk::Coordinator::Coordinator() noexcept {}
 
 gk::Coordinator::~Coordinator() {
 	if (1 == nodeGraph_.use_count()) {
 		// cleanup when the last instance
-		nodeGraph_->clear([](gk::Coordinator::Cluster *cluster) {
+		nodeGraph_->clear([](Cluster* cluster) {
 			cluster->cleanUp();
 			cluster->Unref();
 		});
@@ -41,13 +42,29 @@ gk::Coordinator::~Coordinator() {
 		// no longer synched
 		synched_ = false;
 	}
+
+	if (1 == groupGraph_.use_count()) {
+		// cleanup when the last instance
+		groupGraph_->clear([](gk::Set* set) {
+			set->cleanUp();
+			set->Unref();
+		});
+		groupGraph_.reset();
+	}
 }
 
-std::shared_ptr<gk::Coordinator::Tree> gk::Coordinator::nodeGraph() noexcept {
+std::shared_ptr<gk::Coordinator::NodeGraph> gk::Coordinator::nodeGraph() noexcept {
 	if (0 == nodeGraph_.use_count()) {
-		nodeGraph_ = std::make_shared<Tree>();
+		nodeGraph_ = std::make_shared<NodeGraph>();
 	}
 	return nodeGraph_;
+}
+
+std::shared_ptr<gk::Coordinator::GroupGraph> gk::Coordinator::groupGraph() noexcept {
+	if (0 == groupGraph_.use_count()) {
+		groupGraph_ = std::make_shared<GroupGraph>();
+	}
+	return groupGraph_;
 }
 
 void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
@@ -100,12 +117,13 @@ void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
 					auto entity = gk::Entity::Instance(isolate, json["type"].get<std::string>().c_str());
 					entity->id(json["id"].get<long long>());
 					entity->indexed(true);
-					insert(isolate, entity);
+					insertNode(isolate, entity);
 
 					// groups
 					for (auto name : json["groups"]) {
 						std::string *v = new std::string(name.get<std::string>());
 						entity->groups()->insert(*v, v);
+						insertGroup(isolate, *v, entity);
 					}
 
 					// properties
@@ -118,12 +136,13 @@ void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
 					auto action = gk::Action<gk::Entity>::Instance(isolate, json["type"].get<std::string>().c_str());
 					action->id(json["id"].get<long long>());
 					action->indexed(true);
-					insert(isolate, action);
+					insertNode(isolate, action);
 
 					// groups
 					for (auto name : json["groups"]) {
 						std::string* v = new std::string(name.get<std::string>());
 						action->groups()->insert(*v, v);
+						insertGroup(isolate, *v, action);
 					}
 
 					// properties
@@ -166,12 +185,13 @@ void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
 					auto bond = gk::Bond<gk::Entity>::Instance(isolate, json["type"].get<std::string>().c_str());
 					bond->id(json["id"].get<long long>());
 					bond->indexed(true);
-					insert(isolate, bond);
+					insertNode(isolate, bond);
 
 					// groups
 					for (auto name : json["groups"]) {
 						std::string *v = new std::string(name.get<std::string>());
 						bond->groups()->insert(*v, v);
+						insertGroup(isolate, *v, bond);
 					}
 
 					// properties
@@ -226,7 +246,7 @@ void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
 	}
 }
 
-bool gk::Coordinator::insert(v8::Isolate* isolate, gk::Coordinator::Node* node) noexcept {
+bool gk::Coordinator::insertNode(v8::Isolate* isolate, gk::Coordinator::Node* node) noexcept {
 	auto cluster = nodeGraph()->findByKey(node->nodeClass());
 	if (!cluster) {
 		auto nodeClass = node->nodeClass();
@@ -240,13 +260,34 @@ bool gk::Coordinator::insert(v8::Isolate* isolate, gk::Coordinator::Node* node) 
 	return cluster->insert(isolate, node);
 }
 
-bool gk::Coordinator::remove(const ClusterKey& cKey, const IndexKey& iKey, const NodeKey& nKey) noexcept {
+bool gk::Coordinator::removeNode(const ClusterKey& cKey, const IndexKey& iKey, const NodeKey& nKey) noexcept {
 	auto cluster = nodeGraph()->findByKey(cKey);
 	if (cluster) {
 		auto index = cluster->findByKey(iKey);
 		if (index) {
 			return index->remove(nKey);
 		}
+	}
+	return false;
+}
+
+bool gk::Coordinator::insertGroup(v8::Isolate* isolate, std::string& group, gk::Coordinator::Node* node) noexcept {
+	auto set = groupGraph()->findByKey(group);
+	if (!set) {
+		set = Set::Instance(isolate);
+		if (!groupGraph()->insert(group, set, [](Set* set) {
+			set->Ref();
+		})) {
+			return false;
+		}
+	}
+	return set->insert(node);
+}
+
+bool gk::Coordinator::removeGroup(const SetKey& sKey, const NodeHash& nHash) noexcept {
+	auto set = groupGraph()->findByKey(sKey);
+	if (set) {
+		return set->remove(nHash);
 	}
 	return false;
 }

@@ -91,8 +91,8 @@ GK_METHOD(gk::Set::New) {
 
 GK_METHOD(gk::Set::Count) {
 	GK_SCOPE();
-	auto s = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
-	GK_RETURN(GK_NUMBER(s->count()));
+	auto set = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
+	GK_RETURN(GK_NUMBER(set->count()));
 }
 
 GK_METHOD(gk::Set::Insert) {
@@ -102,13 +102,13 @@ GK_METHOD(gk::Set::Insert) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
-	if (!n->indexed()) {
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
+	if (!node->indexed()) {
 		GK_EXCEPTION("[GraphKit Error: NodeClass has not been indexed.]");
 	}
 
-	auto s = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(s->insert(n)));
+	auto set = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
+	GK_RETURN(GK_BOOLEAN(set->insert(node)));
 }
 
 GK_METHOD(gk::Set::Remove) {
@@ -118,25 +118,25 @@ GK_METHOD(gk::Set::Remove) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
-	auto s = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
+	auto set = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
 	if (args[0]->IntegerValue() && args[1]->IsString() && args[2]->IntegerValue()) {
 		v8::String::Utf8Value type(args[1]->ToString());
-		auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + *type + std::to_string(args[2]->IntegerValue())};
-		GK_RETURN(GK_BOOLEAN(s->remove(k)));
+		auto key = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + *type + std::to_string(args[2]->IntegerValue())};
+		GK_RETURN(GK_BOOLEAN(set->remove(key)));
 	}
 
 	if (!args[0]->IsObject()) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
-	GK_RETURN(GK_BOOLEAN(s->remove(n->hash())));
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
+	GK_RETURN(GK_BOOLEAN(set->remove(node->hash())));
 }
 
 GK_METHOD(gk::Set::Clear) {
 	GK_SCOPE();
-	auto s = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
-	s->cleanUp();
+	auto set = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
+	set->cleanUp();
 	GK_RETURN(GK_UNDEFINED());
 }
 
@@ -155,23 +155,23 @@ GK_METHOD(gk::Set::Find) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
 
-	auto s = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
+	auto set = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
 	v8::String::Utf8Value type(args[1]->ToString());
-	auto k = std::to_string(args[0]->IntegerValue()) + *type + std::to_string(args[2]->IntegerValue());
-	auto n = s->findByKey(k);
-	if (n) {
-		GK_RETURN(n->handle());
+	auto key = std::to_string(args[0]->IntegerValue()) + *type + std::to_string(args[2]->IntegerValue());
+	auto node = set->findByKey(key);
+	if (node) {
+		GK_RETURN(node->handle());
 	}
 	GK_RETURN(GK_UNDEFINED());
 }
 
 GK_INDEX_GETTER(gk::Set::IndexGetter) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
-	if (++index > i->count()) {
+	auto set = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
+	if (++index > set->count()) {
 		GK_EXCEPTION("[GraphKit Error: Set out of range.]");
 	}
-	GK_RETURN(i->select(index)->handle());
+	GK_RETURN(set->select(index)->handle());
 }
 
 GK_INDEX_SETTER(gk::Set::IndexSetter) {
@@ -186,17 +186,23 @@ GK_INDEX_DELETER(gk::Set::IndexDeleter) {
 
 GK_INDEX_ENUMERATOR(gk::Set::IndexEnumerator) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
-	auto is = i->count();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
-	for (auto j = is - 1; 0 <= j; --j) {
-		array->Set(j, GK_INTEGER(j));
+	auto set = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
+	auto count = set->count();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, count);
+	for (auto i = count - 1; 0 <= i; --i) {
+		array->Set(i, GK_INTEGER(i));
 	}
 	GK_RETURN(array);
 }
 
 GK_PROPERTY_GETTER(gk::Set::PropertyGetter) {
 	GK_SCOPE();
+
+	v8::String::Utf8Value p(property);
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_COUNT)) {
+		auto set = node::ObjectWrap::Unwrap<gk::Set>(args.Holder());
+		GK_RETURN(GK_INTEGER(set->count()));
+	}
 }
 
 GK_PROPERTY_SETTER(gk::Set::PropertySetter) {

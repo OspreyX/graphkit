@@ -131,7 +131,6 @@ GK_INIT(gk::Index::Init) {
 	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_COUNT, Count);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
@@ -165,12 +164,6 @@ GK_METHOD(gk::Index::New) {
 		auto ctor = GK_FUNCTION(constructor_);
 		GK_RETURN(ctor->NewInstance(argc, argv));
 	}
-}
-
-GK_METHOD(gk::Index::Count) {
-	GK_SCOPE();
-	auto index = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
-	GK_RETURN(GK_NUMBER(index->count()));
 }
 
 GK_METHOD(gk::Index::Insert) {
@@ -289,6 +282,9 @@ GK_PROPERTY_GETTER(gk::Index::PropertyGetter) {
 	}
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_TYPE)) {
 		GK_RETURN(GK_STRING(index->type().c_str()));
+	}
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_COUNT)) {
+		GK_RETURN(GK_INTEGER(index->count()));
 	}
 }
 

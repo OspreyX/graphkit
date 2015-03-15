@@ -51,6 +51,11 @@ void gk::Graph::cleanUp() noexcept {
 	for (auto i = cluster->count(); 0 < i; --i) {
 		cluster->select(i)->cleanUp();
 	}
+
+	auto set = coordinator()->groupGraph();
+	for (auto i = set->count(); 0 < i; --i) {
+		set->select(i)->cleanUp();
+	}
 }
 
 gk::Graph* gk::Graph::Instance(v8::Isolate* isolate) noexcept {
@@ -69,7 +74,6 @@ GK_INIT(gk::Graph::Init) {
 	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_COUNT, Count);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
@@ -77,6 +81,7 @@ GK_INIT(gk::Graph::Init) {
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_ENTITY, CreateEntity);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_ACTION, CreateAction);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_BOND, CreateBond);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP, Group);
 
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -98,12 +103,6 @@ GK_METHOD(gk::Graph::New) {
 	}
 }
 
-GK_METHOD(gk::Graph::Count) {
-	GK_SCOPE();
-	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	GK_RETURN(GK_NUMBER(graph->coordinator()->nodeGraph()->count()));
-}
-
 GK_METHOD(gk::Graph::Insert) {
 	GK_SCOPE();
 
@@ -117,7 +116,14 @@ GK_METHOD(gk::Graph::Insert) {
 	}
 
 	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(graph->coordinator()->insert(isolate, node)));
+	auto result = graph->coordinator()->insertNode(isolate, node);
+	if (result) {
+		auto groups = node->groups();
+		for (auto i = groups->count(); 0 < i; --i) {
+			graph->coordinator()->insertGroup(isolate, *groups->select(i), node);
+		}
+	}
+	GK_RETURN(GK_BOOLEAN(result));
 }
 
 GK_METHOD(gk::Graph::Remove) {
@@ -131,15 +137,39 @@ GK_METHOD(gk::Graph::Remove) {
 	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
 	if (args[0]->IsObject()) {
 		auto node = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
-		GK_RETURN(GK_BOOLEAN(graph->coordinator()->remove(node->nodeClass(), node->type(), node->id())));
+		auto result = graph->coordinator()->removeNode(node->nodeClass(), node->type(), node->id());
+		if (result) {
+			auto groups = node->groups();
+			for (auto i = groups->count(); 0 < i; --i) {
+				graph->coordinator()->removeGroup(*groups->select(i), node->hash());
+			}
+		}
+		GK_RETURN(GK_BOOLEAN(result));
 	}
 
 	// check if granular details are passed
 	if (args[0]->IntegerValue() && args[1]->IsString() && args[2]->IntegerValue()) {
 		auto nodeClass = gk::NodeClassFromInt(args[0]->IntegerValue());
 		v8::String::Utf8Value type(args[1]->ToString());
-		auto id = args[1]->IntegerValue();
-		GK_RETURN(GK_BOOLEAN(graph->coordinator()->remove(nodeClass, *type, id)));
+		auto key = args[1]->IntegerValue();
+
+		auto cluster = graph->coordinator()->nodeGraph()->findByKey(nodeClass);
+		if (cluster && 0 < cluster->count()) {
+			auto index = cluster->findByKey(*type);
+			if (index && 0 < index->count()) {
+				auto node = index->findByKey(key);
+				if (node) {
+					auto result = graph->coordinator()->removeNode(nodeClass, *type, key);
+					if (result) {
+						auto groups = node->groups();
+						for (auto i = groups->count(); 0 < i; --i) {
+							graph->coordinator()->removeGroup(*groups->select(i), node->hash());
+						}
+					}
+					GK_RETURN(GK_BOOLEAN(result));
+				}
+			}
+		}
 	}
 
 	// throw an exception if we are here
@@ -216,16 +246,19 @@ GK_INDEX_ENUMERATOR(gk::Graph::IndexEnumerator) {
 GK_PROPERTY_GETTER(gk::Graph::PropertyGetter) {
 	GK_SCOPE();
 	v8::String::Utf8Value p(property);
-	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_COUNT) &&
-	0 != strcmp(*p, GK_SYMBOL_OPERATION_INSERT) &&
-	0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE) &&
-	0 != strcmp(*p, GK_SYMBOL_OPERATION_CLEAR) &&
-	0 != strcmp(*p, GK_SYMBOL_OPERATION_FIND)) {
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_COUNT)) {
 		auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-		auto cluster = graph->coordinator()->nodeGraph()->findByKey(gk::NodeClassFromString(*p));
-		if (cluster) {
-			GK_RETURN(cluster->handle());
-		}
+		GK_RETURN(GK_INTEGER(graph->coordinator()->nodeGraph()->count()));
+	}
+	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_INSERT) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_CLEAR) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_FIND)) {
+			auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+			auto cluster = graph->coordinator()->nodeGraph()->findByKey(gk::NodeClassFromString(*p));
+			if (cluster) {
+				GK_RETURN(cluster->handle());
+			}
 	}
 }
 
@@ -253,7 +286,7 @@ GK_METHOD(gk::Graph::CreateEntity) {
 	v8::String::Utf8Value type(args[0]->ToString());
 	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
 	auto node = gk::Entity::Instance(isolate, *type);
-	graph->coordinator()->insert(isolate, node);
+	graph->coordinator()->insertNode(isolate, node);
 	GK_RETURN(node->handle());
 }
 
@@ -265,7 +298,7 @@ GK_METHOD(gk::Graph::CreateAction) {
 	v8::String::Utf8Value type(args[0]->ToString());
 	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
 	auto node = gk::Action<gk::Entity>::Instance(isolate, *type);
-	graph->coordinator()->insert(isolate, node);
+	graph->coordinator()->insertNode(isolate, node);
 	GK_RETURN(node->handle());
 }
 
@@ -277,6 +310,17 @@ GK_METHOD(gk::Graph::CreateBond) {
 	v8::String::Utf8Value type(args[0]->ToString());
 	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
 	auto node = gk::Bond<gk::Entity>::Instance(isolate, *type);
-	graph->coordinator()->insert(isolate, node);
+	graph->coordinator()->insertNode(isolate, node);
 	GK_RETURN(node->handle());
+}
+
+GK_METHOD(gk::Graph::Group) {
+	GK_SCOPE();
+	if (!args[0]->IsString()) {
+		GK_EXCEPTION("[GraphKit Error: Please specify a Group name.]");
+	}
+	v8::String::Utf8Value group(args[0]->ToString());
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	auto set = graph->coordinator()->groupGraph()->findByKey(*group);
+	GK_RETURN(set->handle());
 }

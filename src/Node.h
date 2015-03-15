@@ -26,6 +26,7 @@
 #include "RedBlackTree.h"
 
 namespace gk {
+	class Coordinator;
 	class Node : public gk::Export {
 	public:
 		Node(const gk::NodeClass& nodeClass, const std::string&& type) noexcept;
@@ -53,16 +54,17 @@ namespace gk {
 
 		void unlink() noexcept;
 
+		std::shared_ptr<Coordinator> coordinator() noexcept;
+
 	protected:
 		const gk::NodeClass nodeClass_;
 		const std::string type_;
 		long long id_;
 		bool indexed_;
-
 		gk::RedBlackTree<std::string, true, std::string>* groups_;
 		gk::RedBlackTree<std::string, true, std::string>* properties_;
-
 		std::string hash_;
+		std::shared_ptr<Coordinator> coordinator_;
 
 		static GK_METHOD(New);
 		static GK_METHOD(AddGroup);

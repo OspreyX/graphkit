@@ -46,7 +46,6 @@ let Multiset = gk.Multiset;
 
 // Setup our initial input graph
 let g1 = new Graph();
-let g2 = new Graph();
 g1.clear();
 
 (function() {
@@ -58,31 +57,26 @@ g1.clear();
 		g1.insert(user);
 		//g1.remove(user);
 	}
-	console.log('Books added (%d) Time %d', g1.Entity.Book.count(),  Date.now() - start);
+	console.log('Books added (%d) Time %d', g1.Entity.Book.count,  Date.now() - start);
 })();
 
 (function() {
 	// add some users
 	let start = Date.now();
-	let males = 300;
 	for (let i = process.argv[2] || 1; 0 < i; --i) {
 		let user = new Entity('User');
 		user['name'] = 'Name ' + i;
 		g1.insert(user);
-		//g1.remove(user);
-
-		// let's make some female and some male
-		//user.addGroup(--males ? 'male' : 'female');
 	}
-	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
+	console.log('Users added (%d) Time %d', g1.Entity.User.count, Date.now() - start);
 })();
 
 (function() {
-	// make users friends
+	// make user friends,
 	// we can do this by
 	// giving each user a set of 10 friends randomly.
 	let users = g1.Entity.User;
-	let count = users.count();
+	let count = users.count;
 	let start = Date.now();
 	for (let i = count - 1; 0 <= i; --i) {
 		let user = users[i];
@@ -94,7 +88,7 @@ g1.clear();
 			friend.object = users[index];
 		}
 	}
-	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
+	console.log('Users added (%d) Time %d', g1.Entity.User.count, Date.now() - start);
 })();
 
 (function() {
@@ -103,10 +97,10 @@ g1.clear();
 	let users = g1.Entity.User;
 	let books = g1.Entity.Book;
 	let start = Date.now();
-	for (let i = users.count() - 1; 0 <= i; --i) {
+	for (let i = users.count - 1; 0 <= i; --i) {
 		let user = users[i];
 		for (let j = 10; 0 < j; --j) {
-			let index = Math.floor((Math.random() * books.count()));
+			let index = Math.floor((Math.random() * books.count));
 			let read = new Action('Read');
 			g1.insert(read);
 			read.addSubject(user);
@@ -119,5 +113,25 @@ g1.clear();
 			}
 		}
 	}
-	console.log('Actions added (%d) Time %d', g1.Action.Read.count(), Date.now() - start);
+	console.log('Actions added (%d) Time %d', g1.Action.Read.count, Date.now() - start);
+})();
+
+(function() {
+	// test groups
+	let users = g1.Entity.User;
+	let books = g1.Entity.Book;
+	let reads = g1.Action.Read;
+	let friends = g1.Bond.Friend;
+	users[0].addGroup('test');
+	books[0].addGroup('test');
+	reads[0].addGroup('test');
+	reads[1].addGroup('test');
+	reads[1].removeGroup('test');
+	users[0].removeGroup('test');
+	friends[0].addGroup('test');
+	g1.remove(books[0]);
+	g1.remove(friends[0]);
+	if (1 != g1.group('test').count) {
+		console.log('Group test failed.', g1.group('test'));
+	}
 })();
