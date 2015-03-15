@@ -100,8 +100,8 @@ GK_METHOD(gk::Cluster::New) {
 	}
 
 	if (args.IsConstructCall()) {
-		auto nc = gk::NodeClassFromInt(args[0]->IntegerValue());
-		auto obj = new gk::Cluster{nc};
+		auto nodeClass = gk::NodeClassFromInt(args[0]->IntegerValue());
+		auto obj = new gk::Cluster{nodeClass};
 		obj->Wrap(args.This());
 		GK_RETURN(args.This());
 	} else {

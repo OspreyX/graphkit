@@ -100,8 +100,8 @@ GK_METHOD(gk::Graph::New) {
 
 GK_METHOD(gk::Graph::Count) {
 	GK_SCOPE();
-	auto g = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	GK_RETURN(GK_NUMBER(g->coordinator()->nodeGraph()->count()));
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	GK_RETURN(GK_NUMBER(graph->coordinator()->nodeGraph()->count()));
 }
 
 GK_METHOD(gk::Graph::Insert) {
@@ -111,13 +111,13 @@ GK_METHOD(gk::Graph::Insert) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
-	if (n->indexed()) {
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
+	if (node->indexed()) {
 		GK_RETURN(GK_BOOLEAN(false));
 	}
 
-	auto g = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(g->coordinator()->insert(isolate, n)));
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	GK_RETURN(GK_BOOLEAN(graph->coordinator()->insert(isolate, node)));
 }
 
 GK_METHOD(gk::Graph::Remove) {
@@ -128,10 +128,10 @@ GK_METHOD(gk::Graph::Remove) {
 	}
 
 	// check if the object is a Node
-	auto g = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
 	if (args[0]->IsObject()) {
-		auto n = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
-		GK_RETURN(GK_BOOLEAN(g->coordinator()->remove(n->nodeClass(), n->type(), n->id())));
+		auto node = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
+		GK_RETURN(GK_BOOLEAN(graph->coordinator()->remove(node->nodeClass(), node->type(), node->id())));
 	}
 
 	// check if granular details are passed
@@ -139,7 +139,7 @@ GK_METHOD(gk::Graph::Remove) {
 		auto nodeClass = gk::NodeClassFromInt(args[0]->IntegerValue());
 		v8::String::Utf8Value type(args[1]->ToString());
 		auto id = args[1]->IntegerValue();
-		GK_RETURN(GK_BOOLEAN(g->coordinator()->remove(nodeClass, *type, id)));
+		GK_RETURN(GK_BOOLEAN(graph->coordinator()->remove(nodeClass, *type, id)));
 	}
 
 	// throw an exception if we are here
@@ -148,8 +148,8 @@ GK_METHOD(gk::Graph::Remove) {
 
 GK_METHOD(gk::Graph::Clear) {
 	GK_SCOPE();
-	auto g = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	g->cleanUp();
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	graph->cleanUp();
 	GK_RETURN(GK_UNDEFINED());
 }
 
@@ -168,8 +168,8 @@ GK_METHOD(gk::Graph::Find) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
 
-	auto g = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	auto cluster = g->coordinator()->nodeGraph()->findByKey(gk::NodeClassFromInt(args[0]->IntegerValue()));
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	auto cluster = graph->coordinator()->nodeGraph()->findByKey(gk::NodeClassFromInt(args[0]->IntegerValue()));
 	if (cluster && 0 < cluster->count()) {
 		v8::String::Utf8Value type(args[1]->ToString());
 		auto index = cluster->findByKey(*type);
@@ -185,11 +185,11 @@ GK_METHOD(gk::Graph::Find) {
 
 GK_INDEX_GETTER(gk::Graph::IndexGetter) {
 	GK_SCOPE();
-	auto g = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	if (++index > g->coordinator()->nodeGraph()->count()) {
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	if (++index > graph->coordinator()->nodeGraph()->count()) {
 		GK_EXCEPTION("[GraphKit Error: Index out of range.]");
 	}
-	GK_RETURN(g->coordinator()->nodeGraph()->select(index)->handle());
+	GK_RETURN(graph->coordinator()->nodeGraph()->select(index)->handle());
 }
 
 GK_INDEX_SETTER(gk::Graph::IndexSetter) {
@@ -204,11 +204,11 @@ GK_INDEX_DELETER(gk::Graph::IndexDeleter) {
 
 GK_INDEX_ENUMERATOR(gk::Graph::IndexEnumerator) {
 	GK_SCOPE();
-	auto g = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	auto is = g->coordinator()->nodeGraph()->count();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
-	for (auto j = is - 1; 0 <= j; --j) {
-		array->Set(j, GK_INTEGER(j));
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	auto count = graph->coordinator()->nodeGraph()->count();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, count);
+	for (auto i = count - 1; 0 <= i; --i) {
+		array->Set(i, GK_INTEGER(i));
 	}
 	GK_RETURN(array);
 }
@@ -221,10 +221,10 @@ GK_PROPERTY_GETTER(gk::Graph::PropertyGetter) {
 	0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE) &&
 	0 != strcmp(*p, GK_SYMBOL_OPERATION_CLEAR) &&
 	0 != strcmp(*p, GK_SYMBOL_OPERATION_FIND)) {
-		auto g = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-		auto v = g->coordinator()->nodeGraph()->findByKey(gk::NodeClassFromString(*p));
-		if (v) {
-			GK_RETURN(v->handle());
+		auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+		auto cluster = graph->coordinator()->nodeGraph()->findByKey(gk::NodeClassFromString(*p));
+		if (cluster) {
+			GK_RETURN(cluster->handle());
 		}
 	}
 }
@@ -251,10 +251,10 @@ GK_METHOD(gk::Graph::CreateEntity) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
 	}
 	v8::String::Utf8Value type(args[0]->ToString());
-	auto g = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	auto e = gk::Entity::Instance(isolate, *type);
-	g->coordinator()->insert(isolate, e);
-	GK_RETURN(e->handle());
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	auto node = gk::Entity::Instance(isolate, *type);
+	graph->coordinator()->insert(isolate, node);
+	GK_RETURN(node->handle());
 }
 
 GK_METHOD(gk::Graph::CreateAction) {
@@ -263,10 +263,10 @@ GK_METHOD(gk::Graph::CreateAction) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
 	}
 	v8::String::Utf8Value type(args[0]->ToString());
-	auto g = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	auto a = gk::Action<gk::Entity>::Instance(isolate, *type);
-	g->coordinator()->insert(isolate, a);
-	GK_RETURN(a->handle());
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	auto node = gk::Action<gk::Entity>::Instance(isolate, *type);
+	graph->coordinator()->insert(isolate, node);
+	GK_RETURN(node->handle());
 }
 
 GK_METHOD(gk::Graph::CreateBond) {
@@ -275,8 +275,8 @@ GK_METHOD(gk::Graph::CreateBond) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
 	}
 	v8::String::Utf8Value type(args[0]->ToString());
-	auto g = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	auto b = gk::Bond<gk::Entity>::Instance(isolate, *type);
-	g->coordinator()->insert(isolate, b);
-	GK_RETURN(b->handle());
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	auto node = gk::Bond<gk::Entity>::Instance(isolate, *type);
+	graph->coordinator()->insert(isolate, node);
+	GK_RETURN(node->handle());
 }

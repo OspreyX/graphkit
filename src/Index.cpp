@@ -88,18 +88,18 @@ bool gk::Index::remove(gk::Node* node) noexcept {
 	if (!node->indexed()) {
 		return false;
 	}
-	return gk::RedBlackTree<gk::Node, true>::remove(node->id(), [](gk::Node* n) {
-		n->indexed(false);
-		n->unlink();
-		n->Unref();
+	return gk::RedBlackTree<gk::Node, true>::remove(node->id(), [](gk::Node* node) {
+		node->indexed(false);
+		node->unlink();
+		node->Unref();
 	});
 }
 
 bool gk::Index::remove(const int k) noexcept {
-	return gk::RedBlackTree<gk::Node, true>::remove(k, [](gk::Node* n) {
-		n->indexed(false);
-		n->unlink();
-		n->Unref();
+	return gk::RedBlackTree<gk::Node, true>::remove(k, [](gk::Node* node) {
+		node->indexed(false);
+		node->unlink();
+		node->Unref();
 	});
 }
 
@@ -111,8 +111,8 @@ void gk::Index::cleanUp() noexcept {
 
 GK_METHOD(gk::Index::NodeClassToString) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
-	GK_RETURN(GK_STRING(gk::NodeClassToString(i->nodeClass())));
+	auto index = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
+	GK_RETURN(GK_STRING(gk::NodeClassToString(index->nodeClass())));
 }
 
 gk::Index* gk::Index::Instance(v8::Isolate* isolate, gk::NodeClass& nodeClass, std::string& type) noexcept {
@@ -154,9 +154,9 @@ GK_METHOD(gk::Index::New) {
 	}
 
 	if (args.IsConstructCall()) {
-		auto nc = gk::NodeClassFromInt(args[0]->IntegerValue());
+		auto nodeClass = gk::NodeClassFromInt(args[0]->IntegerValue());
 		v8::String::Utf8Value type(args[1]->ToString());
-		auto obj = new gk::Index{nc, *type};
+		auto obj = new gk::Index{nodeClass, *type};
 		obj->Wrap(args.This());
 		GK_RETURN(args.This());
 	} else {
@@ -169,8 +169,8 @@ GK_METHOD(gk::Index::New) {
 
 GK_METHOD(gk::Index::Count) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
-	GK_RETURN(GK_NUMBER(i->count()));
+	auto index = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
+	GK_RETURN(GK_NUMBER(index->count()));
 }
 
 GK_METHOD(gk::Index::Insert) {
@@ -180,22 +180,22 @@ GK_METHOD(gk::Index::Insert) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
-	if (n->indexed()) {
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
+	if (node->indexed()) {
 		GK_RETURN(GK_BOOLEAN(false));
 	}
 
-	auto i = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
-	if (i->nodeClass() != n->nodeClass()) {
-		std::string s1 {gk::NodeClassToString(i->nodeClass())};
-		std::string s2 {gk::NodeClassToString(n->nodeClass())};
+	auto index = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
+	if (index->nodeClass() != node->nodeClass()) {
+		std::string s1 {gk::NodeClassToString(index->nodeClass())};
+		std::string s2 {gk::NodeClassToString(node->nodeClass())};
 		GK_EXCEPTION(("[GraphKit Error: Invalid NodeClass. Expecting " + s1 + " and got " + s2 + ".]").c_str());
 	}
 
-	if (i->type() != n->type()) {
-		GK_EXCEPTION(("[GraphKit Error: Invalid Type. Expecting " + i->type() + " and got " + n->type() + ".]").c_str());
+	if (index->type() != node->type()) {
+		GK_EXCEPTION(("[GraphKit Error: Invalid Type. Expecting " + index->type() + " and got " + node->type() + ".]").c_str());
 	}
-	GK_RETURN(GK_BOOLEAN(i->insert(n)));
+	GK_RETURN(GK_BOOLEAN(index->insert(node)));
 }
 
 GK_METHOD(gk::Index::Remove) {
@@ -205,33 +205,33 @@ GK_METHOD(gk::Index::Remove) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
-	auto i = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
+	auto index = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
 
 	if (args[0]->IntegerValue()) {
-		GK_RETURN(GK_BOOLEAN(i->remove(args[0]->IntegerValue())));
+		GK_RETURN(GK_BOOLEAN(index->remove(args[0]->IntegerValue())));
 	}
 
 	if (!args[0]->IsObject()) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
-	if (i->nodeClass() != n->nodeClass()) {
-		std::string s1 {gk::NodeClassToString(i->nodeClass())};
-		std::string s2 {gk::NodeClassToString(n->nodeClass())};
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
+	if (index->nodeClass() != node->nodeClass()) {
+		std::string s1 {gk::NodeClassToString(index->nodeClass())};
+		std::string s2 {gk::NodeClassToString(node->nodeClass())};
 		GK_EXCEPTION(("[GraphKit Error: Invalid NodeClass. Expecting " + s1 + " and got " + s2 + ".]").c_str());
 	}
 
-	if (i->type() != n->type()) {
-		GK_EXCEPTION(("[GraphKit Error: Invalid Type. Expecting " + i->type() + " and got " + n->type() + ".]").c_str());
+	if (index->type() != node->type()) {
+		GK_EXCEPTION(("[GraphKit Error: Invalid Type. Expecting " + index->type() + " and got " + node->type() + ".]").c_str());
 	}
-	GK_RETURN(GK_BOOLEAN(i->remove(n)));
+	GK_RETURN(GK_BOOLEAN(index->remove(node)));
 }
 
 GK_METHOD(gk::Index::Clear) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
-	i->cleanUp();
+	auto index = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
+	index->cleanUp();
 	GK_RETURN(GK_UNDEFINED());
 }
 
@@ -240,11 +240,11 @@ GK_METHOD(gk::Index::Find) {
 	if (0 > args[0]->IntegerValue()) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
-	auto i = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
-	if (0 < i->count()) {
-		auto n = i->findByKey(args[0]->IntegerValue());
-		if (n) {
-			GK_RETURN(n->handle());
+	auto index = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
+	if (0 < index->count()) {
+		auto node = index->findByKey(args[0]->IntegerValue());
+		if (node) {
+			GK_RETURN(node->handle());
 		}
 	}
 	GK_RETURN(GK_UNDEFINED());
@@ -252,11 +252,11 @@ GK_METHOD(gk::Index::Find) {
 
 GK_INDEX_GETTER(gk::Index::IndexGetter) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
-	if (++index > i->count()) {
+	auto idx = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
+	if (++index > idx->count()) {
 		GK_EXCEPTION("[GraphKit Error: Index out of range.]");
 	}
-	GK_RETURN(i->select(index)->handle());
+	GK_RETURN(idx->select(index)->handle());
 }
 
 GK_INDEX_SETTER(gk::Index::IndexSetter) {
@@ -271,11 +271,11 @@ GK_INDEX_DELETER(gk::Index::IndexDeleter) {
 
 GK_INDEX_ENUMERATOR(gk::Index::IndexEnumerator) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
-	auto is = i->count();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
-	for (auto j = is - 1; 0 <= j; --j) {
-		array->Set(j, GK_INTEGER(j));
+	auto index = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
+	auto count = index->count();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, count);
+	for (auto i = count - 1; 0 <= i; --i) {
+		array->Set(i, GK_INTEGER(i));
 	}
 	GK_RETURN(array);
 }
@@ -283,12 +283,12 @@ GK_INDEX_ENUMERATOR(gk::Index::IndexEnumerator) {
 GK_PROPERTY_GETTER(gk::Index::PropertyGetter) {
 	GK_SCOPE();
 	v8::String::Utf8Value p(property);
-	auto i = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
+	auto index = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_NODE_CLASS)) {
-		GK_RETURN(GK_INTEGER(gk::NodeClassToInt(i->nodeClass())));
+		GK_RETURN(GK_INTEGER(gk::NodeClassToInt(index->nodeClass())));
 	}
 	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_TYPE)) {
-		GK_RETURN(GK_STRING(i->type().c_str()));
+		GK_RETURN(GK_STRING(index->type().c_str()));
 	}
 }
 
@@ -304,12 +304,12 @@ GK_PROPERTY_DELETER(gk::Index::PropertyDeleter) {
 
 GK_PROPERTY_ENUMERATOR(gk::Index::PropertyEnumerator) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
-	auto is = i->count();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
-	for (auto j = is - 1; 0 <= j; --j) {
-		auto node = i->node(j + 1);
-		array->Set(j, GK_INTEGER(node->order() - 1));
+	auto index = node::ObjectWrap::Unwrap<gk::Index>(args.Holder());
+	auto count = index->count();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, count);
+	for (auto i = count - 1; 0 <= i; --i) {
+		auto node = index->node(i + 1);
+		array->Set(i, GK_INTEGER(node->order() - 1));
 	}
 	GK_RETURN(array);
 }
