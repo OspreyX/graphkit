@@ -13,7 +13,7 @@
 				"./src/Export.cpp",
 				"./src/Node.cpp",
 				"./src/Entity.cpp",
-				"./src/Storage.cpp"
+				"./src/Hub.cpp"
 			],
 			"conditions": [
 				["OS=='mac'", {

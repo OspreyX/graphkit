@@ -19,6 +19,11 @@
 #ifndef GRAPHKIT_SRC_SYMBOLS_H
 #define GRAPHKIT_SRC_SYMBOLS_H
 
+#include <uv.h>
+
+// file system
+#define GK_FS_DB_DIR					"gk.db"
+
 // classes
 #define GK_SYMBOL_NODE_CLASS_NODE_CONSTANT			0
 #define GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT		1

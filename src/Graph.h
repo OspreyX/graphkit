@@ -31,6 +31,7 @@
 #include "Action.h"
 #include "Bond.h"
 #include "json.h"
+#include "Hub.h"
 
 namespace gk {
 	template <
@@ -50,6 +51,8 @@ namespace gk {
 
 		using Cluster = T;
 
+		gk::Hub* hub() noexcept;
+
 		bool insert(v8::Isolate* isolate, typename T::Index::Node* node) noexcept;
 		void sync(v8::Isolate* isolate) noexcept;
 		void cleanUp() noexcept;
@@ -58,6 +61,7 @@ namespace gk {
 		static GK_INIT(Init);
 
 	private:
+		gk::Hub* hub_;
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
 		static GK_METHOD(Count);
@@ -88,30 +92,26 @@ GK_CONSTRUCTOR(gk::Graph<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::Graph() noexcept
-	: gk::Export{},
-	  gk::RedBlackTree<T, true, K, O>{} {}
+	: gk::Export{} {}
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::~Graph() {
-	this->clear([](T *c) {
-		c->cleanUp();
-		c->Unref();
-	});
+	if (nullptr != hub_) {
+		delete hub_;
+	}
+}
+
+template <typename T, typename K, typename O>
+gk::Hub* gk::Graph<T, K, O>::hub() noexcept {
+	if (nullptr == hub_) {
+		hub_ = new gk::Hub{};
+	}
+	return hub_;
 }
 
 template  <typename T, typename K, typename O>
 bool gk::Graph<T, K, O>::insert(v8::Isolate* isolate, typename T::Index::Node* node) noexcept {
-	auto c = this->findByKey(node->nodeClass());
-	if (!c) {
-		auto nc = node->nodeClass();
-		c = T::Instance(isolate, nc);
-		if (!gk::RedBlackTree<T, true, K, O>::insert(c->nodeClass(), c, [](T* c) {
-			c->Ref();
-		})) {
-			return false;
-		}
-	}
-	return c->insert(isolate, node);
+	return hub_->insert(isolate, node);
 }
 
 template  <typename T, typename K, typename O>
@@ -377,17 +377,10 @@ GK_METHOD(gk::Graph<T, K, O>::Remove) {
 
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
 	if (args[0]->IntegerValue() && args[1]->IsString() && args[2]->IntegerValue()) {
-		auto nc = gk::NodeClassFromInt(args[0]->IntegerValue());
-		auto c = g->findByKey(nc);
-		if (!c) {
-			GK_RETURN(GK_BOOLEAN(false));
-		}
+		auto nodeClass = gk::NodeClassFromInt(args[0]->IntegerValue());
 		v8::String::Utf8Value type(args[1]->ToString());
-		auto i = c->findByKey(*type);
-		if (i) {
-			GK_RETURN(GK_BOOLEAN(i->remove(args[2]->IntegerValue())));
-		}
-		GK_RETURN(GK_BOOLEAN(false));
+		auto id = args[1]->IntegerValue();
+		GK_RETURN(GK_BOOLEAN(g->hub()->remove(nodeClass, *type, id)));
 	}
 
 	if (!args[0]->IsObject()) {
@@ -395,16 +388,7 @@ GK_METHOD(gk::Graph<T, K, O>::Remove) {
 	}
 
 	auto n = node::ObjectWrap::Unwrap<typename T::Index::Node>(args[0]->ToObject());
-	auto nc = n->nodeClass();
-	auto c = g->findByKey(nc);
-	if (!c) {
-		GK_RETURN(GK_BOOLEAN(false));
-	}
-	auto i = c->findByKey(n->type());
-	if (i) {
-		GK_RETURN(GK_BOOLEAN(i->remove(n)));
-	}
-	GK_RETURN(GK_BOOLEAN(false));
+	GK_RETURN(GK_BOOLEAN(g->hub()->remove(n->nodeClass(), n->type(), n->id())));
 }
 
 template <typename T, typename K, typename O>
