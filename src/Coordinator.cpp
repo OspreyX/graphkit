@@ -62,7 +62,6 @@ static void fs_change_callback(uv_fs_event_t* handle, const char* filename, int 
 				uv_fs_t unlink_req;
 				uv_fs_unlink(uv_default_loop(), &unlink_req, dirname.c_str(), NULL);
 				uv_fs_req_cleanup(&unlink_req);
-
 			} else {
 				auto json = nlohmann::json::parse(buf);
 				auto nodeClass = gk::NodeClassFromInt(json["nodeClass"].get<short>());
@@ -179,18 +178,18 @@ static void fs_change_callback(uv_fs_event_t* handle, const char* filename, int 
 						}
 					}
 				}
-
-				// close the directory
-				uv_fs_t close_req;
-				uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
-
-				// cleanup
-				uv_fs_req_cleanup(&close_req);
 			}
+
+			// close the directory
+			uv_fs_t close_req;
+			uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
 
 			// cleanup
 			uv_fs_req_cleanup(&open_req);
 			uv_fs_req_cleanup(&read_req);
+			uv_fs_req_cleanup(&close_req);
+
+			std::cout << "Count " << coordinator->nodeGraph()->findByKey(gk::NodeClass::Entity)->findByKey("User")->count() << std::endl;
 		}
 	}
 }
