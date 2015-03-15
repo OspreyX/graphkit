@@ -123,6 +123,7 @@ void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
 					for (auto name : json["groups"]) {
 						std::string *v = new std::string(name.get<std::string>());
 						entity->groups()->insert(*v, v);
+						insertGroup(isolate, *v, entity);
 					}
 
 					// properties
@@ -141,6 +142,7 @@ void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
 					for (auto name : json["groups"]) {
 						std::string* v = new std::string(name.get<std::string>());
 						action->groups()->insert(*v, v);
+						insertGroup(isolate, *v, action);
 					}
 
 					// properties
@@ -189,6 +191,7 @@ void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
 					for (auto name : json["groups"]) {
 						std::string *v = new std::string(name.get<std::string>());
 						bond->groups()->insert(*v, v);
+						insertGroup(isolate, *v, bond);
 					}
 
 					// properties

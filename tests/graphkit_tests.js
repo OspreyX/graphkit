@@ -121,12 +121,17 @@ g1.clear();
 	let users = g1.Entity.User;
 	let books = g1.Entity.Book;
 	let reads = g1.Action.Read;
-	users[0].addGroup('monitor');
-	books[0].addGroup('monitor');
-	reads[0].addGroup('monitor');
-	reads[1].addGroup('monitor');
-	reads[1].removeGroup('monitor');
-	users[0].removeGroup('monitor');
+	let friends = g1.Bond.Friend;
+	users[0].addGroup('test');
+	books[0].addGroup('test');
+	reads[0].addGroup('test');
+	reads[1].addGroup('test');
+	reads[1].removeGroup('test');
+	users[0].removeGroup('test');
+	friends[0].addGroup('test');
 	g1.remove(books[0]);
-	console.log(g1.group('monitor'));
+	g1.remove(friends[0]);
+	if (1 != g1.group('test').count) {
+		console.log('Group test failed.', g1.group('test'));
+	}
 })();
