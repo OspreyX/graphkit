@@ -16,20 +16,20 @@
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Hub.h"
+#include "Coordinator.h"
 
-gk::Hub::Hub() noexcept
-	: nodeGraph_{new gk::Hub::Tree{}} {}
+gk::Coordinator::Coordinator() noexcept
+	: nodeGraph_{new gk::Coordinator::Tree{}} {}
 
-gk::Hub::~Hub() {
-	nodeGraph_->clear([](gk::Hub::Cluster* cluster) {
+gk::Coordinator::~Coordinator() {
+	nodeGraph_->clear([](gk::Coordinator::Cluster* cluster) {
 		cluster->cleanUp();
 		cluster->Unref();
 	});
 	delete nodeGraph_;
 }
 
-bool gk::Hub::insert(v8::Isolate* isolate, gk::Hub::Node* node) noexcept {
+bool gk::Coordinator::insert(v8::Isolate* isolate, gk::Coordinator::Node* node) noexcept {
 	auto cluster = nodeGraph_->findByKey(node->nodeClass());
 	if (!cluster) {
 		auto nodeClass = node->nodeClass();
@@ -43,7 +43,7 @@ bool gk::Hub::insert(v8::Isolate* isolate, gk::Hub::Node* node) noexcept {
 	return cluster->insert(isolate, node);
 }
 
-bool gk::Hub::remove(const ClusterKey& cKey, const IndexKey& iKey, const NodeKey nKey) noexcept {
+bool gk::Coordinator::remove(const ClusterKey& cKey, const IndexKey& iKey, const NodeKey nKey) noexcept {
 	auto cluster = nodeGraph_->findByKey(cKey);
 	if (cluster) {
 		auto index = cluster->findByKey(iKey);

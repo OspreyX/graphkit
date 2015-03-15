@@ -46,75 +46,76 @@ let Multiset = gk.Multiset;
 
 // Setup our initial input graph
 let g1 = new Graph();
-g1.clear();
+//g1.clear();
 
 (function() {
 	// add some books
 	let start = Date.now();
-	for (let i = 1000; 0 < i; --i) {
+	for (let i = 1; 0 < i; --i) {
 		let user = new Entity('Book');
 		user['title'] = 'Title ' + i;
 		g1.insert(user);
+		//g1.remove(user);
 	}
-	console.log('Books added (%d) Time %d', g1.Entity.Book.count(),  Date.now() - start);
+	//console.log('Books added (%d) Time %d', g1.Entity.Book.count(),  Date.now() - start);
 })();
 
-(function() {
-	// add some users
-	let start = Date.now();
-	let males = 300;
-	for (let i = 1000; 0 < i; --i) {
-		let user = new Entity('User');
-		user['name'] = 'Name ' + i;
-		g1.insert(user);
-
-		// let's make some female and some male
-		user.addGroup(--males ? 'male' : 'female');
-	}
-	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
-})();
-
-(function() {
-	// make users friends
-	// we can do this by
-	// giving each user a set of 10 friends randomly.
-	let users = g1.Entity.User;
-	let count = users.count();
-	let start = Date.now();
-	for (let i = count - 1; 0 <= i; --i) {
-		let user = users[i];
-		for (let j = 10; 0 < j; --j) {
-			let index = Math.floor((Math.random() * count));
-			let friend = new Bond('Friend');
-			g1.insert(friend);
-			friend.subject = user;
-			friend.object = users[index];
-		}
-	}
-	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
-})();
-
-(function() {
-	// set the user to have read many books
-	// in a single action call
-	let users = g1.Entity.User;
-	let books = g1.Entity.Book;
-	let start = Date.now();
-	for (let i = users.count() - 1; 0 <= i; --i) {
-		let user = users[i];
-		for (let j = 10; 0 < j; --j) {
-			let index = Math.floor((Math.random() * books.count()));
-			let read = new Action('Read');
-			g1.insert(read);
-			read.addSubject(user);
-			read.addObject(books[index]);
-			if (user.actions.find(read.nodeClass, read.type, read.id) != read) {
-				console.log('Action addSubject(user) test failed.');
-			}
-			if (read.subjects.find(user.nodeClass, user.type, user.id) != user) {
-				console.log('Action subjects test failed.');
-			}
-		}
-	}
-	console.log('Actions added (%d) Time %d', g1.Action.Read.count(), Date.now() - start);
-})();
+//(function() {
+//	// add some users
+//	let start = Date.now();
+//	let males = 300;
+//	for (let i = 1000; 0 < i; --i) {
+//		let user = new Entity('User');
+//		user['name'] = 'Name ' + i;
+//		g1.insert(user);
+//
+//		// let's make some female and some male
+//		user.addGroup(--males ? 'male' : 'female');
+//	}
+//	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
+//})();
+//
+//(function() {
+//	// make users friends
+//	// we can do this by
+//	// giving each user a set of 10 friends randomly.
+//	let users = g1.Entity.User;
+//	let count = users.count();
+//	let start = Date.now();
+//	for (let i = count - 1; 0 <= i; --i) {
+//		let user = users[i];
+//		for (let j = 10; 0 < j; --j) {
+//			let index = Math.floor((Math.random() * count));
+//			let friend = new Bond('Friend');
+//			g1.insert(friend);
+//			friend.subject = user;
+//			friend.object = users[index];
+//		}
+//	}
+//	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
+//})();
+//
+//(function() {
+//	// set the user to have read many books
+//	// in a single action call
+//	let users = g1.Entity.User;
+//	let books = g1.Entity.Book;
+//	let start = Date.now();
+//	for (let i = users.count() - 1; 0 <= i; --i) {
+//		let user = users[i];
+//		for (let j = 10; 0 < j; --j) {
+//			let index = Math.floor((Math.random() * books.count()));
+//			let read = new Action('Read');
+//			g1.insert(read);
+//			read.addSubject(user);
+//			read.addObject(books[index]);
+//			if (user.actions.find(read.nodeClass, read.type, read.id) != read) {
+//				console.log('Action addSubject(user) test failed.');
+//			}
+//			if (read.subjects.find(user.nodeClass, user.type, user.id) != user) {
+//				console.log('Action subjects test failed.');
+//			}
+//		}
+//	}
+//	console.log('Actions added (%d) Time %d', g1.Action.Read.count(), Date.now() - start);
+//})();

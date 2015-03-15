@@ -19,6 +19,7 @@
 #ifndef GRAPHKIT_SRC_GRAPH_H
 #define GRAPHKIT_SRC_GRAPH_H
 
+#include <memory>
 #include <string>
 #include "exports.h"
 #include "symbols.h"
@@ -31,7 +32,7 @@
 #include "Action.h"
 #include "Bond.h"
 #include "json.h"
-#include "Hub.h"
+#include "Coordinator.h"
 
 namespace gk {
 	template <
@@ -51,7 +52,7 @@ namespace gk {
 
 		using Cluster = T;
 
-		gk::Hub* hub() noexcept;
+		std::shared_ptr<gk::Coordinator> coordinator() noexcept;
 
 		bool insert(v8::Isolate* isolate, typename T::Index::Node* node) noexcept;
 		void sync(v8::Isolate* isolate) noexcept;
@@ -61,7 +62,7 @@ namespace gk {
 		static GK_INIT(Init);
 
 	private:
-		gk::Hub* hub_;
+		std::shared_ptr<gk::Coordinator> coordinator_;
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
 		static GK_METHOD(Count);
@@ -92,26 +93,27 @@ GK_CONSTRUCTOR(gk::Graph<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::Graph() noexcept
-	: gk::Export{} {}
+	: gk::Export{},
+	  coordinator_{nullptr} {}
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::~Graph() {
-	if (nullptr != hub_) {
-		delete hub_;
+	if (nullptr != coordinator_) {
+		coordinator_.reset();
 	}
 }
 
 template <typename T, typename K, typename O>
-gk::Hub* gk::Graph<T, K, O>::hub() noexcept {
-	if (nullptr == hub_) {
-		hub_ = new gk::Hub{};
+std::shared_ptr<gk::Coordinator> gk::Graph<T, K, O>::coordinator() noexcept {
+	if (nullptr == coordinator_) {
+		coordinator_ = std::make_shared<gk::Coordinator>();
 	}
-	return hub_;
+	return coordinator_;
 }
 
 template  <typename T, typename K, typename O>
 bool gk::Graph<T, K, O>::insert(v8::Isolate* isolate, typename T::Index::Node* node) noexcept {
-	return hub_->insert(isolate, node);
+	return coordinator()->insert(isolate, node);
 }
 
 template  <typename T, typename K, typename O>
@@ -375,20 +377,23 @@ GK_METHOD(gk::Graph<T, K, O>::Remove) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
+	// check if the object is a Node
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
+	if (args[0]->IsObject()) {
+		auto n = node::ObjectWrap::Unwrap<typename T::Index::Node>(args[0]->ToObject());
+		GK_RETURN(GK_BOOLEAN(g->coordinator()->remove(n->nodeClass(), n->type(), n->id())));
+	}
+
+	// check if granular details are passed
 	if (args[0]->IntegerValue() && args[1]->IsString() && args[2]->IntegerValue()) {
 		auto nodeClass = gk::NodeClassFromInt(args[0]->IntegerValue());
 		v8::String::Utf8Value type(args[1]->ToString());
 		auto id = args[1]->IntegerValue();
-		GK_RETURN(GK_BOOLEAN(g->hub()->remove(nodeClass, *type, id)));
+		GK_RETURN(GK_BOOLEAN(g->coordinator()->remove(nodeClass, *type, id)));
 	}
 
-	if (!args[0]->IsObject()) {
-		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
-	}
-
-	auto n = node::ObjectWrap::Unwrap<typename T::Index::Node>(args[0]->ToObject());
-	GK_RETURN(GK_BOOLEAN(g->hub()->remove(n->nodeClass(), n->type(), n->id())));
+	// throw an exception if we are here
+	GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 }
 
 template <typename T, typename K, typename O>

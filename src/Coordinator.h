@@ -16,8 +16,8 @@
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef GRAPHKIT_SRC_HUB_H
-#define GRAPHKIT_SRC_HUB_H
+#ifndef GRAPHKIT_SRC_COORDINATOR_H
+#define GRAPHKIT_SRC_COORDINATOR_H
 
 #include <string>
 #include <uv.h>
@@ -27,25 +27,26 @@
 #include "Node.h"
 
 namespace gk {
-	class Hub {
+	class Coordinator {
 	public:
+
 		/**
-		* Hub
+		* Coordinator
 		* Constructor.
 		*/
-		Hub() noexcept;
+		Coordinator() noexcept;
 
 		/**
-		* ~Hub
+		* ~Coordinator
 		* Destructor.
 		*/
-		virtual ~Hub();
+		virtual ~Coordinator();
 
 		// default constructors
-		Hub(const Hub& other) = default;
-		Hub& operator= (const Hub&) = default;
-		Hub(Hub&& other) = default;
-		Hub& operator= (Hub&&) = default;
+		Coordinator(const Coordinator& other) = default;
+		Coordinator& operator= (const Coordinator&) = default;
+		Coordinator(Coordinator&& other) = default;
+		Coordinator& operator= (Coordinator&&) = default;
 
 		// aliases
 		using Order = long long;
