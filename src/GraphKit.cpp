@@ -25,26 +25,21 @@
 #include "Index.h"
 #include "Cluster.h"
 #include "Graph.h"
-#include "GraphSet.h"
-#include "GraphMultiset.h"
 #include "Set.h"
 #include "Multiset.h"
+#include "Hub.h"
 
 GK_EXPORT(GraphKit) {
 	// classes
 	gk::Entity::Init(exports, GK_SYMBOL_ENTITY);
-	gk::Action < gk::Entity > ::Init(exports, GK_SYMBOL_ACTION);
-	gk::Bond < gk::Entity > ::Init(exports, GK_SYMBOL_BOND);
-	gk::Index<gk::Node>::Init(exports, GK_SYMBOL_INDEX);
-	gk::Cluster<gk::Index<gk::Node>>::Init(exports, GK_SYMBOL_CLUSTER);
-	gk::Graph<gk::Cluster<gk::Index<gk::Node>>>::Init(exports, GK_SYMBOL_GRAPH);
-	gk::GraphSet<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_GRAPH_SET);
-	gk::GraphMultiset<gk::Graph<gk::Cluster<gk::Index<gk::Node>>>, gk::Node>::Init(exports, GK_SYMBOL_GRAPH_MULTISET);
-	gk::Set<gk::Node>::Init(exports, GK_SYMBOL_SET);
-	gk::Set<gk::Entity>::Init(exports, GK_SYMBOL_ENTITY_SET);
-	gk::Set<gk::Action<gk::Entity>>::Init(exports, GK_SYMBOL_ACTION_SET);
-	gk::Set<gk::Bond<gk::Entity>>::Init(exports, GK_SYMBOL_BOND_SET);
-	gk::Multiset<gk::Node>::Init(exports, GK_SYMBOL_MULTISET);
+	gk::Action<gk::Entity>::Init(exports, GK_SYMBOL_ACTION);
+	gk::Bond<gk::Entity>::Init(exports, GK_SYMBOL_BOND);
+	gk::Index::Init(exports, GK_SYMBOL_INDEX);
+	gk::Cluster::Init(exports, GK_SYMBOL_CLUSTER);
+	gk::Graph::Init(exports, GK_SYMBOL_GRAPH);
+	gk::Set::Init(exports, GK_SYMBOL_SET);
+	gk::Multiset::Init(exports, GK_SYMBOL_MULTISET);
+	gk::Hub::Init(exports, GK_SYMBOL_HUB);
 
 	// constants
 	GK_SCOPE();

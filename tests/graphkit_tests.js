@@ -46,15 +46,17 @@ let Multiset = gk.Multiset;
 
 // Setup our initial input graph
 let g1 = new Graph();
+let g2 = new Graph();
 g1.clear();
 
 (function() {
 	// add some books
 	let start = Date.now();
-	for (let i = 1000; 0 < i; --i) {
+	for (let i = process.argv[2] || 1; 0 < i; --i) {
 		let user = new Entity('Book');
 		user['title'] = 'Title ' + i;
 		g1.insert(user);
+		//g1.remove(user);
 	}
 	console.log('Books added (%d) Time %d', g1.Entity.Book.count(),  Date.now() - start);
 })();
@@ -63,13 +65,14 @@ g1.clear();
 	// add some users
 	let start = Date.now();
 	let males = 300;
-	for (let i = 1000; 0 < i; --i) {
+	for (let i = process.argv[2] || 1; 0 < i; --i) {
 		let user = new Entity('User');
 		user['name'] = 'Name ' + i;
 		g1.insert(user);
+		//g1.remove(user);
 
 		// let's make some female and some male
-		user.addGroup(--males ? 'male' : 'female');
+		//user.addGroup(--males ? 'male' : 'female');
 	}
 	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
 })();

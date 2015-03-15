@@ -19,6 +19,9 @@
 #ifndef GRAPHKIT_SRC_SYMBOLS_H
 #define GRAPHKIT_SRC_SYMBOLS_H
 
+// file system
+#define GK_FS_DB_DIR								"gk.db"
+
 // classes
 #define GK_SYMBOL_NODE_CLASS_NODE_CONSTANT			0
 #define GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT		1
@@ -35,13 +38,12 @@
 #define GK_SYMBOL_INDEX 							"Index"
 #define GK_SYMBOL_CLUSTER 							"Cluster"
 #define GK_SYMBOL_GRAPH 							"Graph"
-#define GK_SYMBOL_GRAPH_SET 						"GraphSet"
-#define GK_SYMBOL_GRAPH_MULTISET 					"GraphMultiset"
 #define GK_SYMBOL_SET 								"Set"
 #define GK_SYMBOL_ENTITY_SET 						"EntitySet"
 #define GK_SYMBOL_ACTION_SET 						"ActionSet"
 #define GK_SYMBOL_BOND_SET 							"BondSet"
 #define GK_SYMBOL_MULTISET 							"Multiset"
+#define GK_SYMBOL_HUB 								"Hub"
 
 // operations
 #define GK_SYMBOL_OPERATION_NODE_CLASS 				"nodeClass"

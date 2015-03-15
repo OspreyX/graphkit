@@ -16,8 +16,41 @@
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Storage.h"
+#ifndef GRAPHKIT_SRC_HUB_H
+#define GRAPHKIT_SRC_HUB_H
 
-gk::Storage::Storage() noexcept {}
+#include "exports.h"
+#include "Export.h"
 
-gk::Storage::~Storage() {}
+namespace gk {
+	class Hub : public gk::Export {
+	public:
+
+		/**
+		* Hub
+		* Constructor.
+		*/
+		Hub() noexcept;
+
+		/**
+		* ~Hub
+		* Destructor.
+		*/
+		virtual ~Hub();
+
+		// defaults
+		Hub(const Hub& other) = default;
+		Hub& operator= (const Hub&) = default;
+		Hub(Hub&& other) = default;
+		Hub& operator= (Hub&&) = default;
+
+		static gk::Hub* Instance(v8::Isolate* isolate) noexcept;
+		static GK_INIT(Init);
+
+	private:
+		static GK_CONSTRUCTOR(constructor_);
+		static GK_METHOD(New);
+	};
+}
+
+#endif

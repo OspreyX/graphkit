@@ -13,7 +13,13 @@
 				"./src/Export.cpp",
 				"./src/Node.cpp",
 				"./src/Entity.cpp",
-				"./src/Storage.cpp"
+				"./src/Coordinator.cpp",
+				"./src/Hub.cpp",
+				"./src/Graph.cpp",
+				"./src/Cluster.cpp",
+				"./src/Index.cpp",
+				"./src/Set.cpp",
+				"./src/Multiset.cpp"
 			],
 			"conditions": [
 				["OS=='mac'", {
