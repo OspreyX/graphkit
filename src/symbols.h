@@ -19,8 +19,6 @@
 #ifndef GRAPHKIT_SRC_SYMBOLS_H
 #define GRAPHKIT_SRC_SYMBOLS_H
 
-#include <uv.h>
-
 // file system
 #define GK_FS_DB_DIR					"gk.db"
 

@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <utility>
+#include <uv.h>
 #include "Entity.h"
 #include "symbols.h"
 

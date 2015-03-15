@@ -46,6 +46,9 @@ let Multiset = gk.Multiset;
 
 // Setup our initial input graph
 let g1 = new Graph();
+let g2 = new Graph();
+let g3 = new Graph();
+let g4 = new Graph();
 //g1.clear();
 
 (function() {
@@ -57,8 +60,13 @@ let g1 = new Graph();
 		g1.insert(user);
 		//g1.remove(user);
 	}
-	//console.log('Books added (%d) Time %d', g1.Entity.Book.count(),  Date.now() - start);
+	console.log('Books added (%d) Time %d', g1.Entity.Book.count(),  Date.now() - start);
 })();
+
+console.log(g1);
+console.log(g2);
+console.log(g3);
+console.log(g4);
 
 //(function() {
 //	// add some users

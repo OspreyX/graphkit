@@ -27,6 +27,7 @@
 #include <utility>
 #include <string>
 #include <cassert>
+#include <uv.h>
 #include "Node.h"
 #include "symbols.h"
 #include "Set.h"

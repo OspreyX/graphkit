@@ -31,7 +31,6 @@
 #include "Entity.h"
 #include "Action.h"
 #include "Bond.h"
-#include "json.h"
 #include "Coordinator.h"
 
 namespace gk {
@@ -61,7 +60,7 @@ namespace gk {
 		static GK_INIT(Init);
 
 	private:
-		static std::shared_ptr<gk::Coordinator> coordinator_;
+		std::shared_ptr<gk::Coordinator> coordinator_;
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
 		static GK_METHOD(Count);
@@ -92,18 +91,19 @@ GK_CONSTRUCTOR(gk::Graph<T, K, O>::constructor_);
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::Graph() noexcept
-	: gk::Export{} {}
+	: gk::Export{},
+	  coordinator_{nullptr} {}
 
 template <typename T, typename K, typename O>
 gk::Graph<T, K, O>::~Graph() {
-	if (0 != coordinator_.use_count()) {
+	if (nullptr != coordinator_) {
 		coordinator_.reset();
 	}
 }
 
 template <typename T, typename K, typename O>
 std::shared_ptr<gk::Coordinator> gk::Graph<T, K, O>::coordinator() noexcept {
-	if (0 == coordinator_.use_count()) {
+	if (nullptr == coordinator_) {
 		coordinator_ = std::make_shared<gk::Coordinator>();
 	}
 	return coordinator_;
@@ -160,6 +160,7 @@ GK_METHOD(gk::Graph<T, K, O>::New) {
 
 	if (args.IsConstructCall()) {
 		auto obj = new gk::Graph<T, K, O>{};
+		obj->coordinator()->sync(isolate);
 		obj->Wrap(args.This());
 		GK_RETURN(args.This());
 	} else {
@@ -264,10 +265,10 @@ template <typename T, typename K, typename O>
 GK_INDEX_GETTER(gk::Graph<T, K, O>::IndexGetter) {
 	GK_SCOPE();
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	if (++index > g->count()) {
+	if (++index > g->coordinator()->nodeGraph()->count()) {
 		GK_EXCEPTION("[GraphKit Error: Index out of range.]");
 	}
-	GK_RETURN(g->select(index)->handle());
+	GK_RETURN(g->coordinator()->nodeGraph()->select(index)->handle());
 }
 
 template <typename T, typename K, typename O>
@@ -286,7 +287,7 @@ template <typename T, typename K, typename O>
 GK_INDEX_ENUMERATOR(gk::Graph<T, K, O>::IndexEnumerator) {
 	GK_SCOPE();
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto is = g->count();
+	auto is = g->coordinator()->nodeGraph()->count();
 	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
 	for (auto j = is - 1; 0 <= j; --j) {
 		array->Set(j, GK_INTEGER(j));
@@ -304,7 +305,7 @@ GK_PROPERTY_GETTER(gk::Graph<T, K, O>::PropertyGetter) {
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_CLEAR) &&
 		0 != strcmp(*p, GK_SYMBOL_OPERATION_FIND)) {
 		auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-		auto v = g->findByKey(gk::NodeClassFromString(*p));
+		auto v = g->coordinator()->nodeGraph()->findByKey(gk::NodeClassFromString(*p));
 		if (v) {
 			GK_RETURN(v->handle());
 		}

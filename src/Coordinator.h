@@ -19,8 +19,8 @@
 #ifndef GRAPHKIT_SRC_COORDINATOR_H
 #define GRAPHKIT_SRC_COORDINATOR_H
 
+#include <memory>
 #include <string>
-#include <uv.h>
 #include "RedBlackTree.h"
 #include "Cluster.h"
 #include "Index.h"
@@ -61,8 +61,16 @@ namespace gk {
 		/**
 		* sync
 		* Synchronizes the Graph instance.
+		* @param		v8::Isolate* isolate
 		*/
-		void sync() noexcept;
+		void sync(v8::Isolate* isolate) noexcept;
+
+		/**
+		* nodeGraph
+		* Lazy loader for a nodeGraph instance.
+		* @return		Tree*
+		*/
+		std::shared_ptr<Tree> nodeGraph() noexcept;
 
 		/**
 		* insert
@@ -84,7 +92,8 @@ namespace gk {
 		bool remove(const ClusterKey& cKey, const IndexKey& iKey, const NodeKey nKey) noexcept;
 
 	private:
-		Tree* nodeGraph_;
+		static bool synched_;
+		static std::shared_ptr<Tree> nodeGraph_;
 	};
 }
 

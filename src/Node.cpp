@@ -17,6 +17,7 @@
 */
 
 #include <utility>
+#include <uv.h>
 #include "Node.h"
 
 gk::Node::Node(const gk::NodeClass& nodeClass, const std::string&& type) noexcept

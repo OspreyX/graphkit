@@ -25,6 +25,7 @@
 
 #include <cstring>
 #include <cassert>
+#include <uv.h>
 #include "Node.h"
 #include "symbols.h"
 
