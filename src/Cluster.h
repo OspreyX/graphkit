@@ -31,15 +31,46 @@ namespace gk {
 	class Cluster : public gk::Export,
 					public gk::RedBlackTree<gk::Index, true, std::string> {
 	public:
-		Cluster(const gk::NodeClass& nodeClass) noexcept;
+
+		/**
+		* Cluser
+		* Explicit Constructor.
+		* @param		const gk::NodeClass& nodeClass
+		*/
+		explicit Cluster(const gk::NodeClass& nodeClass) noexcept;
+
+		/**
+		* ~Cluster
+		* Destructor.
+		*/
 		virtual ~Cluster();
+
+		// defaults
 		Cluster(const Cluster&) = default;
 		Cluster& operator= (const Cluster&) = default;
 		Cluster(Cluster&&) = default;
 		Cluster& operator= (Cluster&&) = default;
 
+		/**
+		* nodeClass
+		* Retrieves the NodeClass that the Cluster manages.
+		* return		gk::NodeClass&
+		*/
 		const gk::NodeClass& nodeClass() const noexcept;
+
+		/**
+		* insert
+		* Inserts a Node into the Cluster.
+		* @param		v8::Isolate* isolate
+		* @param		gk::Node* node
+		* @return		A boolean of the result, true if inserted, false otherwise.
+		*/
 		bool insert(v8::Isolate* isolate, gk::Node* node) noexcept;
+
+		/**
+		* cleanUp
+		* Should be called when wanting to cleanup the cluster for v8 garbage collection references.
+		*/
 		void cleanUp() noexcept;
 
 		static gk::Cluster* Instance(v8::Isolate* isolate, gk::NodeClass& nodeClass) noexcept;

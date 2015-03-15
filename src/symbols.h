@@ -20,7 +20,7 @@
 #define GRAPHKIT_SRC_SYMBOLS_H
 
 // file system
-#define GK_FS_DB_DIR					"gk.db"
+#define GK_FS_DB_DIR								"gk.db"
 
 // classes
 #define GK_SYMBOL_NODE_CLASS_NODE_CONSTANT			0

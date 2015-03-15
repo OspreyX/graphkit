@@ -51,9 +51,7 @@ namespace gk {
 		*/
 		virtual ~Bond();
 
-		/**
-		* Default declarations.
-		*/
+		// defaults
 		Bond(const Bond& other) = default;
 		Bond& operator= (const Bond&) = default;
 		Bond(Bond&& other) = default;

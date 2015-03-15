@@ -51,9 +51,7 @@ namespace gk {
 		*/
 		virtual ~Entity();
 
-		/**
-		* Default declarations.
-		*/
+		// defaults
 		Entity(const Entity& other) = default;
 		Entity& operator= (const Entity&) = default;
 		Entity(Entity&& other) = default;

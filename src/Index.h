@@ -52,9 +52,7 @@ namespace gk {
 		*/
 		virtual ~Index();
 
-		/**
-		* Default functions.
-		*/
+		// defaults
 		Index(const Index&) = default;
 		Index& operator= (const Index&) = default;
 		Index(Index&&) = default;
@@ -98,7 +96,7 @@ namespace gk {
 		/**
 		* incrementID
 		* Increments the ID value of the next Node to be managed.
-		* @return 		A return of template type "O", which defaults to long long.
+		* @return 		Current ID value.
 		*/
 		long long incrementID() noexcept;
 

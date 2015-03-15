@@ -54,9 +54,7 @@ namespace gk {
 		*/
 		virtual ~Action();
 
-		/**
-		* Default declarations.
-		*/
+		// defaults
 		Action(const Action& other) = default;
 		Action& operator= (const Action&) = default;
 		Action(Action&& other) = default;

@@ -35,9 +35,7 @@ namespace gk {
 		*/
 		Export() noexcept;
 
-		/**
-		* Default functions.
-		*/
+		// defaults
 		Export(const Export&) = default;
 		Export& operator= (const Export&) = default;
 		Export(Export&&) = default;

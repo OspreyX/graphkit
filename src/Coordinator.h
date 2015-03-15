@@ -42,7 +42,7 @@ namespace gk {
 		*/
 		virtual ~Coordinator();
 
-		// default constructors
+		// defaults
 		Coordinator(const Coordinator& other) = default;
 		Coordinator& operator= (const Coordinator&) = default;
 		Coordinator(Coordinator&& other) = default;

@@ -38,7 +38,7 @@ namespace gk {
 		*/
 		virtual ~Hub();
 
-		// default constructors
+		// defaults
 		Hub(const Hub& other) = default;
 		Hub& operator= (const Hub&) = default;
 		Hub(Hub&& other) = default;
