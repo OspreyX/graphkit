@@ -46,7 +46,6 @@ namespace gk {
 	private:
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
-		static GK_METHOD(Count);
 		static GK_METHOD(Insert);
 		static GK_METHOD(Remove);
 		static GK_METHOD(Clear);

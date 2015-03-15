@@ -57,7 +57,7 @@ g1.clear();
 		g1.insert(user);
 		//g1.remove(user);
 	}
-	console.log('Books added (%d) Time %d', g1.Entity.Book.count(),  Date.now() - start);
+	console.log('Books added (%d) Time %d', g1.Entity.Book.count,  Date.now() - start);
 })();
 
 (function() {
@@ -68,7 +68,7 @@ g1.clear();
 		user['name'] = 'Name ' + i;
 		g1.insert(user);
 	}
-	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
+	console.log('Users added (%d) Time %d', g1.Entity.User.count, Date.now() - start);
 })();
 
 (function() {
@@ -76,7 +76,7 @@ g1.clear();
 	// we can do this by
 	// giving each user a set of 10 friends randomly.
 	let users = g1.Entity.User;
-	let count = users.count();
+	let count = users.count;
 	let start = Date.now();
 	for (let i = count - 1; 0 <= i; --i) {
 		let user = users[i];
@@ -88,7 +88,7 @@ g1.clear();
 			friend.object = users[index];
 		}
 	}
-	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
+	console.log('Users added (%d) Time %d', g1.Entity.User.count, Date.now() - start);
 })();
 
 (function() {
@@ -97,10 +97,10 @@ g1.clear();
 	let users = g1.Entity.User;
 	let books = g1.Entity.Book;
 	let start = Date.now();
-	for (let i = users.count() - 1; 0 <= i; --i) {
+	for (let i = users.count - 1; 0 <= i; --i) {
 		let user = users[i];
 		for (let j = 10; 0 < j; --j) {
-			let index = Math.floor((Math.random() * books.count()));
+			let index = Math.floor((Math.random() * books.count));
 			let read = new Action('Read');
 			g1.insert(read);
 			read.addSubject(user);
@@ -113,7 +113,7 @@ g1.clear();
 			}
 		}
 	}
-	console.log('Actions added (%d) Time %d', g1.Action.Read.count(), Date.now() - start);
+	console.log('Actions added (%d) Time %d', g1.Action.Read.count, Date.now() - start);
 })();
 
 (function() {
@@ -125,5 +125,7 @@ g1.clear();
 	books[0].addGroup('monitor');
 	reads[0].addGroup('monitor');
 	reads[1].addGroup('monitor');
+	reads[1].removeGroup('monitor');
+	users[0].removeGroup('monitor');
 	console.log(g1.group('monitor'));
 })();

@@ -56,22 +56,21 @@ gk::Multiset* gk::Multiset::Instance(v8::Isolate* isolate) noexcept {
 }
 
 GK_INIT(gk::Multiset::Init) {
-GK_SCOPE();
+	GK_SCOPE();
 
-auto t = GK_TEMPLATE(New);
-t->SetClassName(GK_STRING(symbol));
-t->InstanceTemplate()->SetInternalFieldCount(1);
-t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
-t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
+	auto t = GK_TEMPLATE(New);
+	t->SetClassName(GK_STRING(symbol));
+	t->InstanceTemplate()->SetInternalFieldCount(1);
+	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
+	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
-NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_COUNT, Count);
-NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
-NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
-NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
-NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_FIND, Find);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_FIND, Find);
 
-constructor_.Reset(isolate, t->GetFunction());
-exports->Set(GK_STRING(symbol), t->GetFunction());
+	constructor_.Reset(isolate, t->GetFunction());
+	exports->Set(GK_STRING(symbol), t->GetFunction());
 }
 
 GK_METHOD(gk::Multiset::New) {
@@ -89,12 +88,6 @@ GK_METHOD(gk::Multiset::New) {
 	}
 }
 
-GK_METHOD(gk::Multiset::Count) {
-	GK_SCOPE();
-	auto s = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
-	GK_RETURN(GK_NUMBER(s->count()));
-}
-
 GK_METHOD(gk::Multiset::Insert) {
 	GK_SCOPE();
 
@@ -102,13 +95,13 @@ GK_METHOD(gk::Multiset::Insert) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
-	if (!n->indexed()) {
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
+	if (!node->indexed()) {
 		GK_EXCEPTION("[GraphKit Error: NodeClass has not been indexed.]");
 	}
 
-	auto s = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(s->insert(n)));
+	auto multiset = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
+	GK_RETURN(GK_BOOLEAN(multiset->insert(node)));
 }
 
 GK_METHOD(gk::Multiset::Remove) {
@@ -118,25 +111,25 @@ GK_METHOD(gk::Multiset::Remove) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
-	auto s = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
+	auto multiset = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
 	if (args[0]->IntegerValue() && args[1]->IsString() && args[2]->IntegerValue()) {
 		v8::String::Utf8Value type(args[1]->ToString());
-		auto k = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + *type + std::to_string(args[2]->IntegerValue())};
-		GK_RETURN(GK_BOOLEAN(s->remove(k)));
+		auto key = std::string{std::string(gk::NodeClassToString(gk::NodeClassFromInt(args[0]->IntegerValue()))) + *type + std::to_string(args[2]->IntegerValue())};
+		GK_RETURN(GK_BOOLEAN(multiset->remove(key)));
 	}
 
 	if (!args[0]->IsObject()) {
 		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
 	}
 
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
-	GK_RETURN(GK_BOOLEAN(s->remove(n->hash())));
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
+	GK_RETURN(GK_BOOLEAN(multiset->remove(node->hash())));
 }
 
 GK_METHOD(gk::Multiset::Clear) {
 	GK_SCOPE();
-	auto s = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
-	s->cleanUp();
+	auto multiset = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
+	multiset->cleanUp();
 	GK_RETURN(GK_UNDEFINED());
 }
 
@@ -155,23 +148,23 @@ GK_METHOD(gk::Multiset::Find) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
 	}
 
-	auto s = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
+	auto multiset = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
 	v8::String::Utf8Value type(args[1]->ToString());
-	auto k = std::to_string(args[0]->IntegerValue()) + *type + std::to_string(args[2]->IntegerValue());
-	auto n = s->findByKey(k);
-	if (n) {
-		GK_RETURN(n->handle());
+	auto key = std::to_string(args[0]->IntegerValue()) + *type + std::to_string(args[2]->IntegerValue());
+	auto node = multiset->findByKey(key);
+	if (node) {
+		GK_RETURN(node->handle());
 	}
 	GK_RETURN(GK_UNDEFINED());
 }
 
 GK_INDEX_GETTER(gk::Multiset::IndexGetter) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
-	if (++index > i->count()) {
+	auto multiset = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
+	if (++index > multiset->count()) {
 		GK_EXCEPTION("[GraphKit Error: Multiset out of range.]");
 	}
-	GK_RETURN(i->select(index)->handle());
+	GK_RETURN(multiset->select(index)->handle());
 }
 
 GK_INDEX_SETTER(gk::Multiset::IndexSetter) {
@@ -186,27 +179,33 @@ GK_INDEX_DELETER(gk::Multiset::IndexDeleter) {
 
 GK_INDEX_ENUMERATOR(gk::Multiset::IndexEnumerator) {
 	GK_SCOPE();
-	auto i = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
-	auto is = i->count();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
-	for (auto j = is - 1; 0 <= j; --j) {
-		array->Set(j, GK_INTEGER(j));
+	auto multiset = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
+	auto count = multiset->count();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, count);
+	for (auto i = count - 1; 0 <= i; --i) {
+		array->Set(i, GK_INTEGER(i));
 	}
 	GK_RETURN(array);
 }
 
 GK_PROPERTY_GETTER(gk::Multiset::PropertyGetter) {
-GK_SCOPE();
+	GK_SCOPE();
+
+	v8::String::Utf8Value p(property);
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_COUNT)) {
+		auto multiset = node::ObjectWrap::Unwrap<gk::Multiset>(args.Holder());
+		GK_RETURN(GK_INTEGER(multiset->count()));
+	}
 }
 
 GK_PROPERTY_SETTER(gk::Multiset::PropertySetter) {
-GK_SCOPE();
-GK_EXCEPTION("[GraphKit Error: Multiset values may not be set.]");
+	GK_SCOPE();
+	GK_EXCEPTION("[GraphKit Error: Multiset values may not be set.]");
 }
 
 GK_PROPERTY_DELETER(gk::Multiset::PropertyDeleter) {
-GK_SCOPE();
-GK_EXCEPTION("[GraphKit Error: Multiset values may not be deleted.]");
+	GK_SCOPE();
+	GK_EXCEPTION("[GraphKit Error: Multiset values may not be deleted.]");
 }
 
 GK_PROPERTY_ENUMERATOR(gk::Multiset::PropertyEnumerator) {

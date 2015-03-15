@@ -69,7 +69,6 @@ GK_INIT(gk::Graph::Init) {
 	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
 	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
 
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_COUNT, Count);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
@@ -97,12 +96,6 @@ GK_METHOD(gk::Graph::New) {
 		auto ctor = GK_FUNCTION(constructor_);
 		GK_RETURN(ctor->NewInstance(argc, argv));
 	}
-}
-
-GK_METHOD(gk::Graph::Count) {
-	GK_SCOPE();
-	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	GK_RETURN(GK_NUMBER(graph->coordinator()->nodeGraph()->count()));
 }
 
 GK_METHOD(gk::Graph::Insert) {
@@ -217,16 +210,19 @@ GK_INDEX_ENUMERATOR(gk::Graph::IndexEnumerator) {
 GK_PROPERTY_GETTER(gk::Graph::PropertyGetter) {
 	GK_SCOPE();
 	v8::String::Utf8Value p(property);
-	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_COUNT) &&
-	0 != strcmp(*p, GK_SYMBOL_OPERATION_INSERT) &&
-	0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE) &&
-	0 != strcmp(*p, GK_SYMBOL_OPERATION_CLEAR) &&
-	0 != strcmp(*p, GK_SYMBOL_OPERATION_FIND)) {
+	if (0 == strcmp(*p, GK_SYMBOL_OPERATION_COUNT)) {
 		auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-		auto cluster = graph->coordinator()->nodeGraph()->findByKey(gk::NodeClassFromString(*p));
-		if (cluster) {
-			GK_RETURN(cluster->handle());
-		}
+		GK_RETURN(GK_INTEGER(graph->coordinator()->nodeGraph()->count()));
+	}
+	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_INSERT) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_CLEAR) &&
+		0 != strcmp(*p, GK_SYMBOL_OPERATION_FIND)) {
+			auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+			auto cluster = graph->coordinator()->nodeGraph()->findByKey(gk::NodeClassFromString(*p));
+			if (cluster) {
+				GK_RETURN(cluster->handle());
+			}
 	}
 }
 
