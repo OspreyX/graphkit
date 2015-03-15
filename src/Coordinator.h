@@ -89,7 +89,7 @@ namespace gk {
 		* @param		const NodeKey& nKey
 		* @return		A boolean if the Node was removed, or false otherwise.
 		*/
-		bool remove(const ClusterKey& cKey, const IndexKey& iKey, const NodeKey nKey) noexcept;
+		bool remove(const ClusterKey& cKey, const IndexKey& iKey, const NodeKey& nKey) noexcept;
 
 	private:
 		static bool synched_;

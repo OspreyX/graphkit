@@ -90,7 +90,7 @@ gk::GraphSet<G, T, O>::~GraphSet() {
 template <typename G, typename T, typename O>
 bool gk::GraphSet<G, T, O>::insert(v8::Isolate* isolate, T* node) noexcept {
 	if (!node->indexed()) {
-		graph_->insert(isolate, node);
+		graph_->coordinator()->insert(isolate, node);
 	}
 	if (!node->indexed()) {
 		return false;

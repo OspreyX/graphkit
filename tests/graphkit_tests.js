@@ -47,8 +47,6 @@ let Multiset = gk.Multiset;
 // Setup our initial input graph
 let g1 = new Graph();
 let g2 = new Graph();
-let g3 = new Graph();
-let g4 = new Graph();
 //g1.clear();
 
 (function() {
@@ -57,7 +55,7 @@ let g4 = new Graph();
 	for (let i = 1; 0 < i; --i) {
 		let user = new Entity('Book');
 		user['title'] = 'Title ' + i;
-		g1.insert(user);
+		//g1.insert(user);
 		//g1.remove(user);
 	}
 	console.log('Books added (%d) Time %d', g1.Entity.Book.count(),  Date.now() - start);
@@ -65,23 +63,21 @@ let g4 = new Graph();
 
 console.log(g1);
 console.log(g2);
-console.log(g3);
-console.log(g4);
 
-//(function() {
-//	// add some users
-//	let start = Date.now();
-//	let males = 300;
-//	for (let i = 1000; 0 < i; --i) {
-//		let user = new Entity('User');
-//		user['name'] = 'Name ' + i;
-//		g1.insert(user);
-//
-//		// let's make some female and some male
-//		user.addGroup(--males ? 'male' : 'female');
-//	}
-//	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
-//})();
+(function() {
+	// add some users
+	let start = Date.now();
+	let males = 300;
+	for (let i = 10; 0 < i; --i) {
+		let user = new Entity('User');
+		user['name'] = 'Name ' + i;
+		//g1.insert(user);
+
+		// let's make some female and some male
+		//user.addGroup(--males ? 'male' : 'female');
+	}
+	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
+})();
 //
 //(function() {
 //	// make users friends

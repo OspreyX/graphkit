@@ -52,8 +52,6 @@ namespace gk {
 		using Cluster = T;
 
 		std::shared_ptr<gk::Coordinator> coordinator() noexcept;
-
-		bool insert(v8::Isolate* isolate, typename T::Index::Node* node) noexcept;
 		void cleanUp() noexcept;
 
 		static gk::Graph<T, K, O>* Instance(v8::Isolate* isolate) noexcept;
@@ -107,11 +105,6 @@ std::shared_ptr<gk::Coordinator> gk::Graph<T, K, O>::coordinator() noexcept {
 		coordinator_ = std::make_shared<gk::Coordinator>();
 	}
 	return coordinator_;
-}
-
-template  <typename T, typename K, typename O>
-bool gk::Graph<T, K, O>::insert(v8::Isolate* isolate, typename T::Index::Node* node) noexcept {
-	return coordinator()->insert(isolate, node);
 }
 
 template  <typename T, typename K, typename O>
@@ -192,7 +185,7 @@ GK_METHOD(gk::Graph<T, K, O>::Insert) {
 	}
 
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(g->insert(isolate, n)));
+	GK_RETURN(GK_BOOLEAN(g->coordinator()->insert(isolate, n)));
 }
 
 template <typename T, typename K, typename O>
@@ -356,7 +349,7 @@ GK_METHOD(gk::Graph<T, K, O>::CreateEntity) {
 	v8::String::Utf8Value type(args[0]->ToString());
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
 	auto e = gk::Entity::Instance(isolate, *type);
-	g->insert(isolate, e);
+	g->coordinator()->insert(isolate, e);
 	GK_RETURN(e->handle());
 }
 
@@ -369,7 +362,7 @@ GK_METHOD(gk::Graph<T, K, O>::CreateAction) {
 	v8::String::Utf8Value type(args[0]->ToString());
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
 	auto a = gk::Action<gk::Entity>::Instance(isolate, *type);
-	g->insert(isolate, a);
+	g->coordinator()->insert(isolate, a);
 	GK_RETURN(a->handle());
 }
 
@@ -382,7 +375,7 @@ GK_METHOD(gk::Graph<T, K, O>::CreateBond) {
 	v8::String::Utf8Value type(args[0]->ToString());
 	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
 	auto b = gk::Bond<gk::Entity>::Instance(isolate, *type);
-	g->insert(isolate, b);
+	g->coordinator()->insert(isolate, b);
 	GK_RETURN(b->handle());
 }
 
