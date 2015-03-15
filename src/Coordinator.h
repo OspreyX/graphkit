@@ -53,9 +53,9 @@ namespace gk {
 		using Node = gk::Node;
 		using NodeKey = long long;
 		using IndexKey = std::string;
-		using Index = gk::Index<Node>;
+		using Index = gk::Index;
 		using ClusterKey = gk::NodeClass;
-		using Cluster = gk::Cluster<Index>;
+		using Cluster = gk::Cluster;
 		using Tree = gk::RedBlackTree<Cluster, true, ClusterKey, Order>;
 
 		/**
@@ -68,7 +68,7 @@ namespace gk {
 		/**
 		* nodeGraph
 		* Lazy loader for a nodeGraph instance.
-		* @return		Tree*
+		* @return		std::shared_ptr<Tree>
 		*/
 		std::shared_ptr<Tree> nodeGraph() noexcept;
 

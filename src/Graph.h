@@ -20,27 +20,11 @@
 #define GRAPHKIT_SRC_GRAPH_H
 
 #include <memory>
-#include <string>
 #include "exports.h"
-#include "symbols.h"
-#include "NodeClass.h"
-#include "Export.h"
-#include "RedBlackTree.h"
-#include "GraphSet.h"
-#include "GraphMultiset.h"
-#include "Entity.h"
-#include "Action.h"
-#include "Bond.h"
 #include "Coordinator.h"
 
 namespace gk {
-	template <
-		typename T,
-		typename K = gk::NodeClass,
-		typename O = long long
-	>
-	class Graph : public gk::Export,
-				  public gk::RedBlackTree<T, true, K, O> {
+	class Graph : public gk::Export {
 	public:
 		Graph() noexcept;
 		virtual ~Graph();
@@ -49,12 +33,10 @@ namespace gk {
 		Graph(Graph&&) = default;
 		Graph& operator= (Graph&&) = default;
 
-		using Cluster = T;
-
 		std::shared_ptr<gk::Coordinator> coordinator() noexcept;
 		void cleanUp() noexcept;
 
-		static gk::Graph<T, K, O>* Instance(v8::Isolate* isolate) noexcept;
+		static gk::Graph* Instance(v8::Isolate* isolate) noexcept;
 		static GK_INIT(Init);
 
 	private:
@@ -69,8 +51,6 @@ namespace gk {
 		static GK_METHOD(CreateEntity);
 		static GK_METHOD(CreateAction);
 		static GK_METHOD(CreateBond);
-		static GK_METHOD(GraphSet);
-		static GK_METHOD(GraphMultiset);
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
 		static GK_INDEX_QUERY(IndexQuery);
@@ -82,301 +62,6 @@ namespace gk {
 		static GK_PROPERTY_DELETER(PropertyDeleter);
 		static GK_PROPERTY_ENUMERATOR(PropertyEnumerator);
 	};
-}
-
-template <typename T, typename K, typename O>
-GK_CONSTRUCTOR(gk::Graph<T, K, O>::constructor_);
-
-template <typename T, typename K, typename O>
-gk::Graph<T, K, O>::Graph() noexcept
-	: gk::Export{},
-	  coordinator_{nullptr} {}
-
-template <typename T, typename K, typename O>
-gk::Graph<T, K, O>::~Graph() {
-	if (nullptr != coordinator_) {
-		coordinator_.reset();
-	}
-}
-
-template <typename T, typename K, typename O>
-std::shared_ptr<gk::Coordinator> gk::Graph<T, K, O>::coordinator() noexcept {
-	if (nullptr == coordinator_) {
-		coordinator_ = std::make_shared<gk::Coordinator>();
-	}
-	return coordinator_;
-}
-
-template  <typename T, typename K, typename O>
-void gk::Graph<T, K, O>::cleanUp() noexcept {
-	for (auto i = this->count(); 0 < i; --i) {
-		this->select(i)->cleanUp();
-	}
-}
-
-template <typename T, typename K, typename O>
-gk::Graph<T, K, O>* gk::Graph<T, K, O>::Instance(v8::Isolate* isolate) noexcept {
-	const int argc = 0;
-	v8::Local<v8::Value> argv[argc] = {};
-	auto ctor = GK_FUNCTION(constructor_);
-	return node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(ctor->NewInstance(argc, argv));
-}
-
-template <typename T, typename K, typename O>
-GK_INIT(gk::Graph<T, K, O>::Init) {
-	GK_SCOPE();
-
-	auto t = GK_TEMPLATE(New);
-	t->SetClassName(GK_STRING(symbol));
-	t->InstanceTemplate()->SetInternalFieldCount(1);
-	t->InstanceTemplate()->SetIndexedPropertyHandler(IndexGetter, IndexSetter, 0, IndexDeleter, IndexEnumerator);
-	t->InstanceTemplate()->SetNamedPropertyHandler(PropertyGetter, PropertySetter, 0, PropertyDeleter, PropertyEnumerator);
-
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_COUNT, Count);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_INSERT, Insert);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_REMOVE, Remove);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CLEAR, Clear);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_FIND, Find);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_ENTITY, CreateEntity);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_ACTION, CreateAction);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_BOND, CreateBond);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_SET, GraphSet);
-	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_MULTISET, GraphMultiset);
-
-	constructor_.Reset(isolate, t->GetFunction());
-	exports->Set(GK_STRING(symbol), t->GetFunction());
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::New) {
-	GK_SCOPE();
-
-	if (args.IsConstructCall()) {
-		auto obj = new gk::Graph<T, K, O>{};
-		obj->coordinator()->sync(isolate);
-		obj->Wrap(args.This());
-		GK_RETURN(args.This());
-	} else {
-		const int argc = 0;
-		v8::Local<v8::Value> argv[argc] = {};
-		auto ctor = GK_FUNCTION(constructor_);
-		GK_RETURN(ctor->NewInstance(argc, argv));
-	}
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::Count) {
-	GK_SCOPE();
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	GK_RETURN(GK_NUMBER(g->count()));
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::Insert) {
-	GK_SCOPE();
-
-	if (!args[0]->IsObject()) {
-		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
-	}
-
-	auto n = node::ObjectWrap::Unwrap<typename T::Index::Node>(args[0]->ToObject());
-	if (n->indexed()) {
-		GK_RETURN(GK_BOOLEAN(false));
-	}
-
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(g->coordinator()->insert(isolate, n)));
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::Remove) {
-	GK_SCOPE();
-
-	if (0 == args.Length()) {
-		GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
-	}
-
-	// check if the object is a Node
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	if (args[0]->IsObject()) {
-		auto n = node::ObjectWrap::Unwrap<typename T::Index::Node>(args[0]->ToObject());
-		GK_RETURN(GK_BOOLEAN(g->coordinator()->remove(n->nodeClass(), n->type(), n->id())));
-	}
-
-	// check if granular details are passed
-	if (args[0]->IntegerValue() && args[1]->IsString() && args[2]->IntegerValue()) {
-		auto nodeClass = gk::NodeClassFromInt(args[0]->IntegerValue());
-		v8::String::Utf8Value type(args[1]->ToString());
-		auto id = args[1]->IntegerValue();
-		GK_RETURN(GK_BOOLEAN(g->coordinator()->remove(nodeClass, *type, id)));
-	}
-
-	// throw an exception if we are here
-	GK_EXCEPTION("[GraphKit Error: Argument at position 0 must be a NodeClass Object.]");
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::Clear) {
-	GK_SCOPE();
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	g->cleanUp();
-	GK_RETURN(GK_UNDEFINED());
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::Find) {
-	GK_SCOPE();
-
-	if ((GK_SYMBOL_NODE_CLASS_ENTITY_CONSTANT > args[0]->IntegerValue() || GK_SYMBOL_NODE_CLASS_BOND_CONSTANT < args[0]->IntegerValue())) {
-		GK_EXCEPTION("[GraphKit Error: Please specify a correct NodeClass value.]");
-	}
-
-	if (!args[1]->IsString()) {
-		GK_EXCEPTION("[GraphKit Error: Please specify a correct Type value.]");
-	}
-
-	if (!args[2]->IntegerValue()) {
-		GK_EXCEPTION("[GraphKit Error: Please specify a correct ID value.]");
-	}
-
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto c = g->findByKey(gk::NodeClassFromInt(args[0]->IntegerValue()));
-	if (c && 0 < c->count()) {
-		v8::String::Utf8Value type(args[1]->ToString());
-		auto i = c->findByKey(*type);
-		if (i && 0 < i->count()) {
-			auto n = i->findByKey(args[2]->IntegerValue());
-			if (n) {
-				GK_RETURN(n->handle());
-			}
-		}
-	}
-	GK_RETURN(GK_UNDEFINED());
-}
-
-template <typename T, typename K, typename O>
-GK_INDEX_GETTER(gk::Graph<T, K, O>::IndexGetter) {
-	GK_SCOPE();
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	if (++index > g->coordinator()->nodeGraph()->count()) {
-		GK_EXCEPTION("[GraphKit Error: Index out of range.]");
-	}
-	GK_RETURN(g->coordinator()->nodeGraph()->select(index)->handle());
-}
-
-template <typename T, typename K, typename O>
-GK_INDEX_SETTER(gk::Graph<T, K, O>::IndexSetter) {
-	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Graph values may not be set.]");
-}
-
-template <typename T, typename K, typename O>
-GK_INDEX_DELETER(gk::Graph<T, K, O>::IndexDeleter) {
-	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Graph values may not be deleted.]");
-}
-
-template <typename T, typename K, typename O>
-GK_INDEX_ENUMERATOR(gk::Graph<T, K, O>::IndexEnumerator) {
-	GK_SCOPE();
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto is = g->coordinator()->nodeGraph()->count();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, is);
-	for (auto j = is - 1; 0 <= j; --j) {
-		array->Set(j, GK_INTEGER(j));
-	}
-	GK_RETURN(array);
-}
-
-template <typename T, typename K, typename O>
-GK_PROPERTY_GETTER(gk::Graph<T, K, O>::PropertyGetter) {
-	GK_SCOPE();
-	v8::String::Utf8Value p(property);
-	if (0 != strcmp(*p, GK_SYMBOL_OPERATION_COUNT) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_INSERT) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_REMOVE) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_CLEAR) &&
-		0 != strcmp(*p, GK_SYMBOL_OPERATION_FIND)) {
-		auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-		auto v = g->coordinator()->nodeGraph()->findByKey(gk::NodeClassFromString(*p));
-		if (v) {
-			GK_RETURN(v->handle());
-		}
-	}
-}
-
-template <typename T, typename K, typename O>
-GK_PROPERTY_SETTER(gk::Graph<T, K, O>::PropertySetter) {
-	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Graph values may not be set.]");
-}
-
-template <typename T, typename K, typename O>
-GK_PROPERTY_DELETER(gk::Graph<T, K, O>::PropertyDeleter) {
-	GK_SCOPE();
-	GK_EXCEPTION("[GraphKit Error: Graph values may not be deleted.]");
-}
-
-template <typename T, typename K, typename O>
-GK_PROPERTY_ENUMERATOR(gk::Graph<T, K, O>::PropertyEnumerator) {
-	GK_SCOPE();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, 0);
-	GK_RETURN(array);
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::GraphSet) {
-	GK_SCOPE();
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto s = gk::GraphSet<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
-	GK_RETURN(s->handle());
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::GraphMultiset) {
-	GK_SCOPE();
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto s = gk::GraphMultiset<gk::Graph<T, K, O>, typename T::Index::Node, O>::Instance(isolate, g);
-	GK_RETURN(s->handle());
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::CreateEntity) {
-	GK_SCOPE();
-	if (!args[0]->IsString()) {
-		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
-	}
-	v8::String::Utf8Value type(args[0]->ToString());
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto e = gk::Entity::Instance(isolate, *type);
-	g->coordinator()->insert(isolate, e);
-	GK_RETURN(e->handle());
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::CreateAction) {
-	GK_SCOPE();
-	if (!args[0]->IsString()) {
-		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
-	}
-	v8::String::Utf8Value type(args[0]->ToString());
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto a = gk::Action<gk::Entity>::Instance(isolate, *type);
-	g->coordinator()->insert(isolate, a);
-	GK_RETURN(a->handle());
-}
-
-template <typename T, typename K, typename O>
-GK_METHOD(gk::Graph<T, K, O>::CreateBond) {
-	GK_SCOPE();
-	if (!args[0]->IsString()) {
-		GK_EXCEPTION("[GraphKit Error: Please specify a Type value.]");
-	}
-	v8::String::Utf8Value type(args[0]->ToString());
-	auto g = node::ObjectWrap::Unwrap<gk::Graph<T, K, O>>(args.Holder());
-	auto b = gk::Bond<gk::Entity>::Instance(isolate, *type);
-	g->coordinator()->insert(isolate, b);
-	GK_RETURN(b->handle());
 }
 
 #endif

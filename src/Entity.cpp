@@ -40,17 +40,17 @@ gk::Entity::~Entity() {
 	}
 }
 
-gk::Set<gk::Bond<gk::Entity>>* gk::Entity::bonds(v8::Isolate* isolate) noexcept {
+gk::Set* gk::Entity::bonds(v8::Isolate* isolate) noexcept {
 	if (nullptr == bonds_) {
-		bonds_ = gk::Set<gk::Bond<gk::Entity>>::Instance(isolate);
+		bonds_ = gk::Set::Instance(isolate);
 		bonds_->Ref();
 	}
 	return bonds_;
 }
 
-gk::Set<gk::Action<gk::Entity>>* gk::Entity::actions(v8::Isolate* isolate) noexcept {
+gk::Set* gk::Entity::actions(v8::Isolate* isolate) noexcept {
 	if (nullptr == actions_) {
-		actions_ = gk::Set<gk::Action<gk::Entity>>::Instance(isolate);
+		actions_ = gk::Set::Instance(isolate);
 		actions_->Ref();
 	}
 	return actions_;

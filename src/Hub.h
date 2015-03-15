@@ -19,15 +19,11 @@
 #ifndef GRAPHKIT_SRC_HUB_H
 #define GRAPHKIT_SRC_HUB_H
 
-#include <memory>
-#include <string>
-#include "RedBlackTree.h"
-#include "Cluster.h"
-#include "Index.h"
-#include "Node.h"
+#include "exports.h"
+#include "Export.h"
 
 namespace gk {
-	class Hub {
+	class Hub : public gk::Export {
 	public:
 
 		/**
@@ -48,52 +44,12 @@ namespace gk {
 		Hub(Hub&& other) = default;
 		Hub& operator= (Hub&&) = default;
 
-		// aliases
-		using Order = long long;
-		using Node = gk::Node;
-		using NodeKey = long long;
-		using IndexKey = std::string;
-		using Index = gk::Index<Node>;
-		using ClusterKey = gk::NodeClass;
-		using Cluster = gk::Cluster<Index>;
-		using Tree = gk::RedBlackTree<Cluster, true, ClusterKey, Order>;
-
-		/**
-		* sync
-		* Synchronizes the Graph instance.
-		* @param		v8::Isolate* isolate
-		*/
-		void sync(v8::Isolate* isolate) noexcept;
-
-		/**
-		* nodeGraph
-		* Lazy loader for a nodeGraph instance.
-		* @return		Tree*
-		*/
-		std::shared_ptr<Tree> nodeGraph() noexcept;
-
-		/**
-		* insert
-		* Inserts a Node into the Graph.
-		* @param		v8::Isolate* isolate
-		* @param		gk::Node
-		* @return		A boolean if the Node was inserted, or false otherwise.
-		*/
-		bool insert(v8::Isolate* isolate, Node* node) noexcept;
-
-		/**
-		* remove
-		* Removes a Node from the Graph.
-		* @param		const ClusterKey& cKey
-		* @param		const IndexKey& iKey
-		* @param		const NodeKey& nKey
-		* @return		A boolean if the Node was removed, or false otherwise.
-		*/
-		bool remove(const ClusterKey& cKey, const IndexKey& iKey, const NodeKey& nKey) noexcept;
+		static gk::Hub* Instance(v8::Isolate* isolate) noexcept;
+		static GK_INIT(Init);
 
 	private:
-		static bool synched_;
-		static std::shared_ptr<Tree> nodeGraph_;
+		static GK_CONSTRUCTOR(constructor_);
+		static GK_METHOD(New);
 	};
 }
 

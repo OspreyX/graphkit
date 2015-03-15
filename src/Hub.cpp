@@ -25,7 +25,6 @@
 #include "Action.h"
 #include "Bond.h"
 
-static uv_loop_t* loop;
 static struct sockaddr_in addr;
 
 static void alloc_buffer(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
@@ -33,7 +32,7 @@ static void alloc_buffer(uv_handle_t* handle, size_t suggested_size, uv_buf_t* b
 	buf->len = suggested_size;
 }
 
-static void echo_write(uv_write_t *req, int status) {
+static void echo_write(uv_write_t* req, int status) {
 	if (status) {
 		fprintf(stderr, "Write error %s\n", uv_strerror(status));
 	}
@@ -42,8 +41,9 @@ static void echo_write(uv_write_t *req, int status) {
 
 static void echo_read(uv_stream_t* client, ssize_t nread, const uv_buf_t* buf) {
 	if (nread < 0) {
-		if (nread != UV_EOF)
+		if (nread != UV_EOF) {
 			fprintf(stderr, "Read error %s\n", uv_err_name(nread));
+		}
 		uv_close((uv_handle_t*) client, NULL);
 	} else if (nread > 0) {
 		uv_write_t* req = (uv_write_t *) malloc(sizeof(uv_write_t));
@@ -66,7 +66,7 @@ static void on_new_connection(uv_stream_t* server, int status) {
 	std::cout << "New connection" << std::endl;
 
 	uv_tcp_t* client = (uv_tcp_t*)malloc(sizeof(uv_tcp_t));
-	uv_tcp_init(loop, client);
+	uv_tcp_init(uv_default_loop(), client);
 	if (uv_accept(server, (uv_stream_t*) client) == 0) {
 		uv_read_start((uv_stream_t*) client, alloc_buffer, echo_read);
 	}
@@ -75,425 +75,54 @@ static void on_new_connection(uv_stream_t* server, int status) {
 	}
 }
 
-// file system request handle
-//static uv_fs_event_t* fs_event_req;
+GK_CONSTRUCTOR(gk::Hub::constructor_);
 
-/**
-* fs_change_callback
-* Callback when the file system changes.
-* @param		uv_fs_event_t* handle
-* @param		const char* filename
-* @param		int events
-* @param		int status
-*/
-//static void fs_change_callback(uv_fs_event_t* handle, const char* filename, int events, int status) {
-//	if (events & UV_RENAME || events & UV_CHANGE) {
-//		GK_ISOLATE();
-//
-//		auto coordinator = (gk::Hub *) handle->data;
-//
-//		std::string dir (GK_FS_DB_DIR);
-//		std::string dat = ".gk";
-//		std::string dirname = "./" + dir + "/" + std::string(filename);
-//		if (dirname.compare(dirname.length() - 3, 3, dat) == 0) {
-//			// open the file
-//			uv_fs_t open_req;
-//			uv_fs_open(uv_default_loop(), &open_req, dirname.c_str(), O_RDONLY, 0, NULL);
-//
-//			char buf[4096];
-//			uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
-//
-//			// read in file.
-//			uv_fs_t read_req;
-//			uv_fs_read(uv_default_loop(), &read_req, open_req.result, &iov, 1, -1, NULL);
-//
-//			// cleanup file if empty
-//			if (0 == read_req.result) {
-//				uv_fs_t unlink_req;
-//				uv_fs_unlink(uv_default_loop(), &unlink_req, dirname.c_str(), NULL);
-//				uv_fs_req_cleanup(&unlink_req);
-//			} else {
-//				auto json = nlohmann::json::parse(buf);
-//				auto nodeClass = gk::NodeClassFromInt(json["nodeClass"].get<short>());
-//				if (nodeClass == gk::NodeClass::Entity) {
-//					// insert the nodes into the Graph.
-//					auto e = gk::Entity::Instance(isolate, json["type"].get<std::string>().c_str());
-//					e->id(json["id"].get<long long>());
-//					e->indexed(true);
-//					coordinator->insert(isolate, e);
-//
-//					// groups
-//					for (auto name : json["groups"]) {
-//						std::string *v = new std::string(name.get<std::string>());
-//						e->groups()->insert(*v, v);
-//					}
-//
-//					// properties
-//					for (auto property : json["properties"]) {
-//						std::string *v = new std::string(property[1].get<std::string>());
-//						e->properties()->insert(property[0].get<std::string>(), v);
-//					}
-//				} else if (nodeClass == gk::NodeClass::Action) {
-//					// insert the nodes into the Graph.
-//					auto a = gk::Action < gk::Entity > ::Instance(isolate, json["type"].get<std::string>().c_str());
-//					a->id(json["id"].get<long long>());
-//					a->indexed(true);
-//					coordinator->insert(isolate, a);
-//
-//					// groups
-//					for (auto name : json["groups"]) {
-//						std::string *v = new std::string(name.get<std::string>());
-//						a->groups()->insert(*v, v);
-//					}
-//
-//					// properties
-//					for (auto property : json["properties"]) {
-//						std::string *v = new std::string(property[1].get<std::string>());
-//						a->properties()->insert(property[0].get<std::string>(), v);
-//					}
-//
-//					for (auto subject : json["subjects"]) {
-//						if (subject.is_object()) {
-//							auto c = coordinator->nodeGraph()->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
-//							if (c && 0 < c->count()) {
-//								auto i = c->findByKey(subject["type"].get<std::string>());
-//								if (i && 0 < i->count()) {
-//									auto n = i->findByKey(subject["id"].get<long long>());
-//									if (n) {
-//										a->addSubject(isolate, dynamic_cast<gk::Entity *>(n));
-//									}
-//								}
-//							}
-//						}
-//					}
-//
-//					for (auto object : json["objects"]) {
-//						if (object.is_object()) {
-//							auto c = coordinator->nodeGraph()->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
-//							if (c && 0 < c->count()) {
-//								auto i = c->findByKey(object["type"].get<std::string>());
-//								if (i && 0 < i->count()) {
-//									auto n = i->findByKey(object["id"].get<long long>());
-//									if (n) {
-//										a->addObject(isolate, dynamic_cast<gk::Entity *>(n));
-//									}
-//								}
-//							}
-//						}
-//					}
-//				} else if (nodeClass == gk::NodeClass::Bond) {
-//					// insert the nodes into the Graph.
-//					auto b = gk::Bond < gk::Entity > ::Instance(isolate, json["type"].get<std::string>().c_str());
-//					b->id(json["id"].get<long long>());
-//					b->indexed(true);
-//					coordinator->insert(isolate, b);
-//
-//					// groups
-//					for (auto name : json["groups"]) {
-//						std::string *v = new std::string(name.get<std::string>());
-//						b->groups()->insert(*v, v);
-//					}
-//
-//					// properties
-//					for (auto property : json["properties"]) {
-//						std::string *v = new std::string(property[1].get<std::string>());
-//						b->properties()->insert(property[0].get<std::string>(), v);
-//					}
-//
-//					auto subject = json["subject"];
-//					if (subject.is_object()) {
-//						auto c = coordinator->nodeGraph()->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
-//						if (c && 0 < c->count()) {
-//							auto i = c->findByKey(subject["type"].get<std::string>());
-//							if (i && 0 < i->count()) {
-//								auto n = i->findByKey(subject["id"].get<long long>());
-//								if (n) {
-//									b->subject(isolate, dynamic_cast<gk::Entity *>(n));
-//								}
-//							}
-//						}
-//					}
-//
-//					auto object = json["object"];
-//					if (object.is_object()) {
-//						auto c = coordinator->nodeGraph()->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
-//						if (c && 0 < c->count()) {
-//							auto i = c->findByKey(object["type"].get<std::string>());
-//							if (i && 0 < i->count()) {
-//								auto n = i->findByKey(object["id"].get<long long>());
-//								if (n) {
-//									b->object(isolate, dynamic_cast<gk::Entity *>(n));
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
-//
-//			// close the directory
-//			uv_fs_t close_req;
-//			uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
-//
-//			// cleanup
-//			uv_fs_req_cleanup(&open_req);
-//			uv_fs_req_cleanup(&read_req);
-//			uv_fs_req_cleanup(&close_req);
-//
-//			std::cout << "Count " << coordinator->nodeGraph()->findByKey(gk::NodeClass::Entity)->findByKey("User")->count() << std::endl;
-//		}
-//	}
-//}
+gk::Hub::Hub() noexcept
+	: gk::Export{} {
+	uv_tcp_t server;
+	uv_tcp_init(uv_default_loop(), &server);
 
-bool gk::Hub::synched_ = false;
-std::shared_ptr<gk::Hub::Tree> gk::Hub::nodeGraph_;
+	uv_ip4_addr("0.0.0.0", 7000, &addr);
 
-gk::Hub::Hub() noexcept {}
-
-gk::Hub::~Hub() {
-	if (1 == nodeGraph_.use_count()) {
-
-		// cleanup when the last instance
-		nodeGraph_->clear([](gk::Hub::Cluster *cluster) {
-			cluster->cleanUp();
-			cluster->Unref();
-		});
-		nodeGraph_.reset();
-
-		// no longer synched
-		synched_ = false;
-
-		// cleanup for the request
-//		if (fs_event_req) {
-//			free(fs_event_req);
-//		}
+	uv_tcp_bind(&server, (const struct sockaddr*)&addr, 0);
+	int r = uv_listen((uv_stream_t*) &server, 128, on_new_connection);
+	if (r) {
+		fprintf(stderr, "Listen error %s\n", uv_strerror(r));
 	}
+	uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 }
 
-std::shared_ptr<gk::Hub::Tree> gk::Hub::nodeGraph() noexcept {
-	if (0 == nodeGraph_.use_count()) {
-		nodeGraph_ = std::make_shared<Tree>();
-	}
-	return nodeGraph_;
+gk::Hub::~Hub() {}
+
+gk::Hub* gk::Hub::Instance(v8::Isolate* isolate) noexcept {
+	const int argc = 0;
+	v8::Local<v8::Value> argv[argc] = {};
+	auto ctor = GK_FUNCTION(constructor_);
+	return node::ObjectWrap::Unwrap<gk::Hub>(ctor->NewInstance(argc, argv));
 }
 
-void gk::Hub::sync(v8::Isolate* isolate) noexcept {
-	// should only sync once across instances
-	if (!synched_) {
-		synched_ = true;
+GK_INIT(gk::Hub::Init) {
+	GK_SCOPE();
 
-		std::string dir (GK_FS_DB_DIR);
-		uv_fs_t mkdir_req;
-		uv_fs_mkdir(uv_default_loop(), &mkdir_req, ("./" + dir).c_str(), S_IRWXU, NULL);
+	auto t = GK_TEMPLATE(New);
+	t->SetClassName(GK_STRING(symbol));
+	t->InstanceTemplate()->SetInternalFieldCount(1);
 
-		// scan through the data directory and insert the Nodes.
-		uv_fs_t scandir_req;
-		uv_fs_scandir(uv_default_loop(), &scandir_req, ("./" + dir).c_str(), O_CREAT | O_RDWR, NULL);
-		uv_dirent_t dent;
-		assert(scandir_req.fs_type == UV_FS_SCANDIR);
-		assert(scandir_req.path);
-		assert(memcmp(scandir_req.path, ("./" + dir + "\0").c_str(), 8) == 0);
-
-		// create a buffer
-		std::string dat = ".gk";
-		while (UV_EOF != uv_fs_scandir_next(&scandir_req, &dent)) {
-			assert(dent.type == UV_DIRENT_FILE || dent.type == UV_DIRENT_UNKNOWN);
-
-			std::string dirname = "./" + dir + "/" + std::string(dent.name);
-			if (dirname.compare(dirname.length() - 3, 3, dat) == 0) {
-				// open the file
-				uv_fs_t open_req;
-				uv_fs_open(uv_default_loop(), &open_req, dirname.c_str(), O_RDONLY, 0, NULL);
-
-				char buf[4096];
-				uv_buf_t iov = uv_buf_init(buf, sizeof(buf));
-
-				// read in file.
-				uv_fs_t read_req;
-				uv_fs_read(uv_default_loop(), &read_req, open_req.result, &iov, 1, -1, NULL);
-
-				// cleanup file if empty
-				if (0 == read_req.result) {
-					uv_fs_t unlink_req;
-					uv_fs_unlink(uv_default_loop(), &unlink_req, dirname.c_str(), NULL);
-					uv_fs_req_cleanup(&unlink_req);
-					continue;
-				}
-
-				auto json = nlohmann::json::parse(buf);
-				auto nodeClass = gk::NodeClassFromInt(json["nodeClass"].get<short>());
-				if  (nodeClass == gk::NodeClass::Entity) {
-					// insert the nodes into the Graph.
-					auto e = gk::Entity::Instance(isolate, json["type"].get<std::string>().c_str());
-					e->id(json["id"].get<long long>());
-					e->indexed(true);
-					insert(isolate, e);
-
-					// groups
-					for (auto name : json["groups"]) {
-						std::string *v = new std::string(name.get<std::string>());
-						e->groups()->insert(*v, v);
-					}
-
-					// properties
-					for (auto property : json["properties"]) {
-						std::string *v = new std::string(property[1].get<std::string>());
-						e->properties()->insert(property[0].get<std::string>(), v);
-					}
-				} else if (nodeClass == gk::NodeClass::Action) {
-					// insert the nodes into the Graph.
-					auto a = gk::Action<gk::Entity>::Instance(isolate, json["type"].get<std::string>().c_str());
-					a->id(json["id"].get<long long>());
-					a->indexed(true);
-					insert(isolate, a);
-
-					// groups
-					for (auto name : json["groups"]) {
-						std::string* v = new std::string(name.get<std::string>());
-						a->groups()->insert(*v, v);
-					}
-
-					// properties
-					for (auto property : json["properties"]) {
-						std::string* v = new std::string(property[1].get<std::string>());
-						a->properties()->insert(property[0].get<std::string>(), v);
-					}
-
-					for (auto subject : json["subjects"]) {
-						if (subject.is_object()) {
-							auto c = nodeGraph()->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
-							if (c && 0 < c->count()) {
-								auto i = c->findByKey(subject["type"].get<std::string>());
-								if (i && 0 < i->count()) {
-									auto n = i->findByKey(subject["id"].get<long long>());
-									if (n) {
-										a->addSubject(isolate, dynamic_cast<gk::Entity*>(n));
-									}
-								}
-							}
-						}
-					}
-
-					for (auto object : json["objects"]) {
-						if (object.is_object()) {
-							auto c = nodeGraph()->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
-							if (c && 0 < c->count()) {
-								auto i = c->findByKey(object["type"].get<std::string>());
-								if (i && 0 < i->count()) {
-									auto n = i->findByKey(object["id"].get<long long>());
-									if (n) {
-										a->addObject(isolate, dynamic_cast<gk::Entity*>(n));
-									}
-								}
-							}
-						}
-					}
-				} else if (nodeClass == gk::NodeClass::Bond) {
-					// insert the nodes into the Graph.
-					auto b = gk::Bond<gk::Entity>::Instance(isolate, json["type"].get<std::string>().c_str());
-					b->id(json["id"].get<long long>());
-					b->indexed(true);
-					insert(isolate, b);
-
-					// groups
-					for (auto name : json["groups"]) {
-						std::string *v = new std::string(name.get<std::string>());
-						b->groups()->insert(*v, v);
-					}
-
-					// properties
-					for (auto property : json["properties"]) {
-						std::string *v = new std::string(property[1].get<std::string>());
-						b->properties()->insert(property[0].get<std::string>(), v);
-					}
-
-					auto subject = json["subject"];
-					if (subject.is_object()) {
-						auto c = nodeGraph()->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
-						if (c && 0 < c->count()) {
-							auto i = c->findByKey(subject["type"].get<std::string>());
-							if (i && 0 < i->count()) {
-								auto n = i->findByKey(subject["id"].get<long long>());
-								if (n) {
-									b->subject(isolate, dynamic_cast<gk::Entity*>(n));
-								}
-							}
-						}
-					}
-
-					auto object = json["object"];
-					if (object.is_object()) {
-						auto c = nodeGraph()->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
-						if (c && 0 < c->count()) {
-							auto i = c->findByKey(object["type"].get<std::string>());
-							if (i && 0 < i->count()) {
-								auto n = i->findByKey(object["id"].get<long long>());
-								if (n) {
-									b->object(isolate, dynamic_cast<gk::Entity*>(n));
-								}
-							}
-						}
-					}
-				}
-
-				// close the directory
-				uv_fs_t close_req;
-				uv_fs_close(uv_default_loop(), &close_req, open_req.result, NULL);
-
-				// cleanup
-				uv_fs_req_cleanup(&open_req);
-				uv_fs_req_cleanup(&read_req);
-				uv_fs_req_cleanup(&close_req);
-			}
-		}
-
-		// cleanup
-		uv_fs_req_cleanup(&scandir_req);
-		uv_fs_req_cleanup(&mkdir_req);
-
-//		// setup a watcher on the directory
-//		fs_event_req = (uv_fs_event_t*)malloc(sizeof(uv_fs_event_t));
-//		fs_event_req->data = (void*)this;
-//		uv_fs_event_init(uv_default_loop(), fs_event_req);
-//		// The recursive flag watches subdirectories too.
-//		uv_fs_event_start(fs_event_req, fs_change_callback, GK_FS_DB_DIR, UV_FS_EVENT_RECURSIVE);
-
-
-		loop = uv_default_loop();
-		uv_tcp_t server;
-		uv_tcp_init(loop, &server);
-
-		uv_ip4_addr("0.0.0.0", 7000, &addr);
-
-		uv_tcp_bind(&server, (const struct sockaddr*)&addr, 0);
-		int r = uv_listen((uv_stream_t*) &server, 128, on_new_connection);
-		if (r) {
-			fprintf(stderr, "Listen error %s\n", uv_strerror(r));
-		}
-		uv_run(loop, UV_RUN_DEFAULT);
-	}
+	constructor_.Reset(isolate, t->GetFunction());
+	exports->Set(GK_STRING(symbol), t->GetFunction());
 }
 
-bool gk::Hub::insert(v8::Isolate* isolate, gk::Hub::Node* node) noexcept {
-	auto cluster = nodeGraph()->findByKey(node->nodeClass());
-	if (!cluster) {
-		auto nodeClass = node->nodeClass();
-		cluster = Cluster::Instance(isolate, nodeClass);
-		if (!nodeGraph()->insert(nodeClass, cluster, [](Cluster* cluster) {
-			cluster->Ref();
-		})) {
-			return false;
-		}
-	}
-	return cluster->insert(isolate, node);
-}
+GK_METHOD(gk::Hub::New) {
+	GK_SCOPE();
 
-bool gk::Hub::remove(const ClusterKey& cKey, const IndexKey& iKey, const NodeKey& nKey) noexcept {
-	auto cluster = nodeGraph()->findByKey(cKey);
-	if (cluster) {
-		auto index = cluster->findByKey(iKey);
-		if (index) {
-			return index->remove(nKey);
-		}
+	if (args.IsConstructCall()) {
+		auto obj = new gk::Hub{};
+		obj->Wrap(args.This());
+		GK_RETURN(args.This());
+	} else {
+		const int argc = 0;
+		v8::Local<v8::Value> argv[argc] = {};
+		auto ctor = GK_FUNCTION(constructor_);
+		GK_RETURN(ctor->NewInstance(argc, argv));
 	}
-	return false;
 }

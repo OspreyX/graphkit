@@ -65,9 +65,9 @@ namespace gk {
 		* This is a reverse mapping of Bonds that point to this Entity
 		* Node.
 		* @param		v8:Isolate* isolate
-		* @return		gk::Set<gk::Bond<Entity>>*
+		* @return		gk::Set*
 		*/
-		gk::Set<gk::Bond<Entity>>* bonds(v8::Isolate* isolate) noexcept;
+		gk::Set* bonds(v8::Isolate* isolate) noexcept;
 
 		/**
 		* actions
@@ -75,9 +75,9 @@ namespace gk {
 		* This is a reverse mapping of Actions that point to this Entity
 		* Node.
 		* @param		v8:Isolate* isolate
-		* @return		gk::Set<gk::Action<Entity>>*
+		* @return		gk::Set*
 		*/
-		gk::Set<gk::Action<Entity>>* actions(v8::Isolate* isolate) noexcept;
+		gk::Set* actions(v8::Isolate* isolate) noexcept;
 
 		/**
 		* toJSON
@@ -110,8 +110,8 @@ namespace gk {
 		static GK_INIT(Init);
 
 	protected:
-		gk::Set<gk::Bond<Entity>>* bonds_;
-		gk::Set<gk::Action<Entity>>* actions_;
+		gk::Set* bonds_;
+		gk::Set* actions_;
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);

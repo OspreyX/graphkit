@@ -16,7 +16,6 @@
 * in a file called LICENSE.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
 #include <uv.h>
 #include "Coordinator.h"
 #include "json.h"
@@ -98,50 +97,50 @@ void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
 				auto nodeClass = gk::NodeClassFromInt(json["nodeClass"].get<short>());
 				if  (nodeClass == gk::NodeClass::Entity) {
 					// insert the nodes into the Graph.
-					auto e = gk::Entity::Instance(isolate, json["type"].get<std::string>().c_str());
-					e->id(json["id"].get<long long>());
-					e->indexed(true);
-					insert(isolate, e);
+					auto entity = gk::Entity::Instance(isolate, json["type"].get<std::string>().c_str());
+					entity->id(json["id"].get<long long>());
+					entity->indexed(true);
+					insert(isolate, entity);
 
 					// groups
 					for (auto name : json["groups"]) {
 						std::string *v = new std::string(name.get<std::string>());
-						e->groups()->insert(*v, v);
+						entity->groups()->insert(*v, v);
 					}
 
 					// properties
 					for (auto property : json["properties"]) {
 						std::string *v = new std::string(property[1].get<std::string>());
-						e->properties()->insert(property[0].get<std::string>(), v);
+						entity->properties()->insert(property[0].get<std::string>(), v);
 					}
 				} else if (nodeClass == gk::NodeClass::Action) {
 					// insert the nodes into the Graph.
-					auto a = gk::Action<gk::Entity>::Instance(isolate, json["type"].get<std::string>().c_str());
-					a->id(json["id"].get<long long>());
-					a->indexed(true);
-					insert(isolate, a);
+					auto action = gk::Action<gk::Entity>::Instance(isolate, json["type"].get<std::string>().c_str());
+					action->id(json["id"].get<long long>());
+					action->indexed(true);
+					insert(isolate, action);
 
 					// groups
 					for (auto name : json["groups"]) {
 						std::string* v = new std::string(name.get<std::string>());
-						a->groups()->insert(*v, v);
+						action->groups()->insert(*v, v);
 					}
 
 					// properties
 					for (auto property : json["properties"]) {
 						std::string* v = new std::string(property[1].get<std::string>());
-						a->properties()->insert(property[0].get<std::string>(), v);
+						action->properties()->insert(property[0].get<std::string>(), v);
 					}
 
 					for (auto subject : json["subjects"]) {
 						if (subject.is_object()) {
-							auto c = nodeGraph()->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
-							if (c && 0 < c->count()) {
-								auto i = c->findByKey(subject["type"].get<std::string>());
-								if (i && 0 < i->count()) {
-									auto n = i->findByKey(subject["id"].get<long long>());
-									if (n) {
-										a->addSubject(isolate, dynamic_cast<gk::Entity*>(n));
+							auto cluster = nodeGraph()->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
+							if (cluster && 0 < cluster->count()) {
+								auto index = cluster->findByKey(subject["type"].get<std::string>());
+								if (index && 0 < index->count()) {
+									auto node = index->findByKey(subject["id"].get<long long>());
+									if (node) {
+										action->addSubject(isolate, dynamic_cast<gk::Entity*>(node));
 									}
 								}
 							}
@@ -150,13 +149,13 @@ void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
 
 					for (auto object : json["objects"]) {
 						if (object.is_object()) {
-							auto c = nodeGraph()->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
-							if (c && 0 < c->count()) {
-								auto i = c->findByKey(object["type"].get<std::string>());
-								if (i && 0 < i->count()) {
-									auto n = i->findByKey(object["id"].get<long long>());
-									if (n) {
-										a->addObject(isolate, dynamic_cast<gk::Entity*>(n));
+							auto cluster = nodeGraph()->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
+							if (cluster && 0 < cluster->count()) {
+								auto index = cluster->findByKey(object["type"].get<std::string>());
+								if (index && 0 < index->count()) {
+									auto node = index->findByKey(object["id"].get<long long>());
+									if (node) {
+										action->addObject(isolate, dynamic_cast<gk::Entity*>(node));
 									}
 								}
 							}
@@ -164,32 +163,32 @@ void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
 					}
 				} else if (nodeClass == gk::NodeClass::Bond) {
 					// insert the nodes into the Graph.
-					auto b = gk::Bond<gk::Entity>::Instance(isolate, json["type"].get<std::string>().c_str());
-					b->id(json["id"].get<long long>());
-					b->indexed(true);
-					insert(isolate, b);
+					auto bond = gk::Bond<gk::Entity>::Instance(isolate, json["type"].get<std::string>().c_str());
+					bond->id(json["id"].get<long long>());
+					bond->indexed(true);
+					insert(isolate, bond);
 
 					// groups
 					for (auto name : json["groups"]) {
 						std::string *v = new std::string(name.get<std::string>());
-						b->groups()->insert(*v, v);
+						bond->groups()->insert(*v, v);
 					}
 
 					// properties
 					for (auto property : json["properties"]) {
 						std::string *v = new std::string(property[1].get<std::string>());
-						b->properties()->insert(property[0].get<std::string>(), v);
+						bond->properties()->insert(property[0].get<std::string>(), v);
 					}
 
 					auto subject = json["subject"];
 					if (subject.is_object()) {
-						auto c = nodeGraph()->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
-						if (c && 0 < c->count()) {
-							auto i = c->findByKey(subject["type"].get<std::string>());
-							if (i && 0 < i->count()) {
-								auto n = i->findByKey(subject["id"].get<long long>());
-								if (n) {
-									b->subject(isolate, dynamic_cast<gk::Entity*>(n));
+						auto cluster = nodeGraph()->findByKey(gk::NodeClassFromInt(subject["nodeClass"].get<short>()));
+						if (cluster && 0 < cluster->count()) {
+							auto index = cluster->findByKey(subject["type"].get<std::string>());
+							if (index && 0 < index->count()) {
+								auto node = index->findByKey(subject["id"].get<long long>());
+								if (node) {
+									bond->subject(isolate, dynamic_cast<gk::Entity*>(node));
 								}
 							}
 						}
@@ -197,13 +196,13 @@ void gk::Coordinator::sync(v8::Isolate* isolate) noexcept {
 
 					auto object = json["object"];
 					if (object.is_object()) {
-						auto c = nodeGraph()->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
-						if (c && 0 < c->count()) {
-							auto i = c->findByKey(object["type"].get<std::string>());
-							if (i && 0 < i->count()) {
-								auto n = i->findByKey(object["id"].get<long long>());
-								if (n) {
-									b->object(isolate, dynamic_cast<gk::Entity*>(n));
+						auto cluster = nodeGraph()->findByKey(gk::NodeClassFromInt(object["nodeClass"].get<short>()));
+						if (cluster && 0 < cluster->count()) {
+							auto index = cluster->findByKey(object["type"].get<std::string>());
+							if (index && 0 < index->count()) {
+								auto node = index->findByKey(object["id"].get<long long>());
+								if (node) {
+									bond->object(isolate, dynamic_cast<gk::Entity*>(node));
 								}
 							}
 						}

@@ -66,9 +66,9 @@ namespace gk {
 		* subjects
 		* Retrieves the Subjects Set of template type T Nodes.
 		* @param		v8:Isolate* isolate
-		* @return		gk::Set<T>*
+		* @return		gk::Set*
 		*/
-		gk::Set<T>* subjects(v8::Isolate* isolate) noexcept;
+		gk::Set* subjects(v8::Isolate* isolate) noexcept;
 
 		/**
 		* addSubject
@@ -92,9 +92,9 @@ namespace gk {
 		* objects
 		* Retrieves the Objects Set of template type T Nodes.
 		* @param		v8:Isolate* isolate
-		* @return		gk::Set<T>*
+		* @return		gk::Set*
 		*/
-		gk::Set<T>* objects(v8::Isolate* isolate) noexcept;
+		gk::Set* objects(v8::Isolate* isolate) noexcept;
 
 
 		/**
@@ -147,8 +147,8 @@ namespace gk {
 		static GK_INIT(Init);
 
 	protected:
-		gk::Set<T>* subjects_;
-		gk::Set<T>* objects_;
+		gk::Set* subjects_;
+		gk::Set* objects_;
 
 		static GK_CONSTRUCTOR(constructor_);
 		static GK_METHOD(New);
@@ -190,9 +190,9 @@ namespace gk {
 	}
 
 	template <typename T>
-	gk::Set<T>* gk::Action<T>::subjects(v8::Isolate* isolate) noexcept {
+	gk::Set* gk::Action<T>::subjects(v8::Isolate* isolate) noexcept {
 		if (nullptr == subjects_) {
-			subjects_ = gk::Set<T>::Instance(isolate);
+			subjects_ = gk::Set::Instance(isolate);
 			subjects_->Ref();
 		}
 		return subjects_;
@@ -222,9 +222,9 @@ namespace gk {
 	}
 
 	template <typename T>
-	gk::Set<T>* gk::Action<T>::objects(v8::Isolate* isolate) noexcept {
+	gk::Set* gk::Action<T>::objects(v8::Isolate* isolate) noexcept {
 		if (nullptr == objects_) {
-			objects_ = gk::Set<T>::Instance(isolate);
+			objects_ = gk::Set::Instance(isolate);
 			objects_->Ref();
 		}
 		return objects_;
