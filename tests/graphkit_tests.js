@@ -68,7 +68,7 @@ console.log(g2);
 	// add some users
 	let start = Date.now();
 	let males = 300;
-	for (let i = 10; 0 < i; --i) {
+	for (let i = 1; 0 < i; --i) {
 		let user = new Entity('User');
 		user['name'] = 'Name ' + i;
 		g1.insert(user);
