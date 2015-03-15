@@ -78,20 +78,20 @@ a1.addObject(b1);
 a1.addObject(b2);
 
 // Output: 1
-console.log(a1.subjects.count());
+console.log(a1.subjects.count);
 
 // Output: 2
-console.log(a1.objects.count());
+console.log(a1.objects.count);
 
 // Output: 'Eve read 2 books.'
 console.log(a1.subjects[0]['name'], a1.type.toLowerCase(), 
-a1.objects.count(), 
+a1.objects.count, 
 a1.objects[0].type.toLowerCase() + 's.');
 
 // Output: 'There is 1 user and 2 books in the graph.'
-console.log('There is', g1.Entity.User.count(), 
+console.log('There is', g1.Entity.User.count, 
 g1.Entity.User.type.toLowerCase(), 'and', 
-g1.Entity.Book.count(), 
+g1.Entity.Book.count, 
 g1.Entity.Book.type.toLowerCase() + 's', 
 'in the graph.');
 ```
