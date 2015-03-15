@@ -46,7 +46,6 @@ let Multiset = gk.Multiset;
 
 // Setup our initial input graph
 let g1 = new Graph();
-let g2 = new Graph();
 g1.clear();
 
 (function() {
@@ -64,21 +63,16 @@ g1.clear();
 (function() {
 	// add some users
 	let start = Date.now();
-	let males = 300;
 	for (let i = process.argv[2] || 1; 0 < i; --i) {
 		let user = new Entity('User');
 		user['name'] = 'Name ' + i;
 		g1.insert(user);
-		//g1.remove(user);
-
-		// let's make some female and some male
-		//user.addGroup(--males ? 'male' : 'female');
 	}
 	console.log('Users added (%d) Time %d', g1.Entity.User.count(), Date.now() - start);
 })();
 
 (function() {
-	// make users friends
+	// make user friends,
 	// we can do this by
 	// giving each user a set of 10 friends randomly.
 	let users = g1.Entity.User;
@@ -120,4 +114,15 @@ g1.clear();
 		}
 	}
 	console.log('Actions added (%d) Time %d', g1.Action.Read.count(), Date.now() - start);
+})();
+
+(function() {
+	// test groups
+	let users = g1.Entity.User;
+	let books = g1.Entity.Book;
+	let reads = g1.Action.Read;
+	users[0].addGroup('monitor');
+	books[0].addGroup('monitor');
+	reads[0].addGroup('monitor');
+	console.log(g1.group('monitor'));
 })();

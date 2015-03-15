@@ -51,6 +51,7 @@ namespace gk {
 		static GK_METHOD(CreateEntity);
 		static GK_METHOD(CreateAction);
 		static GK_METHOD(CreateBond);
+		static GK_METHOD(Group);
 		static GK_INDEX_GETTER(IndexGetter);
 		static GK_INDEX_SETTER(IndexSetter);
 		static GK_INDEX_QUERY(IndexQuery);

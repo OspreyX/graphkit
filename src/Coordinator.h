@@ -23,8 +23,8 @@
 #include <string>
 #include "RedBlackTree.h"
 #include "Cluster.h"
-#include "Index.h"
 #include "Node.h"
+#include "Set.h"
 
 namespace gk {
 	class Coordinator {
@@ -49,14 +49,16 @@ namespace gk {
 		Coordinator& operator= (Coordinator&&) = default;
 
 		// aliases
-		using Order = long long;
 		using Node = gk::Node;
 		using NodeKey = long long;
+		using NodeHash = std::string;
 		using IndexKey = std::string;
-		using Index = gk::Index;
+		using Set = gk::Set;
+		using SetKey = std::string;
 		using ClusterKey = gk::NodeClass;
 		using Cluster = gk::Cluster;
-		using Tree = gk::RedBlackTree<Cluster, true, ClusterKey, Order>;
+		using NodeGraph = gk::RedBlackTree<Cluster, true, ClusterKey>;
+		using GroupGraph = gk::RedBlackTree<Set, true, std::string>;
 
 		/**
 		* sync
@@ -68,32 +70,59 @@ namespace gk {
 		/**
 		* nodeGraph
 		* Lazy loader for a nodeGraph instance.
-		* @return		std::shared_ptr<Tree>
+		* @return		std::shared_ptr<NodeGraph>
 		*/
-		std::shared_ptr<Tree> nodeGraph() noexcept;
+		std::shared_ptr<NodeGraph> nodeGraph() noexcept;
 
 		/**
-		* insert
-		* Inserts a Node into the Graph.
+		* groupGraph
+		* Lazy loader for a groupGraph instance.
+		* @return		std::shared_ptr<GroupGraph>
+		*/
+		std::shared_ptr<GroupGraph> groupGraph() noexcept;
+
+		/**
+		* insertNode
+		* Inserts a Node into the Node Graph.
 		* @param		v8::Isolate* isolate
 		* @param		gk::Node
 		* @return		A boolean if the Node was inserted, or false otherwise.
 		*/
-		bool insert(v8::Isolate* isolate, Node* node) noexcept;
+		bool insertNode(v8::Isolate* isolate, Node* node) noexcept;
 
 		/**
-		* remove
-		* Removes a Node from the Graph.
+		* removeNode
+		* Removes a Node from the Node Graph.
 		* @param		const ClusterKey& cKey
 		* @param		const IndexKey& iKey
 		* @param		const NodeKey& nKey
 		* @return		A boolean if the Node was removed, or false otherwise.
 		*/
-		bool remove(const ClusterKey& cKey, const IndexKey& iKey, const NodeKey& nKey) noexcept;
+		bool removeNode(const ClusterKey& cKey, const IndexKey& iKey, const NodeKey& nKey) noexcept;
+
+		/**
+		* insertGroup
+		* Inserts a Node into the Group Graph.
+		* @param		v8::Isolate* isolate
+		* @param		std::string& group
+		* @param		gk::Node
+		* @return		A boolean if the Node was inserted, or false otherwise.
+		*/
+		bool insertGroup(v8::Isolate* isolate, std::string& group, Node* node) noexcept;
+
+		/**
+		* removeGroup
+		* Removes a Node from the Group Graph.
+		* @param		const SetKey& sKey
+		* @param		const NodeHash& nHash
+		* @return		A boolean if the Node was removed, or false otherwise.
+		*/
+		bool removeGroup(const SetKey& sKey, const NodeHash& nHash) noexcept;
 
 	private:
 		static bool synched_;
-		static std::shared_ptr<Tree> nodeGraph_;
+		static std::shared_ptr<NodeGraph> nodeGraph_;
+		static std::shared_ptr<GroupGraph> groupGraph_;
 	};
 }
 

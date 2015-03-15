@@ -19,6 +19,7 @@
 #include <utility>
 #include <uv.h>
 #include "Node.h"
+#include "Coordinator.h"
 
 gk::Node::Node(const gk::NodeClass& nodeClass, const std::string&& type) noexcept
 	: gk::Export{},
@@ -28,7 +29,8 @@ gk::Node::Node(const gk::NodeClass& nodeClass, const std::string&& type) noexcep
 	  indexed_{false},
 	  groups_{nullptr},
 	  properties_{nullptr},
-	  hash_{} {}
+	  hash_{},
+	  coordinator_{nullptr} {}
 
 gk::Node::~Node() {
 	if (nullptr != groups_) {
@@ -42,6 +44,9 @@ gk::Node::~Node() {
 			delete v;
 		});
 		delete properties_;
+	}
+	if (0 < coordinator_.use_count()) {
+		coordinator_.reset();
 	}
 }
 
@@ -104,17 +109,27 @@ void gk::Node::unlink() noexcept {
 	uv_fs_unlink(uv_default_loop(), &unlink_req, (dir + "/" + hash() + ".gk").c_str(), NULL);
 }
 
+std::shared_ptr<gk::Coordinator> gk::Node::coordinator() noexcept {
+	if (nullptr == coordinator_) {
+		coordinator_ = std::make_shared<gk::Coordinator>();
+	}
+	return coordinator_;
+}
+
 GK_METHOD(gk::Node::AddGroup) {
 	GK_SCOPE();
 	if (!args[0]->IsString()) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct Group value.]");
 	}
 	v8::String::Utf8Value value(args[0]->ToString());
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
 	std::string* v = new std::string{*value};
-	auto result = n->groups()->insert(*v, v);
+	auto result = node->groups()->insert(*v, v);
 	if (result) {
-		n->persist();
+		if (node->indexed()) {
+			node->coordinator()->insertGroup(isolate, *v, node);
+		}
+		node->persist();
 	}
 	GK_RETURN(GK_BOOLEAN(result));
 }
@@ -125,8 +140,8 @@ GK_METHOD(gk::Node::HasGroup) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct Group value.]");
 	}
 	v8::String::Utf8Value value(args[0]->ToString());
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(n->groups()->has(*value)));
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
+	GK_RETURN(GK_BOOLEAN(node->groups()->has(*value)));
 }
 
 GK_METHOD(gk::Node::RemoveGroup) {
@@ -135,32 +150,35 @@ GK_METHOD(gk::Node::RemoveGroup) {
 		GK_EXCEPTION("[GraphKit Error: Please specify a correct Group value.]");
 	}
 	v8::String::Utf8Value value(args[0]->ToString());
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(n->groups()->remove(*value, [&](std::string* v) {
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
+	GK_RETURN(GK_BOOLEAN(node->groups()->remove(*value, [&](std::string* v) {
+		if (node->indexed()) {
+			node->coordinator()->removeGroup(*v, node->hash());
+		}
 		delete v;
-		n->persist();
+		node->persist();
 	})));
 }
 
 GK_METHOD(gk::Node::groupCount) {
 	GK_SCOPE();
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	GK_RETURN(GK_INTEGER(n->groups()->count()));
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
+	GK_RETURN(GK_INTEGER(node->groups()->count()));
 }
 
 GK_METHOD(gk::Node::NodeClassToString) {
 	GK_SCOPE();
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	GK_RETURN(GK_STRING(gk::NodeClassToString(n->nodeClass())));
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
+	GK_RETURN(GK_STRING(gk::NodeClassToString(node->nodeClass())));
 }
 
 GK_INDEX_GETTER(gk::Node::IndexGetter) {
 	GK_SCOPE();
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	if (++index > n->groups()->count()) {
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
+	if (++index > node->groups()->count()) {
 		GK_EXCEPTION("[GraphKit Error: Index out of range.]");
 	}
-	GK_RETURN(GK_STRING((*n->groups()->select(index)).c_str()));
+	GK_RETURN(GK_STRING((*node->groups()->select(index)).c_str()));
 };
 
 GK_INDEX_SETTER(gk::Node::IndexSetter) {
@@ -175,10 +193,10 @@ GK_INDEX_DELETER(gk::Node::IndexDeleter) {
 
 GK_INDEX_ENUMERATOR(gk::Node::IndexEnumerator) {
 	GK_SCOPE();
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	auto gs = n->groups()->count();
-	v8::Handle<v8::Array> array = v8::Array::New(isolate, gs);
-	for (auto i = gs - 1; 0 <= i; --i) {
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
+	auto count = node->groups()->count();
+	v8::Handle<v8::Array> array = v8::Array::New(isolate, count);
+	for (auto i = count - 1; 0 <= i; --i) {
 		array->Set(i, GK_INTEGER(i));
 	}
 	GK_RETURN(array);
@@ -186,6 +204,6 @@ GK_INDEX_ENUMERATOR(gk::Node::IndexEnumerator) {
 
 GK_METHOD(gk::Node::propertyCount) {
 	GK_SCOPE();
-	auto n = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
-	GK_RETURN(GK_INTEGER(n->properties()->count()));
+	auto node = node::ObjectWrap::Unwrap<gk::Node>(args.Holder());
+	GK_RETURN(GK_INTEGER(node->properties()->count()));
 }

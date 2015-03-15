@@ -77,6 +77,7 @@ GK_INIT(gk::Graph::Init) {
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_ENTITY, CreateEntity);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_ACTION, CreateAction);
 	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_CREATE_BOND, CreateBond);
+	NODE_SET_PROTOTYPE_METHOD(t, GK_SYMBOL_OPERATION_GROUP, Group);
 
 	constructor_.Reset(isolate, t->GetFunction());
 	exports->Set(GK_STRING(symbol), t->GetFunction());
@@ -117,7 +118,7 @@ GK_METHOD(gk::Graph::Insert) {
 	}
 
 	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
-	GK_RETURN(GK_BOOLEAN(graph->coordinator()->insert(isolate, node)));
+	GK_RETURN(GK_BOOLEAN(graph->coordinator()->insertNode(isolate, node)));
 }
 
 GK_METHOD(gk::Graph::Remove) {
@@ -131,7 +132,7 @@ GK_METHOD(gk::Graph::Remove) {
 	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
 	if (args[0]->IsObject()) {
 		auto node = node::ObjectWrap::Unwrap<gk::Node>(args[0]->ToObject());
-		GK_RETURN(GK_BOOLEAN(graph->coordinator()->remove(node->nodeClass(), node->type(), node->id())));
+		GK_RETURN(GK_BOOLEAN(graph->coordinator()->removeNode(node->nodeClass(), node->type(), node->id())));
 	}
 
 	// check if granular details are passed
@@ -139,7 +140,7 @@ GK_METHOD(gk::Graph::Remove) {
 		auto nodeClass = gk::NodeClassFromInt(args[0]->IntegerValue());
 		v8::String::Utf8Value type(args[1]->ToString());
 		auto id = args[1]->IntegerValue();
-		GK_RETURN(GK_BOOLEAN(graph->coordinator()->remove(nodeClass, *type, id)));
+		GK_RETURN(GK_BOOLEAN(graph->coordinator()->removeNode(nodeClass, *type, id)));
 	}
 
 	// throw an exception if we are here
@@ -253,7 +254,7 @@ GK_METHOD(gk::Graph::CreateEntity) {
 	v8::String::Utf8Value type(args[0]->ToString());
 	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
 	auto node = gk::Entity::Instance(isolate, *type);
-	graph->coordinator()->insert(isolate, node);
+	graph->coordinator()->insertNode(isolate, node);
 	GK_RETURN(node->handle());
 }
 
@@ -265,7 +266,7 @@ GK_METHOD(gk::Graph::CreateAction) {
 	v8::String::Utf8Value type(args[0]->ToString());
 	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
 	auto node = gk::Action<gk::Entity>::Instance(isolate, *type);
-	graph->coordinator()->insert(isolate, node);
+	graph->coordinator()->insertNode(isolate, node);
 	GK_RETURN(node->handle());
 }
 
@@ -277,6 +278,17 @@ GK_METHOD(gk::Graph::CreateBond) {
 	v8::String::Utf8Value type(args[0]->ToString());
 	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
 	auto node = gk::Bond<gk::Entity>::Instance(isolate, *type);
-	graph->coordinator()->insert(isolate, node);
+	graph->coordinator()->insertNode(isolate, node);
 	GK_RETURN(node->handle());
+}
+
+GK_METHOD(gk::Graph::Group) {
+	GK_SCOPE();
+	if (!args[0]->IsString()) {
+		GK_EXCEPTION("[GraphKit Error: Please specify a Group name.]");
+	}
+	v8::String::Utf8Value group(args[0]->ToString());
+	auto graph = node::ObjectWrap::Unwrap<gk::Graph>(args.Holder());
+	auto set = graph->coordinator()->groupGraph()->findByKey(*group);
+	GK_RETURN(set->handle());
 }
