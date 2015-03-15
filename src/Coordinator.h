@@ -59,6 +59,12 @@ namespace gk {
 		using Tree = gk::RedBlackTree<Cluster, true, ClusterKey, Order>;
 
 		/**
+		* sync
+		* Synchronizes the Graph instance.
+		*/
+		void sync() noexcept;
+
+		/**
 		* insert
 		* Inserts a Node into the Graph.
 		* @param		v8::Isolate* isolate
