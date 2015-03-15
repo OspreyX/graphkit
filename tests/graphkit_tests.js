@@ -124,5 +124,6 @@ g1.clear();
 	users[0].addGroup('monitor');
 	books[0].addGroup('monitor');
 	reads[0].addGroup('monitor');
+	reads[1].addGroup('monitor');
 	console.log(g1.group('monitor'));
 })();
