@@ -127,5 +127,6 @@ g1.clear();
 	reads[1].addGroup('monitor');
 	reads[1].removeGroup('monitor');
 	users[0].removeGroup('monitor');
+	g1.remove(books[0]);
 	console.log(g1.group('monitor'));
 })();
