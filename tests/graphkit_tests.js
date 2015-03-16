@@ -88,7 +88,7 @@ g1.clear();
 			friend.object = users[index];
 		}
 	}
-	console.log('Friends added (%d) Time %d', g1.Bond.Friend.count, Date.now() - start);
+	console.log('Friends added (%d) Time %d', g1.Entity.User.count, Date.now() - start);
 })();
 
 (function() {
@@ -113,7 +113,7 @@ g1.clear();
 			}
 		}
 	}
-	console.log('Reads added (%d) Time %d', g1.Action.Read.count, Date.now() - start);
+	console.log('Actions added (%d) Time %d', g1.Action.Read.count, Date.now() - start);
 })();
 
 (function() {
