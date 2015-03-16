@@ -31,20 +31,20 @@ gk::Set::~Set() {
 }
 
 bool gk::Set::insert(gk::Node* node) noexcept {
-	return gk::RedBlackTree<gk::Node, true, std::string>::insert(node->hash(), node, [](gk::Node* n) {
-		n->Ref();
+	return gk::RedBlackTree<gk::Node, true, std::string>::insert(node->hash(), node, [](gk::Node* node) {
+		node->Ref();
 	});
 }
 
-bool gk::Set::remove(const std::string& k) noexcept {
-	return gk::RedBlackTree<gk::Node, true, std::string>::remove(k, [](gk::Node* n) {
-		n->Unref();
+bool gk::Set::remove(const std::string& key) noexcept {
+	return gk::RedBlackTree<gk::Node, true, std::string>::remove(key, [](gk::Node* node) {
+		node->Unref();
 	});
 }
 
 void gk::Set::cleanUp() noexcept {
-	this->clear([](gk::Node *n) {
-		n->Unref();
+	this->clear([](gk::Node *node) {
+		node->Unref();
 	});
 }
 

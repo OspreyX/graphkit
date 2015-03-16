@@ -31,20 +31,20 @@ gk::Multiset::~Multiset() {
 }
 
 bool gk::Multiset::insert(gk::Node* node) noexcept {
-	return gk::RedBlackTree<gk::Node, false, std::string>::insert(node->hash(), node, [](gk::Node* n) {
-		n->Ref();
+	return gk::RedBlackTree<gk::Node, false, std::string>::insert(node->hash(), node, [](gk::Node* node) {
+		node->Ref();
 	});
 }
 
-bool gk::Multiset::remove(const std::string& k) noexcept {
-	return gk::RedBlackTree<gk::Node, false, std::string>::remove(k, [](gk::Node* n) {
-		n->Unref();
+bool gk::Multiset::remove(const std::string& key) noexcept {
+	return gk::RedBlackTree<gk::Node, false, std::string>::remove(key, [](gk::Node* node) {
+		node->Unref();
 	});
 }
 
 void gk::Multiset::cleanUp() noexcept {
-	this->clear([](gk::Node *n) {
-		n->Unref();
+	this->clear([](gk::Node *node) {
+		node->Unref();
 	});
 }
 

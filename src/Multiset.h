@@ -37,7 +37,7 @@ namespace gk {
 		Multiset& operator= (Multiset&&) = default;
 
 		bool insert(gk::Node* node) noexcept;
-		bool remove(const std::string& k) noexcept;
+		bool remove(const std::string& key) noexcept;
 		void cleanUp() noexcept;
 
 		static gk::Multiset* Instance(v8::Isolate* isolate) noexcept;
